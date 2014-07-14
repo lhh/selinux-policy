@@ -22165,7 +22165,7 @@ index fe0c682..eb9cefe 100644
 +	ps_process_pattern($1, sshd_t)
 +')
 diff --git a/policy/modules/services/ssh.te b/policy/modules/services/ssh.te
-index cc877c7..b4e231c 100644
+index cc877c7..ea4edac 100644
 --- a/policy/modules/services/ssh.te
 +++ b/policy/modules/services/ssh.te
 @@ -6,43 +6,68 @@ policy_module(ssh, 2.4.2)
@@ -22429,7 +22429,7 @@ index cc877c7..b4e231c 100644
  
  files_read_etc_files(ssh_keysign_t)
  
-@@ -226,39 +267,57 @@ optional_policy(`
+@@ -226,39 +267,58 @@ optional_policy(`
  # so a tunnel can point to another ssh tunnel
  allow sshd_t self:netlink_route_socket r_netlink_socket_perms;
  allow sshd_t self:key { search link write };
@@ -22466,6 +22466,7 @@ index cc877c7..b4e231c 100644
 -	allow sshd_t self:process { getcap setcap };
 -')
 +auth_exec_login_program(sshd_t)
++auth_signal_chk_passwd(sshd_t)
 +
 +userdom_read_user_home_content_files(sshd_t)
 +userdom_read_user_home_content_symlinks(sshd_t)
@@ -22499,7 +22500,7 @@ index cc877c7..b4e231c 100644
  ')
  
  optional_policy(`
-@@ -266,6 +325,15 @@ optional_policy(`
+@@ -266,6 +326,15 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -22515,7 +22516,7 @@ index cc877c7..b4e231c 100644
  	inetd_tcp_service_domain(sshd_t, sshd_exec_t)
  ')
  
-@@ -275,6 +343,18 @@ optional_policy(`
+@@ -275,6 +344,18 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -22534,7 +22535,7 @@ index cc877c7..b4e231c 100644
  	oddjob_domtrans_mkhomedir(sshd_t)
  ')
  
-@@ -289,13 +369,93 @@ optional_policy(`
+@@ -289,13 +370,93 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -22628,7 +22629,7 @@ index cc877c7..b4e231c 100644
  ########################################
  #
  # ssh_keygen local policy
-@@ -304,19 +464,33 @@ optional_policy(`
+@@ -304,19 +465,33 @@ optional_policy(`
  # ssh_keygen_t is the type of the ssh-keygen program when run at install time
  # and by sysadm_t
  
@@ -22663,7 +22664,7 @@ index cc877c7..b4e231c 100644
  dev_read_urand(ssh_keygen_t)
  
  term_dontaudit_use_console(ssh_keygen_t)
-@@ -332,7 +506,9 @@ auth_use_nsswitch(ssh_keygen_t)
+@@ -332,7 +507,9 @@ auth_use_nsswitch(ssh_keygen_t)
  
  logging_send_syslog_msg(ssh_keygen_t)
  
@@ -22673,7 +22674,7 @@ index cc877c7..b4e231c 100644
  
  optional_policy(`
  	seutil_sigchld_newrole(ssh_keygen_t)
-@@ -341,3 +517,147 @@ optional_policy(`
+@@ -341,3 +518,147 @@ optional_policy(`
  optional_policy(`
  	udev_read_db(ssh_keygen_t)
  ')
@@ -22822,7 +22823,7 @@ index cc877c7..b4e231c 100644
 +	xserver_rw_xdm_pipes(ssh_agent_type)
 +')
 diff --git a/policy/modules/services/xserver.fc b/policy/modules/services/xserver.fc
-index 8274418..4eee56a 100644
+index 8274418..a20467d 100644
 --- a/policy/modules/services/xserver.fc
 +++ b/policy/modules/services/xserver.fc
 @@ -2,13 +2,35 @@
@@ -22959,14 +22960,16 @@ index 8274418..4eee56a 100644
  /var/run/xdm\.pid	--	gen_context(system_u:object_r:xdm_var_run_t,s0)
  /var/run/lxdm\.auth	--	gen_context(system_u:object_r:xdm_var_run_t,s0)
  /var/run/lxdm\.pid	--	gen_context(system_u:object_r:xdm_var_run_t,s0)
-@@ -112,6 +161,16 @@ ifndef(`distro_debian',`
+@@ -111,7 +160,18 @@ ifndef(`distro_debian',`
+ /var/run/slim.*			gen_context(system_u:object_r:xdm_var_run_t,s0)
  /var/run/xauth(/.*)?		gen_context(system_u:object_r:xdm_var_run_t,s0)
  /var/run/xdmctl(/.*)?		gen_context(system_u:object_r:xdm_var_run_t,s0)
- 
++/var/run/sddm(/.*)?		gen_context(system_u:object_r:xdm_var_run_t,s0)
++
 +/var/run/video.rom	--	gen_context(system_u:object_r:xserver_var_run_t,s0)
 +/var/run/xorg(/.*)?		gen_context(system_u:object_r:xserver_var_run_t,s0)
 +/var/run/systemd/multi-session-x(/.*)?	gen_context(system_u:object_r:xdm_var_run_t,s0)
-+
+ 
  ifdef(`distro_suse',`
  /var/lib/pam_devperm/:0	--	gen_context(system_u:object_r:xdm_var_lib_t,s0)
  ')
@@ -28193,7 +28196,7 @@ index e4376aa..2c98c56 100644
 +	allow $1 getty_unit_file_t:service start;
 +')
 diff --git a/policy/modules/system/getty.te b/policy/modules/system/getty.te
-index f6743ea..c23209c 100644
+index f6743ea..77a3b65 100644
 --- a/policy/modules/system/getty.te
 +++ b/policy/modules/system/getty.te
 @@ -27,6 +27,17 @@ files_tmp_file(getty_tmp_t)
@@ -28243,21 +28246,24 @@ index f6743ea..c23209c 100644
  	# Support logging in from /dev/console
  	term_use_console(getty_t)
  ',`
-@@ -121,11 +134,15 @@ tunable_policy(`console_login',`
+@@ -121,11 +134,19 @@ tunable_policy(`console_login',`
  ')
  
  optional_policy(`
--	mta_send_mail(getty_t)
 +    hostname_exec(getty_t)
- ')
- 
- optional_policy(`
--	nscd_use(getty_t)
++')
++
++optional_policy(`
 +    lockdev_manage_files(getty_t)
 +')
 +
 +optional_policy(`
-+	mta_send_mail(getty_t)
+ 	mta_send_mail(getty_t)
+ ')
+ 
+ optional_policy(`
+-	nscd_use(getty_t)
++    plymouthd_exec_plymouth(getty_t)
  ')
  
  optional_policy(`
@@ -28419,7 +28425,7 @@ index b2097e7..0a49e14 100644
  ')
  
 diff --git a/policy/modules/system/init.fc b/policy/modules/system/init.fc
-index bc0ffc8..8de430d 100644
+index bc0ffc8..6fb2053 100644
 --- a/policy/modules/system/init.fc
 +++ b/policy/modules/system/init.fc
 @@ -1,6 +1,9 @@
@@ -28444,7 +28450,7 @@ index bc0ffc8..8de430d 100644
  /sbin/init(ng)?		--	gen_context(system_u:object_r:init_exec_t,s0)
  # because nowadays, /sbin/init is often a symlink to /sbin/upstart
  /sbin/upstart		--	gen_context(system_u:object_r:init_exec_t,s0)
-@@ -42,20 +50,34 @@ ifdef(`distro_gentoo', `
+@@ -42,20 +50,35 @@ ifdef(`distro_gentoo', `
  #
  /usr/bin/sepg_ctl	--	gen_context(system_u:object_r:initrc_exec_t,s0)
  
@@ -28471,6 +28477,7 @@ index bc0ffc8..8de430d 100644
  #
 +/var/lib/systemd(/.*)?	gen_context(system_u:object_r:init_var_lib_t,s0)
  /var/run/initctl	-p	gen_context(system_u:object_r:initctl_t,s0)
++/var/run/initctl/fifo	-p	gen_context(system_u:object_r:initctl_t,s0)
  /var/run/utmp		--	gen_context(system_u:object_r:initrc_var_run_t,s0)
  /var/run/runlevel\.dir		gen_context(system_u:object_r:initrc_var_run_t,s0)
  /var/run/random-seed	--	gen_context(system_u:object_r:initrc_var_run_t,s0)
@@ -28479,13 +28486,13 @@ index bc0ffc8..8de430d 100644
  
  ifdef(`distro_debian',`
  /var/run/hotkey-setup	--	gen_context(system_u:object_r:initrc_var_run_t,s0)
-@@ -74,3 +96,4 @@ ifdef(`distro_suse', `
+@@ -74,3 +97,4 @@ ifdef(`distro_suse', `
  /var/run/setleds-on	--	gen_context(system_u:object_r:initrc_var_run_t,s0)
  /var/run/sysconfig(/.*)?	gen_context(system_u:object_r:initrc_var_run_t,s0)
  ')
 +/var/run/systemd(/.*)?		gen_context(system_u:object_r:init_var_run_t,s0)
 diff --git a/policy/modules/system/init.if b/policy/modules/system/init.if
-index 79a45f6..89b43aa 100644
+index 79a45f6..532ded5 100644
 --- a/policy/modules/system/init.if
 +++ b/policy/modules/system/init.if
 @@ -1,5 +1,21 @@
@@ -29468,7 +29475,7 @@ index 79a45f6..89b43aa 100644
  ########################################
  ## <summary>
  ##	Allow the specified domain to connect to daemon with a tcp socket
-@@ -1840,3 +2360,450 @@ interface(`init_udp_recvfrom_all_daemons',`
+@@ -1840,3 +2360,452 @@ interface(`init_udp_recvfrom_all_daemons',`
  	')
  	corenet_udp_recvfrom_labeled($1, daemon)
  ')
@@ -29913,11 +29920,13 @@ index 79a45f6..89b43aa 100644
 +		type init_var_run_t;
 +		type initrc_var_run_t;
 +		type machineid_t;
++		type initctl_t;
 +	')
 +
 +	files_pid_filetrans($1, initrc_var_run_t, file, "utmp")
 +	files_pid_filetrans($1, init_var_run_t, file, "random-seed")
 +	files_etc_filetrans($1, machineid_t, file, "machine-id" )
++	files_pid_filetrans($1, initctl_t, fifo_file, "fifo" )
 +')
 diff --git a/policy/modules/system/init.te b/policy/modules/system/init.te
 index 17eda24..84a3fcf 100644
@@ -34130,7 +34139,7 @@ index 6b91740..562d1fd 100644
 +/var/run/clvmd\.pid --  gen_context(system_u:object_r:clvmd_var_run_t,s0)
  /var/run/dmevent.*		gen_context(system_u:object_r:lvm_var_run_t,s0)
 diff --git a/policy/modules/system/lvm.if b/policy/modules/system/lvm.if
-index 58bc27f..f887230 100644
+index 58bc27f..f5ae583 100644
 --- a/policy/modules/system/lvm.if
 +++ b/policy/modules/system/lvm.if
 @@ -86,6 +86,50 @@ interface(`lvm_read_config',`
@@ -34184,7 +34193,7 @@ index 58bc27f..f887230 100644
  ##	Manage LVM configuration files.
  ## </summary>
  ## <param name="domain">
-@@ -123,3 +167,113 @@ interface(`lvm_domtrans_clvmd',`
+@@ -123,3 +167,131 @@ interface(`lvm_domtrans_clvmd',`
  	corecmd_search_bin($1)
  	domtrans_pattern($1, clvmd_exec_t, clvmd_t)
  ')
@@ -34296,6 +34305,24 @@ index 58bc27f..f887230 100644
 +	')
 +
 +    dontaudit $1 lvm_lock_t:dir audit_access;
++')
++
++########################################
++## <summary>
++##	Read the process state (/proc/pid) of lvm.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`lvm_read_state',`
++	gen_require(`
++		type lvm_t;
++	')
++
++	ps_process_pattern($1, lvm_t)
 +')
 +
 diff --git a/policy/modules/system/lvm.te b/policy/modules/system/lvm.te
@@ -40217,10 +40244,10 @@ index 0000000..d2a8fc7
 +')
 diff --git a/policy/modules/system/systemd.te b/policy/modules/system/systemd.te
 new file mode 100644
-index 0000000..8af0084
+index 0000000..e2c527a
 --- /dev/null
 +++ b/policy/modules/system/systemd.te
-@@ -0,0 +1,681 @@
+@@ -0,0 +1,685 @@
 +policy_module(systemd, 1.0.0)
 +
 +#######################################
@@ -40895,6 +40922,10 @@ index 0000000..8af0084
 +
 +seutil_read_config(systemd_domain)
 +seutil_read_file_contexts(systemd_domain)
++
++optional_policy(`
++	lvm_read_state(systemd_domain)
++')
 +
 +optional_policy(`
 +	policykit_dbus_chat(systemd_domain)

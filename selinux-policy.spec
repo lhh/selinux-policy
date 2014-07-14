@@ -19,7 +19,7 @@
 Summary: SELinux policy configuration
 Name: selinux-policy
 Version: 3.13.1
-Release: 63%{?dist}
+Release: 64%{?dist}
 License: GPLv2+
 Group: System Environment/Base
 Source: serefpolicy-%{version}.tgz
@@ -600,6 +600,31 @@ SELinux Reference policy mls base module.
 %endif
 
 %changelog
+* Mon Jul 14 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-64
+- Allow systemd domains to check lvm status
+- Allow getty to execute plymouth.#1112870
+- Allow sshd to send signal to chkpwd_t
+- initrctl fifo file has been renamed
+- Set proper labeling on /var/run/sddm
+- Fix labeling for cloud-init logs
+- Allow kexec to read kallsyms
+- Add rhcs_stream_connect_haproxy interface, Allow neutron stream connect to rhcs
+- Add fsetid caps for mandb. #1116165
+- Allow all nut domains to read  /dev/(u)?random.
+- Allow deltacloudd_t to read network state BZ #1116940
+- Add support for KVM virtual machines to use NUMA pre-placement
+- Allow utilize winbind for authentication to AD
+- Allow chrome sandbox to use udp_sockets leaked in by its parent
+- Allow gfs_controld_t to getattr on all file systems
+- Allow logrotate to manage virt_cache
+- varnishd needs to have fsetid capability
+- Allow dovecot domains to send signal perms to themselves
+- Allow apache to manage pid sock files
+- Allow nut_upsmon_t to create sock_file in /run dir
+- Add capability sys_ptrace to stapserver
+- Mysql can execute scripts when run in a cluster to see if someone is listening on a socket, basically runs lsof
+- Added support for vdsm
+
 * Fri Jul 4 2014 Miroslav Grepl<mgrepl@redhat.com> 3.13.1-63
 - If I can create a socket I need to be able to set the attributes
 - Add tcp/8775 port as neutron port
