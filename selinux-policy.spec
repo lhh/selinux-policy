@@ -19,7 +19,7 @@
 Summary: SELinux policy configuration
 Name: selinux-policy
 Version: 3.13.1
-Release: 64%{?dist}
+Release: 65%{?dist}
 License: GPLv2+
 Group: System Environment/Base
 Source: serefpolicy-%{version}.tgz
@@ -600,6 +600,26 @@ SELinux Reference policy mls base module.
 %endif
 
 %changelog
+* Fri Jul 18 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-65
+- Allow sysadm to dbus chat with systemd
+- Add logging_dontaudit_search_audit_logs()
+- Add new files_read_all_mountpoint_symlinks() 
+- Fix labeling path from /var/run/systemd/initctl/fifo to /var/run/initctl/fifo.
+- Allow ndc to read random and urandom device (#1110397)
+- Allow zabbix to read system network state
+- Allow fprintd to execute usr_t/bin_t
+- Allow mailserver_domain domains to append dead.letter labeled as mail_home_t
+- Add glance_use_execmem boolean to have glance configured to use Ceph/rbd
+- Dontaudit search audit logs for fail2ban
+- Allow mailserver_domain domains to create mail home content with right labeling
+- Dontaudit svirt_sandbox_domain doing access checks on /proc
+- Fix  files_pid_filetrans() calling in nut.te to reflect allow rules.
+- Use nut_domain attribute for files_pid_filetrans() for nut domains.
+- Allow sandbox domains read all mountpoint symlinks to make symlinked homedirs
+- Fix nut domains only have type transition on dirs in /run/nut directory.
+- Allow net_admin/net_raw capabilities for haproxy_t. haproxy uses setsockopt()
+- Clean up osad policy. Remove additional interfaces/rules
+
 * Mon Jul 14 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-64
 - Allow systemd domains to check lvm status
 - Allow getty to execute plymouth.#1112870
