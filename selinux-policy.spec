@@ -19,7 +19,7 @@
 Summary: SELinux policy configuration
 Name: selinux-policy
 Version: 3.13.1
-Release: 65%{?dist}
+Release: 66%{?dist}
 License: GPLv2+
 Group: System Environment/Base
 Source: serefpolicy-%{version}.tgz
@@ -600,6 +600,13 @@ SELinux Reference policy mls base module.
 %endif
 
 %changelog
+
+* Mon Jul 21 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-66
+- Bluejeans wants to connect to port 5000
+- geoclue dbus chats with modemmanger
+- Dontaudit list /tmp for icecast (#894387)
+- Revert "Fix labeling path from /var/run/systemd/initctl/fifo to /var/run/initctl/fifo."
+
 * Fri Jul 18 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-65
 - Allow sysadm to dbus chat with systemd
 - Add logging_dontaudit_search_audit_logs()

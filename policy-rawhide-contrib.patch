@@ -28999,10 +28999,10 @@ index 0000000..9e17d3e
 +')
 diff --git a/geoclue.te b/geoclue.te
 new file mode 100644
-index 0000000..204995f
+index 0000000..baa5492
 --- /dev/null
 +++ b/geoclue.te
-@@ -0,0 +1,54 @@
+@@ -0,0 +1,57 @@
 +policy_module(geoclue, 1.0.0)
 +
 +########################################
@@ -29053,6 +29053,9 @@ index 0000000..204995f
 +optional_policy(`
 +	dbus_system_domain(geoclue_t, geoclue_exec_t)
 +
++	optional_policy(`
++		modemmanager_dbus_chat(geoclue_t)
++	')
 +	optional_policy(`
 +		networkmanager_dbus_chat(geoclue_t)
 +	')
@@ -34416,10 +34419,10 @@ index 580b533..c267cea 100644
  	domain_system_change_exemption($1)
  	role_transition $2 icecast_initrc_exec_t system_r;
 diff --git a/icecast.te b/icecast.te
-index a9e573a..d375214 100644
+index a9e573a..6420131 100644
 --- a/icecast.te
 +++ b/icecast.te
-@@ -65,12 +65,8 @@ dev_read_sysfs(icecast_t)
+@@ -65,11 +65,9 @@ dev_read_sysfs(icecast_t)
  dev_read_urand(icecast_t)
  dev_read_rand(icecast_t)
  
@@ -34428,10 +34431,10 @@ index a9e573a..d375214 100644
  auth_use_nsswitch(icecast_t)
  
 -miscfiles_read_localization(icecast_t)
--
++files_dontaudit_list_tmp(icecast_t)
+ 
  tunable_policy(`icecast_use_any_tcp_ports',`
  	corenet_tcp_connect_all_ports(icecast_t)
- 	corenet_sendrecv_all_client_packets(icecast_t)
 diff --git a/ifplugd.if b/ifplugd.if
 index 8999899..96909ae 100644
 --- a/ifplugd.if
@@ -46386,7 +46389,7 @@ index 6194b80..7490fe3 100644
  ')
 +
 diff --git a/mozilla.te b/mozilla.te
-index 11ac8e4..1025b89 100644
+index 11ac8e4..07b06e1 100644
 --- a/mozilla.te
 +++ b/mozilla.te
 @@ -6,17 +6,48 @@ policy_module(mozilla, 2.8.0)
@@ -47240,7 +47243,7 @@ index 11ac8e4..1025b89 100644
  ')
  
  optional_policy(`
-@@ -568,108 +593,136 @@ optional_policy(`
+@@ -568,108 +593,137 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -47435,6 +47438,7 @@ index 11ac8e4..1025b89 100644
 +tunable_policy(`mozilla_plugin_use_bluejeans',`
 +    corenet_tcp_bind_unreserved_ports(mozilla_plugin_t)
 +    corenet_dontaudit_tcp_bind_all_defined_ports(mozilla_plugin_t)
++    corenet_tcp_connect_commplex_main_port(mozilla_plugin_t)
  ')
 diff --git a/mpd.fc b/mpd.fc
 index 313ce52..ae93e07 100644

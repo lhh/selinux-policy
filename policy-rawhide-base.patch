@@ -30819,7 +30819,7 @@ index b2097e7..0a49e14 100644
  ')
  
 diff --git a/policy/modules/system/init.fc b/policy/modules/system/init.fc
-index bc0ffc8..6fb2053 100644
+index bc0ffc8..7198bd9 100644
 --- a/policy/modules/system/init.fc
 +++ b/policy/modules/system/init.fc
 @@ -1,6 +1,9 @@
@@ -30871,7 +30871,7 @@ index bc0ffc8..6fb2053 100644
  #
 +/var/lib/systemd(/.*)?	gen_context(system_u:object_r:init_var_lib_t,s0)
  /var/run/initctl	-p	gen_context(system_u:object_r:initctl_t,s0)
-+/var/run/initctl/fifo	-p	gen_context(system_u:object_r:initctl_t,s0)
++/var/run/systemd/initctl/fifo	-p	gen_context(system_u:object_r:initctl_t,s0)
  /var/run/utmp		--	gen_context(system_u:object_r:initrc_var_run_t,s0)
  /var/run/runlevel\.dir		gen_context(system_u:object_r:initrc_var_run_t,s0)
  /var/run/random-seed	--	gen_context(system_u:object_r:initrc_var_run_t,s0)
