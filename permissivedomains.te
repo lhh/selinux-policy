@@ -48,3 +48,10 @@ optional_policy(`
     ')
     permissive kmscon_t;
 ')
+
+optional_policy(`
+    gen_require(`
+            type naemon_t;
+    ')
+    permissive naemon_t;
+')
