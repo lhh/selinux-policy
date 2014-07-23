@@ -11136,7 +11136,7 @@ index 008f8ef..144c074 100644
  	admin_pattern($1, certmonger_var_run_t)
  ')
 diff --git a/certmonger.te b/certmonger.te
-index 550b287..31b8bd7 100644
+index 550b287..0b1d596 100644
 --- a/certmonger.te
 +++ b/certmonger.te
 @@ -18,6 +18,9 @@ files_type(certmonger_var_lib_t)
@@ -11200,8 +11200,12 @@ index 550b287..31b8bd7 100644
  
  fs_search_cgroup_dirs(certmonger_t)
  
-@@ -70,16 +84,17 @@ init_getattr_all_script_files(certmonger_t)
+@@ -68,18 +82,21 @@ auth_rw_cache(certmonger_t)
  
+ init_getattr_all_script_files(certmonger_t)
+ 
++libs_exec_ldconfig(certmonger_t)
++
  logging_send_syslog_msg(certmonger_t)
  
 -miscfiles_read_localization(certmonger_t)
@@ -11221,7 +11225,7 @@ index 550b287..31b8bd7 100644
  ')
  
  optional_policy(`
-@@ -92,11 +107,51 @@ optional_policy(`
+@@ -92,11 +109,51 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -37549,7 +37553,7 @@ index 0000000..0d61849
 +')
 diff --git a/keepalived.te b/keepalived.te
 new file mode 100644
-index 0000000..1e45967
+index 0000000..a5b2f96
 --- /dev/null
 +++ b/keepalived.te
 @@ -0,0 +1,55 @@
@@ -37606,7 +37610,7 @@ index 0000000..1e45967
 +logging_send_syslog_msg(keepalived_t)
 +
 +optional_policy(`
-+    snmp_manage_snmp_var_lib_files(keepalived_t)
++    snmp_manage_var_lib_files(keepalived_t)
 +')
 diff --git a/kerberos.fc b/kerberos.fc
 index 4fe75fd..b029c28 100644
@@ -108291,7 +108295,7 @@ index dd63de0..38ce620 100644
 -	admin_pattern($1, zabbix_tmpfs_t)
  ')
 diff --git a/zabbix.te b/zabbix.te
-index 7f496c6..f2b5fa6 100644
+index 7f496c6..11bcf63 100644
 --- a/zabbix.te
 +++ b/zabbix.te
 @@ -6,27 +6,32 @@ policy_module(zabbix, 1.6.0)
@@ -108330,7 +108334,7 @@ index 7f496c6..f2b5fa6 100644
  type zabbix_log_t;
  logging_log_file(zabbix_log_t)
  
-@@ -36,27 +41,53 @@ files_tmp_file(zabbix_tmp_t)
+@@ -36,27 +41,54 @@ files_tmp_file(zabbix_tmp_t)
  type zabbix_tmpfs_t;
  files_tmpfs_file(zabbix_tmpfs_t)
  
@@ -108354,6 +108358,7 @@ index 7f496c6..f2b5fa6 100644
 +allow zabbix_domain self:unix_stream_socket create_stream_socket_perms;
 +
 +kernel_read_all_sysctls(zabbix_domain)
++kernel_read_network_state(zabbix_domain)
 +
 +corenet_tcp_sendrecv_generic_if(zabbix_domain)
 +corenet_tcp_sendrecv_generic_node(zabbix_domain)
@@ -108396,7 +108401,7 @@ index 7f496c6..f2b5fa6 100644
  
  manage_dirs_pattern(zabbix_t, zabbix_tmp_t, zabbix_tmp_t)
  manage_files_pattern(zabbix_t, zabbix_tmp_t, zabbix_tmp_t)
-@@ -70,13 +101,9 @@ manage_files_pattern(zabbix_t, zabbix_var_run_t, zabbix_var_run_t)
+@@ -70,13 +102,9 @@ manage_files_pattern(zabbix_t, zabbix_var_run_t, zabbix_var_run_t)
  files_pid_filetrans(zabbix_t, zabbix_var_run_t, { dir file })
  
  kernel_read_system_state(zabbix_t)
@@ -108410,7 +108415,7 @@ index 7f496c6..f2b5fa6 100644
  
  corenet_sendrecv_ftp_client_packets(zabbix_t)
  corenet_tcp_connect_ftp_port(zabbix_t)
-@@ -85,24 +112,18 @@ corenet_tcp_sendrecv_ftp_port(zabbix_t)
+@@ -85,24 +113,18 @@ corenet_tcp_sendrecv_ftp_port(zabbix_t)
  corenet_sendrecv_http_client_packets(zabbix_t)
  corenet_tcp_connect_http_port(zabbix_t)
  corenet_tcp_sendrecv_http_port(zabbix_t)
@@ -108438,7 +108443,7 @@ index 7f496c6..f2b5fa6 100644
  tunable_policy(`zabbix_can_network',`
  	corenet_sendrecv_all_client_packets(zabbix_t)
  	corenet_tcp_connect_all_ports(zabbix_t)
-@@ -110,12 +131,11 @@ tunable_policy(`zabbix_can_network',`
+@@ -110,12 +132,11 @@ tunable_policy(`zabbix_can_network',`
  ')
  
  optional_policy(`
@@ -108453,7 +108458,7 @@ index 7f496c6..f2b5fa6 100644
  ')
  
  optional_policy(`
-@@ -125,6 +145,7 @@ optional_policy(`
+@@ -125,6 +146,7 @@ optional_policy(`
  
  optional_policy(`
  	snmp_read_snmp_var_lib_files(zabbix_t)
@@ -108461,7 +108466,7 @@ index 7f496c6..f2b5fa6 100644
  ')
  
  ########################################
-@@ -132,18 +153,7 @@ optional_policy(`
+@@ -132,18 +154,7 @@ optional_policy(`
  # Agent local policy
  #
  
@@ -108481,7 +108486,7 @@ index 7f496c6..f2b5fa6 100644
  
  rw_files_pattern(zabbix_agent_t, zabbix_tmpfs_t, zabbix_tmpfs_t)
  fs_tmpfs_filetrans(zabbix_agent_t, zabbix_tmpfs_t, file)
-@@ -151,16 +161,13 @@ fs_tmpfs_filetrans(zabbix_agent_t, zabbix_tmpfs_t, file)
+@@ -151,16 +162,13 @@ fs_tmpfs_filetrans(zabbix_agent_t, zabbix_tmpfs_t, file)
  manage_files_pattern(zabbix_agent_t, zabbix_var_run_t, zabbix_var_run_t)
  files_pid_filetrans(zabbix_agent_t, zabbix_var_run_t, file)
  
@@ -108501,7 +108506,7 @@ index 7f496c6..f2b5fa6 100644
  
  corenet_sendrecv_zabbix_agent_server_packets(zabbix_agent_t)
  corenet_tcp_bind_zabbix_agent_port(zabbix_agent_t)
-@@ -177,21 +184,28 @@ corenet_tcp_sendrecv_zabbix_port(zabbix_agent_t)
+@@ -177,21 +185,28 @@ corenet_tcp_sendrecv_zabbix_port(zabbix_agent_t)
  dev_getattr_all_blk_files(zabbix_agent_t)
  dev_getattr_all_chr_files(zabbix_agent_t)
  
