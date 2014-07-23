@@ -37549,7 +37549,7 @@ index 0000000..0d61849
 +')
 diff --git a/keepalived.te b/keepalived.te
 new file mode 100644
-index 0000000..879ab65
+index 0000000..1e45967
 --- /dev/null
 +++ b/keepalived.te
 @@ -0,0 +1,55 @@
@@ -37606,7 +37606,7 @@ index 0000000..879ab65
 +logging_send_syslog_msg(keepalived_t)
 +
 +optional_policy(`
-+    snmp_read_snmp_var_lib_files(keepalived_t)
++    snmp_manage_snmp_var_lib_files(keepalived_t)
 +')
 diff --git a/kerberos.fc b/kerberos.fc
 index 4fe75fd..b029c28 100644
@@ -43876,7 +43876,7 @@ index 0000000..8169129
 +')
 diff --git a/mip6d.te b/mip6d.te
 new file mode 100644
-index 0000000..1d34063
+index 0000000..0f290e9
 --- /dev/null
 +++ b/mip6d.te
 @@ -0,0 +1,33 @@
@@ -43899,7 +43899,7 @@ index 0000000..1d34063
 +# mip6d local policy
 +#
 +allow mip6d_t self:capability { net_admin net_raw };
-+allow mip6d_t self:process { fork signal };
++allow mip6d_t self:process { setpgid fork signal };
 +allow mip6d_t self:netlink_route_socket create_netlink_socket_perms;
 +allow mip6d_t self:netlink_xfrm_socket create_netlink_socket_perms;
 +allow mip6d_t self:rawip_socket create_socket_perms;
@@ -51179,6 +51179,399 @@ index 0000000..0e585e3
 +	mysql_stream_connect(mythtv_script_t)
 +	mysql_tcp_connect(mythtv_script_t)
 +')
+diff --git a/naemon.fc b/naemon.fc
+new file mode 100644
+index 0000000..85407d3
+--- /dev/null
++++ b/naemon.fc
+@@ -0,0 +1,11 @@
++/etc/rc\.d/init\.d/naemon	--	gen_context(system_u:object_r:naemon_initrc_exec_t,s0)
++
++/usr/bin/naemon		--	gen_context(system_u:object_r:naemon_exec_t,s0)
++
++/var/cache/naemon(/.*)?		gen_context(system_u:object_r:naemon_cache_t,s0)
++
++/var/lib/naemon(/.*)?		gen_context(system_u:object_r:naemon_var_lib_t,s0)
++
++/var/log/naemon(/.*)?		gen_context(system_u:object_r:naemon_log_t,s0)
++
++/var/run/naemon(/.*)?		gen_context(system_u:object_r:naemon_var_run_t,s0)
+diff --git a/naemon.if b/naemon.if
+new file mode 100644
+index 0000000..e904df0
+--- /dev/null
++++ b/naemon.if
+@@ -0,0 +1,305 @@
++
++## <summary>New monitoring suite that aims to be faster and more stable, while giving you a clearer view of the state of your network.</summary>
++
++########################################
++## <summary>
++##	Execute naemon in the naemon domin.
++## </summary>
++## <param name="domain">
++## <summary>
++##	Domain allowed to transition.
++## </summary>
++## </param>
++#
++interface(`naemon_domtrans',`
++	gen_require(`
++		type naemon_t, naemon_exec_t;
++	')
++
++	corecmd_search_bin($1)
++	domtrans_pattern($1, naemon_exec_t, naemon_t)
++')
++
++########################################
++## <summary>
++##	Execute naemon server in the naemon domain.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`naemon_initrc_domtrans',`
++	gen_require(`
++		type naemon_initrc_exec_t;
++	')
++
++	init_labeled_script_domtrans($1, naemon_initrc_exec_t)
++')
++
++########################################
++## <summary>
++##	Search naemon cache directories.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`naemon_search_cache',`
++	gen_require(`
++		type naemon_cache_t;
++	')
++
++	allow $1 naemon_cache_t:dir search_dir_perms;
++	files_search_var($1)
++')
++
++########################################
++## <summary>
++##	Read naemon cache files.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`naemon_read_cache_files',`
++	gen_require(`
++		type naemon_cache_t;
++	')
++
++	files_search_var($1)
++	read_files_pattern($1, naemon_cache_t, naemon_cache_t)
++')
++
++########################################
++## <summary>
++##	Create, read, write, and delete
++##	naemon cache files.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`naemon_manage_cache_files',`
++	gen_require(`
++		type naemon_cache_t;
++	')
++
++	files_search_var($1)
++	manage_files_pattern($1, naemon_cache_t, naemon_cache_t)
++')
++
++########################################
++## <summary>
++##	Manage naemon cache dirs.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`naemon_manage_cache_dirs',`
++	gen_require(`
++		type naemon_cache_t;
++	')
++
++	files_search_var($1)
++	manage_dirs_pattern($1, naemon_cache_t, naemon_cache_t)
++')
++
++########################################
++## <summary>
++##	Read naemon's log files.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <rolecap/>
++#
++interface(`naemon_read_log',`
++	gen_require(`
++		type naemon_log_t;
++	')
++
++	logging_search_logs($1)
++	read_files_pattern($1, naemon_log_t, naemon_log_t)
++')
++
++########################################
++## <summary>
++##	Append to naemon log files.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`naemon_append_log',`
++	gen_require(`
++		type naemon_log_t;
++	')
++
++	logging_search_logs($1)
++	append_files_pattern($1, naemon_log_t, naemon_log_t)
++')
++
++########################################
++## <summary>
++##	Manage naemon log files
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`naemon_manage_log',`
++	gen_require(`
++		type naemon_log_t;
++	')
++
++	logging_search_logs($1)
++	manage_dirs_pattern($1, naemon_log_t, naemon_log_t)
++	manage_files_pattern($1, naemon_log_t, naemon_log_t)
++	manage_lnk_files_pattern($1, naemon_log_t, naemon_log_t)
++')
++
++########################################
++## <summary>
++##	Search naemon lib directories.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`naemon_search_lib',`
++	gen_require(`
++		type naemon_var_lib_t;
++	')
++
++	allow $1 naemon_var_lib_t:dir search_dir_perms;
++	files_search_var_lib($1)
++')
++
++########################################
++## <summary>
++##	Read naemon lib files.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`naemon_read_lib_files',`
++	gen_require(`
++		type naemon_var_lib_t;
++	')
++
++	files_search_var_lib($1)
++	read_files_pattern($1, naemon_var_lib_t, naemon_var_lib_t)
++')
++
++########################################
++## <summary>
++##	Manage naemon lib files.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`naemon_manage_lib_files',`
++	gen_require(`
++		type naemon_var_lib_t;
++	')
++
++	files_search_var_lib($1)
++	manage_files_pattern($1, naemon_var_lib_t, naemon_var_lib_t)
++')
++
++########################################
++## <summary>
++##	Manage naemon lib directories.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`naemon_manage_lib_dirs',`
++	gen_require(`
++		type naemon_var_lib_t;
++	')
++
++	files_search_var_lib($1)
++	manage_dirs_pattern($1, naemon_var_lib_t, naemon_var_lib_t)
++')
++
++
++########################################
++## <summary>
++##	All of the rules required to administrate
++##	an naemon environment
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <param name="role">
++##	<summary>
++##	Role allowed access.
++##	</summary>
++## </param>
++## <rolecap/>
++#
++interface(`naemon_admin',`
++	gen_require(`
++		type naemon_t;
++		type naemon_initrc_exec_t;
++		type naemon_cache_t;
++		type naemon_log_t;
++		type naemon_var_lib_t;
++	')
++
++	allow $1 naemon_t:process { signal_perms };
++	ps_process_pattern($1, naemon_t)
++
++    tunable_policy(`deny_ptrace',`',`
++        allow $1 naemon_t:process ptrace;
++    ')
++
++	naemon_initrc_domtrans($1)
++	domain_system_change_exemption($1)
++	role_transition $2 naemon_initrc_exec_t system_r;
++	allow $2 system_r;
++
++	files_search_var($1)
++	admin_pattern($1, naemon_cache_t)
++
++	logging_search_logs($1)
++	admin_pattern($1, naemon_log_t)
++
++	files_search_var_lib($1)
++	admin_pattern($1, naemon_var_lib_t)
++	optional_policy(`
++		systemd_passwd_agent_exec($1)
++		systemd_read_fifo_file_passwd_run($1)
++	')
++')
+diff --git a/naemon.te b/naemon.te
+new file mode 100644
+index 0000000..79f1250
+--- /dev/null
++++ b/naemon.te
+@@ -0,0 +1,59 @@
++policy_module(naemon, 1.0.0)
++
++########################################
++#
++# Declarations
++#
++
++type naemon_t;
++type naemon_exec_t;
++init_daemon_domain(naemon_t, naemon_exec_t)
++
++type naemon_initrc_exec_t;
++init_script_file(naemon_initrc_exec_t)
++
++type naemon_cache_t;
++files_type(naemon_cache_t)
++
++type naemon_log_t;
++logging_log_file(naemon_log_t)
++
++type naemon_var_lib_t;
++files_type(naemon_var_lib_t)
++
++type naemon_var_run_t;
++files_pid_file(naemon_var_run_t)
++
++########################################
++#
++# naemon local policy
++#
++allow naemon_t self:process { fork setpgid setrlimit signal_perms };
++allow naemon_t self:fifo_file rw_fifo_file_perms;
++allow naemon_t self:unix_stream_socket create_stream_socket_perms;
++allow naemon_t self:unix_stream_socket connectto;
++
++manage_dirs_pattern(naemon_t, naemon_cache_t, naemon_cache_t)
++manage_files_pattern(naemon_t, naemon_cache_t, naemon_cache_t)
++manage_sock_files_pattern(naemon_t, naemon_cache_t, naemon_cache_t)
++files_var_filetrans(naemon_t, naemon_cache_t, { dir })
++
++manage_dirs_pattern(naemon_t, naemon_log_t, naemon_log_t)
++manage_files_pattern(naemon_t, naemon_log_t, naemon_log_t)
++logging_log_filetrans(naemon_t, naemon_log_t, { dir })
++
++manage_dirs_pattern(naemon_t, naemon_var_lib_t, naemon_var_lib_t)
++manage_files_pattern(naemon_t, naemon_var_lib_t, naemon_var_lib_t)
++manage_sock_files_pattern(naemon_t, naemon_var_lib_t, naemon_var_lib_t)
++manage_fifo_files_pattern(naemon_t, naemon_var_lib_t, naemon_var_lib_t)
++files_var_lib_filetrans(naemon_t, naemon_var_lib_t, { dir })
++
++manage_dirs_pattern(naemon_t, naemon_var_run_t, naemon_var_run_t)
++manage_files_pattern(naemon_t, naemon_var_run_t, naemon_var_run_t)
++files_pid_filetrans(naemon_t, naemon_var_run_t, { dir })
++
++kernel_read_system_state(naemon_t)
++
++auth_read_passwd(naemon_t)
++
++fs_getattr_xattr_fs(naemon_t)
 diff --git a/nagios.fc b/nagios.fc
 index d78dfc3..02f18ac 100644
 --- a/nagios.fc
@@ -66651,7 +67044,7 @@ index ded95ec..3cf7146 100644
 +	postfix_config_filetrans($1, postfix_prng_t, file, "prng_exch")
  ')
 diff --git a/postfix.te b/postfix.te
-index 5cfb83e..b028333 100644
+index 5cfb83e..a1ed642 100644
 --- a/postfix.te
 +++ b/postfix.te
 @@ -6,27 +6,23 @@ policy_module(postfix, 1.15.1)
@@ -66827,8 +67220,9 @@ index 5cfb83e..b028333 100644
 -########################################
 -#
 -# Common postfix user domain local policy
--#
--
++# Postfix master process local policy
+ #
+ 
 -allow postfix_user_domains self:capability dac_override;
 -
 -domain_use_interactive_fds(postfix_user_domains)
@@ -66836,9 +67230,8 @@ index 5cfb83e..b028333 100644
 -########################################
 -#
 -# Master local policy
-+# Postfix master process local policy
- #
- 
+-#
+-
 -allow postfix_master_t self:capability { chown dac_override kill fowner setgid setuid sys_tty_config };
 +# chown is to set the correct ownership of queue dirs
 +allow postfix_master_t self:capability { chown dac_override kill setgid setuid net_bind_service sys_tty_config };
@@ -67443,7 +67836,7 @@ index 5cfb83e..b028333 100644
  ')
  
  optional_policy(`
-@@ -730,28 +669,28 @@ optional_policy(`
+@@ -730,28 +669,32 @@ optional_policy(`
  
  ########################################
  #
@@ -67471,17 +67864,20 @@ index 5cfb83e..b028333 100644
 -
  corecmd_exec_bin(postfix_smtpd_t)
  
--fs_getattr_all_dirs(postfix_smtpd_t)
--fs_getattr_all_fs(postfix_smtpd_t)
 +# for OpenSSL certificates
++
++# postfix checks the size of all mounted file systems
+ fs_getattr_all_dirs(postfix_smtpd_t)
+-fs_getattr_all_fs(postfix_smtpd_t)
  
 -mta_read_aliases(postfix_smtpd_t)
-+# postfix checks the size of all mounted file systems
-+fs_getattr_all_dirs(postfix_smtpd_t)
++optional_policy(`
++    antivirus_stream_connect(postfix_smtpd_t)
++')
  
  optional_policy(`
  	dovecot_stream_connect_auth(postfix_smtpd_t)
-@@ -764,6 +703,7 @@ optional_policy(`
+@@ -764,6 +707,7 @@ optional_policy(`
  
  optional_policy(`
  	milter_stream_connect_all(postfix_smtpd_t)
@@ -67489,7 +67885,7 @@ index 5cfb83e..b028333 100644
  ')
  
  optional_policy(`
-@@ -774,31 +714,100 @@ optional_policy(`
+@@ -774,31 +718,100 @@ optional_policy(`
  	sasl_connect(postfix_smtpd_t)
  ')
  
@@ -79004,7 +79400,7 @@ index c8bdea2..e6bcb25 100644
 +    allow $1 cluster_unit_file_t:service all_service_perms;
  ')
 diff --git a/rhcs.te b/rhcs.te
-index 6cf79c4..dacec90 100644
+index 6cf79c4..cdab23b 100644
 --- a/rhcs.te
 +++ b/rhcs.te
 @@ -20,6 +20,35 @@ gen_tunable(fenced_can_network_connect, false)
@@ -79478,13 +79874,11 @@ index 6cf79c4..dacec90 100644
  	snmp_stream_connect(foghorn_t)
  ')
  
-@@ -252,11 +554,18 @@ kernel_read_system_state(gfs_controld_t)
+@@ -252,11 +554,16 @@ kernel_read_system_state(gfs_controld_t)
  dev_rw_dlm_control(gfs_controld_t)
  dev_setattr_dlm_control(gfs_controld_t)
  dev_rw_sysfs(gfs_controld_t)
 +storage_getattr_fixed_disk_dev(gfs_controld_t)
-+
-+fs_getattr_all_fs(gfs_controld_t)
 +
 +fs_getattr_all_fs(gfs_controld_t)
  
@@ -79497,7 +79891,7 @@ index 6cf79c4..dacec90 100644
  optional_policy(`
  	lvm_exec(gfs_controld_t)
  	dev_rw_lvm_control(gfs_controld_t)
-@@ -275,10 +584,54 @@ domtrans_pattern(groupd_t, fenced_exec_t, fenced_t)
+@@ -275,10 +582,54 @@ domtrans_pattern(groupd_t, fenced_exec_t, fenced_t)
  
  dev_list_sysfs(groupd_t)
  
@@ -79554,7 +79948,7 @@ index 6cf79c4..dacec90 100644
  ######################################
  #
  # qdiskd local policy
-@@ -321,6 +674,8 @@ storage_raw_write_fixed_disk(qdiskd_t)
+@@ -321,6 +672,8 @@ storage_raw_write_fixed_disk(qdiskd_t)
  
  auth_use_nsswitch(qdiskd_t)
  
