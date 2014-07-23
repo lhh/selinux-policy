@@ -19,7 +19,7 @@
 Summary: SELinux policy configuration
 Name: selinux-policy
 Version: 3.13.1
-Release: 66%{?dist}
+Release: 67%{?dist}
 License: GPLv2+
 Group: System Environment/Base
 Source: serefpolicy-%{version}.tgz
@@ -600,6 +600,14 @@ SELinux Reference policy mls base module.
 %endif
 
 %changelog
+* Wed Jul 23 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-67
+- Allow zabbix domains to access /proc//net/dev.
+- Allow postfix_smtpd to stream connect to antivirus (#1105889)
+- Add setpgid process to mip6d
+- Allow keepalived manage snmp files(#1053450)
+- Added support for Naemon policy (#1120789).
+- Allow certmonger to exec ldconfig to make  ipa-server-install  working. (#1122110)
+- Update cockpik policy from cockpit usptream.
 
 * Mon Jul 21 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-66
 - Bluejeans wants to connect to port 5000
