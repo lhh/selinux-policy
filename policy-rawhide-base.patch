@@ -9321,7 +9321,7 @@ index cf04cb5..32d58ca 100644
 +	unconfined_server_stream_connect(domain)
 +')
 diff --git a/policy/modules/kernel/files.fc b/policy/modules/kernel/files.fc
-index b876c48..0f99fae 100644
+index b876c48..d8cdd96 100644
 --- a/policy/modules/kernel/files.fc
 +++ b/policy/modules/kernel/files.fc
 @@ -18,6 +18,7 @@ ifdef(`distro_redhat',`
@@ -9486,7 +9486,7 @@ index b876c48..0f99fae 100644
  /tmp/.*				<<none>>
  /tmp/\.journal			<<none>>
  
-@@ -194,9 +208,10 @@ ifdef(`distro_debian',`
+@@ -194,9 +208,11 @@ ifdef(`distro_debian',`
  #
  # /usr
  #
@@ -9495,10 +9495,11 @@ index b876c48..0f99fae 100644
  /usr/.*				gen_context(system_u:object_r:usr_t,s0)
  /usr/\.journal			<<none>>
 +/export(/.*)?			gen_context(system_u:object_r:usr_t,s0)
++/ostree(/.*)?           gen_context(system_u:object_r:usr_t,s0)
  
  /usr/doc(/.*)?/lib(/.*)?	gen_context(system_u:object_r:usr_t,s0)
  
-@@ -204,15 +219,9 @@ ifdef(`distro_debian',`
+@@ -204,15 +220,9 @@ ifdef(`distro_debian',`
  
  /usr/inclu.e(/.*)?		gen_context(system_u:object_r:usr_t,s0)
  
@@ -9515,7 +9516,7 @@ index b876c48..0f99fae 100644
  
  /usr/share/doc(/.*)?/README.*	gen_context(system_u:object_r:usr_t,s0)
  
-@@ -220,8 +229,6 @@ ifdef(`distro_debian',`
+@@ -220,8 +230,6 @@ ifdef(`distro_debian',`
  /usr/tmp/.*			<<none>>
  
  ifndef(`distro_redhat',`
@@ -9524,7 +9525,7 @@ index b876c48..0f99fae 100644
  /usr/src(/.*)?			gen_context(system_u:object_r:src_t,s0)
  /usr/src/kernels/.+/lib(/.*)?	gen_context(system_u:object_r:usr_t,s0)
  ')
-@@ -229,7 +236,7 @@ ifndef(`distro_redhat',`
+@@ -229,7 +237,7 @@ ifndef(`distro_redhat',`
  #
  # /var
  #
@@ -9533,7 +9534,7 @@ index b876c48..0f99fae 100644
  /var/.*				gen_context(system_u:object_r:var_t,s0)
  /var/\.journal			<<none>>
  
-@@ -237,11 +244,25 @@ ifndef(`distro_redhat',`
+@@ -237,11 +245,25 @@ ifndef(`distro_redhat',`
  
  /var/ftp/etc(/.*)?		gen_context(system_u:object_r:etc_t,s0)
  
@@ -9560,7 +9561,7 @@ index b876c48..0f99fae 100644
  
  /var/log/lost\+found	-d	gen_context(system_u:object_r:lost_found_t,mls_systemhigh)
  /var/log/lost\+found/.*		<<none>>
-@@ -256,12 +277,14 @@ ifndef(`distro_redhat',`
+@@ -256,12 +278,14 @@ ifndef(`distro_redhat',`
  /var/run		-l	gen_context(system_u:object_r:var_run_t,s0)
  /var/run/.*			gen_context(system_u:object_r:var_run_t,s0)
  /var/run/.*\.*pid		<<none>>
@@ -9575,14 +9576,14 @@ index b876c48..0f99fae 100644
  /var/tmp/.*			<<none>>
  /var/tmp/lost\+found	-d	gen_context(system_u:object_r:lost_found_t,mls_systemhigh)
  /var/tmp/lost\+found/.*		<<none>>
-@@ -271,3 +294,5 @@ ifdef(`distro_debian',`
+@@ -271,3 +295,5 @@ ifdef(`distro_debian',`
  /var/run/motd		--	gen_context(system_u:object_r:initrc_var_run_t,s0)
  /var/run/motd\.dynamic	--	gen_context(system_u:object_r:initrc_var_run_t,s0)
  ')
 +/nsr(/.*)?			gen_context(system_u:object_r:var_t,s0)
 +/nsr/logs(/.*)?			gen_context(system_u:object_r:var_log_t,s0)
 diff --git a/policy/modules/kernel/files.if b/policy/modules/kernel/files.if
-index f962f76..1f7b192 100644
+index f962f76..d12f46e 100644
 --- a/policy/modules/kernel/files.if
 +++ b/policy/modules/kernel/files.if
 @@ -19,6 +19,136 @@
@@ -15299,7 +15300,7 @@ index f962f76..1f7b192 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -6386,132 +8439,206 @@ interface(`files_search_spool',`
+@@ -6386,132 +8439,207 @@ interface(`files_search_spool',`
  ##	</summary>
  ## </param>
  #
@@ -15400,6 +15401,7 @@ index f962f76..1f7b192 100644
 +	files_root_filetrans($1, mnt_t, dir, "net")
 +	files_root_filetrans($1, usr_t, dir, "export")
 +	files_root_filetrans($1, usr_t, dir, "opt")
++	files_root_filetrans($1, usr_t, dir, "ostree")
 +	files_root_filetrans($1, usr_t, dir, "emul")
 +	files_root_filetrans($1, var_t, dir, "srv")
 +	files_root_filetrans($1, var_run_t, dir, "run")
@@ -15557,7 +15559,7 @@ index f962f76..1f7b192 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -6519,53 +8646,17 @@ interface(`files_spool_filetrans',`
+@@ -6519,53 +8647,17 @@ interface(`files_spool_filetrans',`
  ##	</summary>
  ## </param>
  #
@@ -15615,7 +15617,7 @@ index f962f76..1f7b192 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -6573,10 +8664,10 @@ interface(`files_polyinstantiate_all',`
+@@ -6573,10 +8665,10 @@ interface(`files_polyinstantiate_all',`
  ##	</summary>
  ## </param>
  #
@@ -20999,10 +21001,10 @@ index 234a940..d340f20 100644
  ########################################
  ## <summary>
 diff --git a/policy/modules/roles/staff.te b/policy/modules/roles/staff.te
-index 0fef1fc..45ee29f 100644
+index 0fef1fc..75442d6 100644
 --- a/policy/modules/roles/staff.te
 +++ b/policy/modules/roles/staff.te
-@@ -8,12 +8,71 @@ policy_module(staff, 2.4.0)
+@@ -8,12 +8,72 @@ policy_module(staff, 2.4.0)
  role staff_r;
  
  userdom_unpriv_user_template(staff)
@@ -21035,6 +21037,7 @@ index 0fef1fc..45ee29f 100644
 +dev_read_kmsg(staff_t)
 +
 +domain_read_all_domains_state(staff_t)
++domain_getcap_all_domains(staff_t)
 +domain_getsched_all_domains(staff_t)
 +domain_getattr_all_domains(staff_t)
 +domain_obj_id_change_exemption(staff_t)
@@ -21074,7 +21077,7 @@ index 0fef1fc..45ee29f 100644
  optional_policy(`
  	apache_role(staff_r, staff_t)
  ')
-@@ -23,11 +82,115 @@ optional_policy(`
+@@ -23,11 +83,115 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -21191,7 +21194,7 @@ index 0fef1fc..45ee29f 100644
  ')
  
  optional_policy(`
-@@ -35,15 +198,31 @@ optional_policy(`
+@@ -35,15 +199,31 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -21225,7 +21228,7 @@ index 0fef1fc..45ee29f 100644
  ')
  
  optional_policy(`
-@@ -52,11 +231,60 @@ optional_policy(`
+@@ -52,11 +232,60 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -21287,7 +21290,7 @@ index 0fef1fc..45ee29f 100644
  ')
  
  ifndef(`distro_redhat',`
-@@ -65,10 +293,6 @@ ifndef(`distro_redhat',`
+@@ -65,10 +294,6 @@ ifndef(`distro_redhat',`
  	')
  
  	optional_policy(`
@@ -21298,7 +21301,7 @@ index 0fef1fc..45ee29f 100644
  		cdrecord_role(staff_r, staff_t)
  	')
  
-@@ -78,10 +302,6 @@ ifndef(`distro_redhat',`
+@@ -78,10 +303,6 @@ ifndef(`distro_redhat',`
  
  	optional_policy(`
  		dbus_role_template(staff, staff_r, staff_t)
@@ -21309,7 +21312,7 @@ index 0fef1fc..45ee29f 100644
  	')
  
  	optional_policy(`
-@@ -101,10 +321,6 @@ ifndef(`distro_redhat',`
+@@ -101,10 +322,6 @@ ifndef(`distro_redhat',`
  	')
  
  	optional_policy(`
@@ -21320,7 +21323,7 @@ index 0fef1fc..45ee29f 100644
  		java_role(staff_r, staff_t)
  	')
  
-@@ -125,10 +341,6 @@ ifndef(`distro_redhat',`
+@@ -125,10 +342,6 @@ ifndef(`distro_redhat',`
  	')
  
  	optional_policy(`
@@ -21331,7 +21334,7 @@ index 0fef1fc..45ee29f 100644
  		pyzor_role(staff_r, staff_t)
  	')
  
-@@ -141,10 +353,6 @@ ifndef(`distro_redhat',`
+@@ -141,10 +354,6 @@ ifndef(`distro_redhat',`
  	')
  
  	optional_policy(`
@@ -21342,7 +21345,7 @@ index 0fef1fc..45ee29f 100644
  		spamassassin_role(staff_r, staff_t)
  	')
  
-@@ -176,3 +384,22 @@ ifndef(`distro_redhat',`
+@@ -176,3 +385,22 @@ ifndef(`distro_redhat',`
  		wireshark_role(staff_r, staff_t)
  	')
  ')
@@ -21394,7 +21397,7 @@ index ff92430..36740ea 100644
  ## <summary>
  ##	Execute a generic bin program in the sysadm domain.
 diff --git a/policy/modules/roles/sysadm.te b/policy/modules/roles/sysadm.te
-index 2522ca6..d58ced2 100644
+index 2522ca6..4786c5e 100644
 --- a/policy/modules/roles/sysadm.te
 +++ b/policy/modules/roles/sysadm.te
 @@ -5,39 +5,86 @@ policy_module(sysadm, 2.6.1)
@@ -21547,7 +21550,7 @@ index 2522ca6..d58ced2 100644
  ')
  
  optional_policy(`
-@@ -122,11 +170,25 @@ optional_policy(`
+@@ -122,11 +170,27 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -21567,6 +21570,8 @@ index 2522ca6..d58ced2 100644
 +optional_policy(`
 +	dbus_role_template(sysadm, sysadm_r, sysadm_t)
 +
++	dontaudit sysadm_dbusd_t self:capability net_admin;
++
 +    optional_policy(`
 +        systemd_dbus_chat_timedated(sysadm_t)
 +        systemd_dbus_chat_hostnamed(sysadm_t)
@@ -21575,7 +21580,7 @@ index 2522ca6..d58ced2 100644
  ')
  
  optional_policy(`
-@@ -140,6 +202,10 @@ optional_policy(`
+@@ -140,6 +204,10 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -21586,7 +21591,7 @@ index 2522ca6..d58ced2 100644
  	dmesg_exec(sysadm_t)
  ')
  
-@@ -156,6 +222,10 @@ optional_policy(`
+@@ -156,6 +224,10 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -21597,7 +21602,7 @@ index 2522ca6..d58ced2 100644
  	fstools_run(sysadm_t, sysadm_r)
  ')
  
-@@ -175,6 +245,13 @@ optional_policy(`
+@@ -175,6 +247,13 @@ optional_policy(`
  	ipsec_stream_connect(sysadm_t)
  	# for lsof
  	ipsec_getattr_key_sockets(sysadm_t)
@@ -21611,7 +21616,7 @@ index 2522ca6..d58ced2 100644
  ')
  
  optional_policy(`
-@@ -182,15 +259,20 @@ optional_policy(`
+@@ -182,15 +261,20 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -21635,7 +21640,7 @@ index 2522ca6..d58ced2 100644
  ')
  
  optional_policy(`
-@@ -210,22 +292,20 @@ optional_policy(`
+@@ -210,22 +294,20 @@ optional_policy(`
  	modutils_run_depmod(sysadm_t, sysadm_r)
  	modutils_run_insmod(sysadm_t, sysadm_r)
  	modutils_run_update_mods(sysadm_t, sysadm_r)
@@ -21664,7 +21669,7 @@ index 2522ca6..d58ced2 100644
  ')
  
  optional_policy(`
-@@ -237,14 +317,27 @@ optional_policy(`
+@@ -237,14 +319,27 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -21692,7 +21697,7 @@ index 2522ca6..d58ced2 100644
  ')
  
  optional_policy(`
-@@ -252,10 +345,20 @@ optional_policy(`
+@@ -252,10 +347,20 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -21713,7 +21718,7 @@ index 2522ca6..d58ced2 100644
  	portage_run(sysadm_t, sysadm_r)
  	portage_run_fetch(sysadm_t, sysadm_r)
  	portage_run_gcc_config(sysadm_t, sysadm_r)
-@@ -266,35 +369,41 @@ optional_policy(`
+@@ -266,35 +371,41 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -21762,7 +21767,7 @@ index 2522ca6..d58ced2 100644
  ')
  
  optional_policy(`
-@@ -308,6 +417,7 @@ optional_policy(`
+@@ -308,6 +419,7 @@ optional_policy(`
  
  optional_policy(`
  	screen_role_template(sysadm, sysadm_r, sysadm_t)
@@ -21770,7 +21775,7 @@ index 2522ca6..d58ced2 100644
  ')
  
  optional_policy(`
-@@ -315,12 +425,20 @@ optional_policy(`
+@@ -315,12 +427,20 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -21792,7 +21797,7 @@ index 2522ca6..d58ced2 100644
  ')
  
  optional_policy(`
-@@ -345,7 +463,18 @@ optional_policy(`
+@@ -345,7 +465,18 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -21812,7 +21817,7 @@ index 2522ca6..d58ced2 100644
  ')
  
  optional_policy(`
-@@ -356,19 +485,11 @@ optional_policy(`
+@@ -356,19 +487,11 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -21833,7 +21838,7 @@ index 2522ca6..d58ced2 100644
  ')
  
  optional_policy(`
-@@ -380,10 +501,6 @@ optional_policy(`
+@@ -380,10 +503,6 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -21844,7 +21849,7 @@ index 2522ca6..d58ced2 100644
  	usermanage_run_admin_passwd(sysadm_t, sysadm_r)
  	usermanage_run_groupadd(sysadm_t, sysadm_r)
  	usermanage_run_useradd(sysadm_t, sysadm_r)
-@@ -391,6 +508,9 @@ optional_policy(`
+@@ -391,6 +510,9 @@ optional_policy(`
  
  optional_policy(`
  	virt_stream_connect(sysadm_t)
@@ -21854,7 +21859,7 @@ index 2522ca6..d58ced2 100644
  ')
  
  optional_policy(`
-@@ -398,31 +518,34 @@ optional_policy(`
+@@ -398,31 +520,34 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -21895,7 +21900,7 @@ index 2522ca6..d58ced2 100644
  		auth_role(sysadm_r, sysadm_t)
  	')
  
-@@ -435,10 +558,6 @@ ifndef(`distro_redhat',`
+@@ -435,10 +560,6 @@ ifndef(`distro_redhat',`
  	')
  
  	optional_policy(`
@@ -21906,7 +21911,7 @@ index 2522ca6..d58ced2 100644
  		dbus_role_template(sysadm, sysadm_r, sysadm_t)
  
  		optional_policy(`
-@@ -459,15 +578,79 @@ ifndef(`distro_redhat',`
+@@ -459,15 +580,79 @@ ifndef(`distro_redhat',`
  	')
  
  	optional_policy(`
@@ -22693,7 +22698,7 @@ index 0000000..b1163a6
 +')
 diff --git a/policy/modules/roles/unconfineduser.te b/policy/modules/roles/unconfineduser.te
 new file mode 100644
-index 0000000..13a745c
+index 0000000..45aab67
 --- /dev/null
 +++ b/policy/modules/roles/unconfineduser.te
 @@ -0,0 +1,339 @@
@@ -22892,10 +22897,10 @@ index 0000000..13a745c
 +
 +optional_policy(`
 +	dbus_role_template(unconfined, unconfined_r, unconfined_t)
-+    role system_r types unconfined_dbusd_t;
++	role system_r types unconfined_dbusd_t;
 +
 +	optional_policy(`
-+		unconfined_domain(unconfined_dbusd_t)
++		unconfined_domain_noaudit(unconfined_dbusd_t)
 +
 +		optional_policy(`
 +			xserver_rw_shm(unconfined_dbusd_t)
@@ -32323,7 +32328,7 @@ index 79a45f6..532ded5 100644
 +	files_pid_filetrans($1, initctl_t, fifo_file, "fifo" )
 +')
 diff --git a/policy/modules/system/init.te b/policy/modules/system/init.te
-index 17eda24..84a3fcf 100644
+index 17eda24..8e4c2d4 100644
 --- a/policy/modules/system/init.te
 +++ b/policy/modules/system/init.te
 @@ -11,10 +11,31 @@ gen_require(`
@@ -32599,7 +32604,7 @@ index 17eda24..84a3fcf 100644
  
  ifdef(`distro_gentoo',`
  	allow init_t self:process { getcap setcap };
-@@ -186,29 +307,237 @@ ifdef(`distro_gentoo',`
+@@ -186,29 +307,241 @@ ifdef(`distro_gentoo',`
  ')
  
  ifdef(`distro_redhat',`
@@ -32634,6 +32639,10 @@ index 17eda24..84a3fcf 100644
 +')
 +
 +optional_policy(`
++	journalctl_exec(init_t)
++')
++
++optional_policy(`
 +	kdump_read_crash(init_t)
 +	kdump_read_config(init_t)
 +')
@@ -32641,14 +32650,15 @@ index 17eda24..84a3fcf 100644
 +optional_policy(`
 +	gnome_filetrans_home_content(init_t)
 +	gnome_manage_data(init_t)
-+')
-+
-+optional_policy(`
+ ')
+ 
+ optional_policy(`
+-	auth_rw_login_records(init_t)
 +	iscsi_read_lib_files(init_t)
 +	iscsi_manage_lock(init_t)
-+')
-+
-+optional_policy(`
+ ')
+ 
+ optional_policy(`
 +	modutils_domtrans_insmod(init_t)
 +	modutils_list_module_config(init_t)
 +')
@@ -32808,14 +32818,13 @@ index 17eda24..84a3fcf 100644
 +optional_policy(`
 +	lvm_rw_pipes(init_t)
 +	lvm_read_config(init_t)
- ')
- 
- optional_policy(`
--	auth_rw_login_records(init_t)
++')
++
++optional_policy(`
 +	consolekit_manage_log(init_t)
- ')
- 
- optional_policy(`
++')
++
++optional_policy(`
 +	dbus_connect_system_bus(init_t)
  	dbus_system_bus_client(init_t)
 +	dbus_delete_pid_files(init_t)
@@ -32846,7 +32855,7 @@ index 17eda24..84a3fcf 100644
  ')
  
  optional_policy(`
-@@ -216,7 +545,31 @@ optional_policy(`
+@@ -216,7 +549,31 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -32878,7 +32887,7 @@ index 17eda24..84a3fcf 100644
  ')
  
  ########################################
-@@ -225,9 +578,9 @@ optional_policy(`
+@@ -225,9 +582,9 @@ optional_policy(`
  #
  
  allow initrc_t self:process { getpgid setsched setpgid setrlimit getsched };
@@ -32890,7 +32899,7 @@ index 17eda24..84a3fcf 100644
  allow initrc_t self:passwd rootok;
  allow initrc_t self:key manage_key_perms;
  
-@@ -258,12 +611,16 @@ manage_fifo_files_pattern(initrc_t, initrc_state_t, initrc_state_t)
+@@ -258,12 +615,16 @@ manage_fifo_files_pattern(initrc_t, initrc_state_t, initrc_state_t)
  
  allow initrc_t initrc_var_run_t:file manage_file_perms;
  files_pid_filetrans(initrc_t, initrc_var_run_t, file)
@@ -32907,7 +32916,7 @@ index 17eda24..84a3fcf 100644
  
  manage_dirs_pattern(initrc_t, initrc_var_log_t, initrc_var_log_t)
  manage_files_pattern(initrc_t, initrc_var_log_t, initrc_var_log_t)
-@@ -279,23 +636,36 @@ kernel_change_ring_buffer_level(initrc_t)
+@@ -279,23 +640,36 @@ kernel_change_ring_buffer_level(initrc_t)
  kernel_clear_ring_buffer(initrc_t)
  kernel_get_sysvipc_info(initrc_t)
  kernel_read_all_sysctls(initrc_t)
@@ -32950,7 +32959,7 @@ index 17eda24..84a3fcf 100644
  corenet_tcp_sendrecv_all_ports(initrc_t)
  corenet_udp_sendrecv_all_ports(initrc_t)
  corenet_tcp_connect_all_ports(initrc_t)
-@@ -303,9 +673,11 @@ corenet_sendrecv_all_client_packets(initrc_t)
+@@ -303,9 +677,11 @@ corenet_sendrecv_all_client_packets(initrc_t)
  
  dev_read_rand(initrc_t)
  dev_read_urand(initrc_t)
@@ -32962,7 +32971,7 @@ index 17eda24..84a3fcf 100644
  dev_rw_sysfs(initrc_t)
  dev_list_usbfs(initrc_t)
  dev_read_framebuffer(initrc_t)
-@@ -313,8 +685,10 @@ dev_write_framebuffer(initrc_t)
+@@ -313,8 +689,10 @@ dev_write_framebuffer(initrc_t)
  dev_read_realtime_clock(initrc_t)
  dev_read_sound_mixer(initrc_t)
  dev_write_sound_mixer(initrc_t)
@@ -32973,7 +32982,7 @@ index 17eda24..84a3fcf 100644
  dev_delete_lvm_control_dev(initrc_t)
  dev_manage_generic_symlinks(initrc_t)
  dev_manage_generic_files(initrc_t)
-@@ -322,8 +696,7 @@ dev_manage_generic_files(initrc_t)
+@@ -322,8 +700,7 @@ dev_manage_generic_files(initrc_t)
  dev_delete_generic_symlinks(initrc_t)
  dev_getattr_all_blk_files(initrc_t)
  dev_getattr_all_chr_files(initrc_t)
@@ -32983,7 +32992,7 @@ index 17eda24..84a3fcf 100644
  
  domain_kill_all_domains(initrc_t)
  domain_signal_all_domains(initrc_t)
-@@ -332,7 +705,6 @@ domain_sigstop_all_domains(initrc_t)
+@@ -332,7 +709,6 @@ domain_sigstop_all_domains(initrc_t)
  domain_sigchld_all_domains(initrc_t)
  domain_read_all_domains_state(initrc_t)
  domain_getattr_all_domains(initrc_t)
@@ -32991,7 +33000,7 @@ index 17eda24..84a3fcf 100644
  domain_getsession_all_domains(initrc_t)
  domain_use_interactive_fds(initrc_t)
  # for lsof which is used by alsa shutdown:
-@@ -340,6 +712,7 @@ domain_dontaudit_getattr_all_udp_sockets(initrc_t)
+@@ -340,6 +716,7 @@ domain_dontaudit_getattr_all_udp_sockets(initrc_t)
  domain_dontaudit_getattr_all_tcp_sockets(initrc_t)
  domain_dontaudit_getattr_all_dgram_sockets(initrc_t)
  domain_dontaudit_getattr_all_pipes(initrc_t)
@@ -32999,7 +33008,7 @@ index 17eda24..84a3fcf 100644
  
  files_getattr_all_dirs(initrc_t)
  files_getattr_all_files(initrc_t)
-@@ -347,14 +720,15 @@ files_getattr_all_symlinks(initrc_t)
+@@ -347,14 +724,15 @@ files_getattr_all_symlinks(initrc_t)
  files_getattr_all_pipes(initrc_t)
  files_getattr_all_sockets(initrc_t)
  files_purge_tmp(initrc_t)
@@ -33017,7 +33026,7 @@ index 17eda24..84a3fcf 100644
  files_read_usr_files(initrc_t)
  files_manage_urandom_seed(initrc_t)
  files_manage_generic_spool(initrc_t)
-@@ -364,8 +738,12 @@ files_list_isid_type_dirs(initrc_t)
+@@ -364,8 +742,12 @@ files_list_isid_type_dirs(initrc_t)
  files_mounton_isid_type_dirs(initrc_t)
  files_list_default(initrc_t)
  files_mounton_default(initrc_t)
@@ -33031,7 +33040,7 @@ index 17eda24..84a3fcf 100644
  fs_list_inotifyfs(initrc_t)
  fs_register_binary_executable_type(initrc_t)
  # rhgb-console writes to ramfs
-@@ -375,10 +753,11 @@ fs_mount_all_fs(initrc_t)
+@@ -375,10 +757,11 @@ fs_mount_all_fs(initrc_t)
  fs_unmount_all_fs(initrc_t)
  fs_remount_all_fs(initrc_t)
  fs_getattr_all_fs(initrc_t)
@@ -33045,7 +33054,7 @@ index 17eda24..84a3fcf 100644
  mcs_process_set_categories(initrc_t)
  
  mls_file_read_all_levels(initrc_t)
-@@ -387,8 +766,10 @@ mls_process_read_up(initrc_t)
+@@ -387,8 +770,10 @@ mls_process_read_up(initrc_t)
  mls_process_write_down(initrc_t)
  mls_rangetrans_source(initrc_t)
  mls_fd_share_all_levels(initrc_t)
@@ -33056,7 +33065,7 @@ index 17eda24..84a3fcf 100644
  
  storage_getattr_fixed_disk_dev(initrc_t)
  storage_setattr_fixed_disk_dev(initrc_t)
-@@ -398,6 +779,7 @@ term_use_all_terms(initrc_t)
+@@ -398,6 +783,7 @@ term_use_all_terms(initrc_t)
  term_reset_tty_labels(initrc_t)
  
  auth_rw_login_records(initrc_t)
@@ -33064,7 +33073,7 @@ index 17eda24..84a3fcf 100644
  auth_setattr_login_records(initrc_t)
  auth_rw_lastlog(initrc_t)
  auth_read_pam_pid(initrc_t)
-@@ -416,20 +798,18 @@ logging_read_all_logs(initrc_t)
+@@ -416,20 +802,18 @@ logging_read_all_logs(initrc_t)
  logging_append_all_logs(initrc_t)
  logging_read_audit_config(initrc_t)
  
@@ -33088,7 +33097,7 @@ index 17eda24..84a3fcf 100644
  
  ifdef(`distro_debian',`
  	dev_setattr_generic_dirs(initrc_t)
-@@ -451,7 +831,6 @@ ifdef(`distro_gentoo',`
+@@ -451,7 +835,6 @@ ifdef(`distro_gentoo',`
  	allow initrc_t self:process setfscreate;
  	dev_create_null_dev(initrc_t)
  	dev_create_zero_dev(initrc_t)
@@ -33096,7 +33105,7 @@ index 17eda24..84a3fcf 100644
  	term_create_console_dev(initrc_t)
  
  	# unfortunately /sbin/rc does stupid tricks
-@@ -486,6 +865,10 @@ ifdef(`distro_gentoo',`
+@@ -486,6 +869,10 @@ ifdef(`distro_gentoo',`
  	sysnet_setattr_config(initrc_t)
  
  	optional_policy(`
@@ -33107,7 +33116,7 @@ index 17eda24..84a3fcf 100644
  		alsa_read_lib(initrc_t)
  	')
  
-@@ -506,7 +889,7 @@ ifdef(`distro_redhat',`
+@@ -506,7 +893,7 @@ ifdef(`distro_redhat',`
  
  	# Red Hat systems seem to have a stray
  	# fd open from the initrd
@@ -33116,7 +33125,7 @@ index 17eda24..84a3fcf 100644
  	files_dontaudit_read_root_files(initrc_t)
  
  	# These seem to be from the initrd
-@@ -521,6 +904,7 @@ ifdef(`distro_redhat',`
+@@ -521,6 +908,7 @@ ifdef(`distro_redhat',`
  	files_create_boot_dirs(initrc_t)
  	files_create_boot_flag(initrc_t)
  	files_rw_boot_symlinks(initrc_t)
@@ -33124,7 +33133,7 @@ index 17eda24..84a3fcf 100644
  	# wants to read /.fonts directory
  	files_read_default_files(initrc_t)
  	files_mountpoint(initrc_tmp_t)
-@@ -541,6 +925,7 @@ ifdef(`distro_redhat',`
+@@ -541,6 +929,7 @@ ifdef(`distro_redhat',`
  	miscfiles_rw_localization(initrc_t)
  	miscfiles_setattr_localization(initrc_t)
  	miscfiles_relabel_localization(initrc_t)
@@ -33132,7 +33141,7 @@ index 17eda24..84a3fcf 100644
  
  	miscfiles_read_fonts(initrc_t)
  	miscfiles_read_hwdata(initrc_t)
-@@ -550,8 +935,44 @@ ifdef(`distro_redhat',`
+@@ -550,8 +939,44 @@ ifdef(`distro_redhat',`
  	')
  
  	optional_policy(`
@@ -33177,7 +33186,7 @@ index 17eda24..84a3fcf 100644
  	')
  
  	optional_policy(`
-@@ -559,14 +980,31 @@ ifdef(`distro_redhat',`
+@@ -559,14 +984,31 @@ ifdef(`distro_redhat',`
  		rpc_write_exports(initrc_t)
  		rpc_manage_nfs_state_data(initrc_t)
  	')
@@ -33209,7 +33218,7 @@ index 17eda24..84a3fcf 100644
  	')
  ')
  
-@@ -577,6 +1015,39 @@ ifdef(`distro_suse',`
+@@ -577,6 +1019,39 @@ ifdef(`distro_suse',`
  	')
  ')
  
@@ -33249,7 +33258,7 @@ index 17eda24..84a3fcf 100644
  optional_policy(`
  	amavis_search_lib(initrc_t)
  	amavis_setattr_pid_files(initrc_t)
-@@ -589,6 +1060,8 @@ optional_policy(`
+@@ -589,6 +1064,8 @@ optional_policy(`
  optional_policy(`
  	apache_read_config(initrc_t)
  	apache_list_modules(initrc_t)
@@ -33258,7 +33267,7 @@ index 17eda24..84a3fcf 100644
  ')
  
  optional_policy(`
-@@ -610,6 +1083,7 @@ optional_policy(`
+@@ -610,6 +1087,7 @@ optional_policy(`
  
  optional_policy(`
  	cgroup_stream_connect_cgred(initrc_t)
@@ -33266,7 +33275,7 @@ index 17eda24..84a3fcf 100644
  ')
  
  optional_policy(`
-@@ -626,6 +1100,17 @@ optional_policy(`
+@@ -626,6 +1104,17 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -33284,7 +33293,7 @@ index 17eda24..84a3fcf 100644
  	dev_getattr_printer_dev(initrc_t)
  
  	cups_read_log(initrc_t)
-@@ -642,9 +1127,13 @@ optional_policy(`
+@@ -642,9 +1131,13 @@ optional_policy(`
  	dbus_connect_system_bus(initrc_t)
  	dbus_system_bus_client(initrc_t)
  	dbus_read_config(initrc_t)
@@ -33298,7 +33307,7 @@ index 17eda24..84a3fcf 100644
  	')
  
  	optional_policy(`
-@@ -657,15 +1146,11 @@ optional_policy(`
+@@ -657,15 +1150,11 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -33316,7 +33325,7 @@ index 17eda24..84a3fcf 100644
  ')
  
  optional_policy(`
-@@ -686,6 +1171,15 @@ optional_policy(`
+@@ -686,6 +1175,15 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -33332,7 +33341,7 @@ index 17eda24..84a3fcf 100644
  	inn_exec_config(initrc_t)
  ')
  
-@@ -726,6 +1220,7 @@ optional_policy(`
+@@ -726,6 +1224,7 @@ optional_policy(`
  	lpd_list_spool(initrc_t)
  
  	lpd_read_config(initrc_t)
@@ -33340,7 +33349,7 @@ index 17eda24..84a3fcf 100644
  ')
  
  optional_policy(`
-@@ -743,7 +1238,13 @@ optional_policy(`
+@@ -743,7 +1242,13 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -33355,7 +33364,7 @@ index 17eda24..84a3fcf 100644
  	mta_dontaudit_read_spool_symlinks(initrc_t)
  ')
  
-@@ -766,6 +1267,10 @@ optional_policy(`
+@@ -766,6 +1271,10 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -33366,7 +33375,7 @@ index 17eda24..84a3fcf 100644
  	postgresql_manage_db(initrc_t)
  	postgresql_read_config(initrc_t)
  ')
-@@ -775,10 +1280,20 @@ optional_policy(`
+@@ -775,10 +1284,20 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -33387,7 +33396,7 @@ index 17eda24..84a3fcf 100644
  	quota_manage_flags(initrc_t)
  ')
  
-@@ -787,6 +1302,10 @@ optional_policy(`
+@@ -787,6 +1306,10 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -33398,7 +33407,7 @@ index 17eda24..84a3fcf 100644
  	fs_write_ramfs_sockets(initrc_t)
  	fs_search_ramfs(initrc_t)
  
-@@ -808,8 +1327,6 @@ optional_policy(`
+@@ -808,8 +1331,6 @@ optional_policy(`
  	# bash tries ioctl for some reason
  	files_dontaudit_ioctl_all_pids(initrc_t)
  
@@ -33407,7 +33416,7 @@ index 17eda24..84a3fcf 100644
  ')
  
  optional_policy(`
-@@ -818,6 +1335,10 @@ optional_policy(`
+@@ -818,6 +1339,10 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -33418,7 +33427,7 @@ index 17eda24..84a3fcf 100644
  	# shorewall-init script run /var/lib/shorewall/firewall
  	shorewall_lib_domtrans(initrc_t)
  ')
-@@ -827,10 +1348,12 @@ optional_policy(`
+@@ -827,10 +1352,12 @@ optional_policy(`
  	squid_manage_logs(initrc_t)
  ')
  
@@ -33431,14 +33440,14 @@ index 17eda24..84a3fcf 100644
  
  optional_policy(`
  	ssh_dontaudit_read_server_keys(initrc_t)
-@@ -857,21 +1380,60 @@ optional_policy(`
+@@ -857,21 +1384,60 @@ optional_policy(`
  ')
  
  optional_policy(`
 +	virt_read_config(init_t)
 +	virt_stream_connect(init_t)
-+    virt_noatsecure(init_t)
-+    virt_rlimitinh(init_t)
++	virt_noatsecure(init_t)
++	virt_rlimitinh(init_t)
 +')
 +
 +optional_policy(`
@@ -33493,7 +33502,7 @@ index 17eda24..84a3fcf 100644
  ')
  
  optional_policy(`
-@@ -887,6 +1449,10 @@ optional_policy(`
+@@ -887,6 +1453,10 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -33504,7 +33513,7 @@ index 17eda24..84a3fcf 100644
  	# Set device ownerships/modes.
  	xserver_setattr_console_pipes(initrc_t)
  
-@@ -897,3 +1463,218 @@ optional_policy(`
+@@ -897,3 +1467,218 @@ optional_policy(`
  optional_policy(`
  	zebra_read_config(initrc_t)
  ')

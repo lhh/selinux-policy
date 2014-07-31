@@ -19,7 +19,7 @@
 Summary: SELinux policy configuration
 Name: selinux-policy
 Version: 3.13.1
-Release: 67%{?dist}
+Release: 68%{?dist}
 License: GPLv2+
 Group: System Environment/Base
 Source: serefpolicy-%{version}.tgz
@@ -600,6 +600,49 @@ SELinux Reference policy mls base module.
 %endif
 
 %changelog
+* Thu Jul 31 2014 Miroslav Grepl <mgrepl@redhat.com> 3.13.1-68
+- Add new mozilla_plugin_bind_unreserved_ports boolean to allow mozilla plugin to use tcp/udp unreserved ports. There is a lot of plugins which binds ports without SELinux port type. We want to allow users to use these plugins properly using this boolean. (#1109681)
+- Allow smokeping cgi scripts to accept connection on httpd stream socket.
+- docker does a getattr on all file systems
+- Label all abort-dump programs
+- Allow alsa to create lock file to see if it fixes.
+- Add support for zabbix external scripts for which zabbix_script_t domain has been created. This domain is unconfined by default and user needs to run "semodule -d unconfined" to make system running without unconfined domains. The default location of these scripts is /usr/lib/zabbix/externalscripts. If a user change DATADIR in CONFIG_EXTERNALSCRIPTS then he needs to set labeling for this new location.
+- Add interface for journalctl_exec
+- Add labels also for glusterd sockets.
+- Change virt.te to match default docker capabilies
+- Add additional booleans for turning on mknod or all caps.
+- Also add interface to allow users to write policy that matches docker defaults
+- for capabilies.
+- Label dhcpd6 unit file.
+- Add support also for dhcp IPv6 services.
+- Added support for dhcrelay service
+- Additional access for bluejeans
+- docker needs more access, need back port to RHEL7
+- Allow mdadm to connect to own socket created by mdadm running as kernel_t.
+- Fix pkcs, Remove pkcs_lock_filetrans and Add files_search_locks
+- Allow bacula manage bacula_log_t dirs
+- Allow pkcs_slotd_t read /etc/passwd, Label /var/lock/opencryptoki as pkcs_slotd_lock_t 
+- Fix mistakes keystone and quantum
+- Label neutron var run dir 
+- Label keystone var run dir
+- Fix bad labeling for /usr/s?bin/(oo|rhc)-restorer-wrapper.sh in openshift.fc.
+- Dontaudit attempts to access check cert dirs/files for sssd.
+- Allow sensord to send a signal.
+- Allow certmonger to stream connect to dirsrv to make  ipa-server-install working.
+- Label zabbix_var_lib_t directories
+- Label conmans pid file as conman_var_run_t
+- Label also /var/run/glusterd.socket file as gluster_var_run_t
+- Fix policy for pkcsslotd from opencryptoki
+- Update cockpik policy from cockpit usptream.
+- Allow certmonger to exec ldconfig to make  ipa-server-install  working. 
+- Added support for Naemon policy 
+- Allow keepalived manage snmp files
+- Add setpgid process to mip6d
+- remove duplicate rule
+- Allow postfix_smtpd to stream connect to antivirus 
+- Dontaudit list /tmp for icecast 
+- Allow zabbix domains to access /proc//net/dev.
+
 * Wed Jul 23 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-67
 - Allow zabbix domains to access /proc//net/dev.
 - Allow postfix_smtpd to stream connect to antivirus (#1105889)
