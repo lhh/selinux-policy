@@ -19,7 +19,7 @@
 Summary: SELinux policy configuration
 Name: selinux-policy
 Version: 3.13.1
-Release: 69%{?dist}
+Release: 70%{?dist}
 License: GPLv2+
 Group: System Environment/Base
 Source: serefpolicy-%{version}.tgz
@@ -602,6 +602,14 @@ SELinux Reference policy mls base module.
 %endif
 
 %changelog
+* Mon Aug 4 2014 Miroslav Grepl <mgrepl@redhat.com> 3.13.1-70
+- Add additional fixes for  abrt-dump-journal-oops which is now labeled as abrt_dump_oops_exec_t.
+- Allow denyhosts to enable synchronization which needs to connect to tcp/9911 port.
+- Allow nacl_helper_boo running in :chrome_sandbox_t to send SIGCHLD to chrome_sandbox_nacl_t.
+- Dontaudit write access on generic cert files. We don't audit also access check.
+- Add support for arptables.
+- Add labels and filenametrans rules for ostree repo directories which needs to be writable by subscription-manager.
+
 * Mon Aug  4 2014 Tom Callaway <spot@fedoraproject.org> 3.13.1-69
 - fix license handling
 

@@ -9321,7 +9321,7 @@ index cf04cb5..32d58ca 100644
 +	unconfined_server_stream_connect(domain)
 +')
 diff --git a/policy/modules/kernel/files.fc b/policy/modules/kernel/files.fc
-index b876c48..d8cdd96 100644
+index b876c48..b2aed45 100644
 --- a/policy/modules/kernel/files.fc
 +++ b/policy/modules/kernel/files.fc
 @@ -18,6 +18,7 @@ ifdef(`distro_redhat',`
@@ -9357,7 +9357,7 @@ index b876c48..d8cdd96 100644
  /etc/.*				gen_context(system_u:object_r:etc_t,s0)
  /etc/\.fstab\.hal\..+	--	gen_context(system_u:object_r:etc_runtime_t,s0)
  /etc/blkid(/.*)?		gen_context(system_u:object_r:etc_runtime_t,s0)
-@@ -52,13 +53,17 @@ ifdef(`distro_suse',`
+@@ -52,13 +53,20 @@ ifdef(`distro_suse',`
  /etc/fstab\.REVOKE	--	gen_context(system_u:object_r:etc_runtime_t,s0)
  /etc/ioctl\.save	--	gen_context(system_u:object_r:etc_runtime_t,s0)
  /etc/killpower		--	gen_context(system_u:object_r:etc_runtime_t,s0)
@@ -9377,10 +9377,13 @@ index b876c48..d8cdd96 100644
 +/etc/sysconfig/ipvsadm.*                --      gen_context(system_u:object_r:system_conf_t,s0)
 +/etc/sysconfig/system-config-firewall.* --      gen_context(system_u:object_r:system_conf_t,s0)
 +/etc/yum\.repos\.d(/.*)?                        gen_context(system_u:object_r:system_conf_t,s0)
++/etc/ostree/remotes.d(/.*)?                      gen_context(system_u:object_r:system_conf_t,s0)
++
++/ostree/repo(/.*)?                      gen_context(system_u:object_r:system_conf_t,s0)
  
  /etc/cups/client\.conf	--	gen_context(system_u:object_r:etc_t,s0)
  
-@@ -70,7 +75,10 @@ ifdef(`distro_suse',`
+@@ -70,7 +78,10 @@ ifdef(`distro_suse',`
  
  /etc/sysconfig/hwconf	--	gen_context(system_u:object_r:etc_runtime_t,s0)
  /etc/sysconfig/iptables\.save -- gen_context(system_u:object_r:etc_runtime_t,s0)
@@ -9392,7 +9395,7 @@ index b876c48..d8cdd96 100644
  
  ifdef(`distro_gentoo', `
  /etc/profile\.env	--	gen_context(system_u:object_r:etc_runtime_t,s0)
-@@ -78,10 +86,6 @@ ifdef(`distro_gentoo', `
+@@ -78,10 +89,6 @@ ifdef(`distro_gentoo', `
  /etc/env\.d/.*		--	gen_context(system_u:object_r:etc_runtime_t,s0)
  ')
  
@@ -9403,7 +9406,7 @@ index b876c48..d8cdd96 100644
  ifdef(`distro_suse',`
  /etc/defkeymap\.map	--	gen_context(system_u:object_r:etc_runtime_t,s0)
  /etc/rc\.d/init\.d/\.depend.* -- gen_context(system_u:object_r:etc_runtime_t,s0)
-@@ -104,7 +108,7 @@ HOME_ROOT/lost\+found/.*	<<none>>
+@@ -104,7 +111,7 @@ HOME_ROOT/lost\+found/.*	<<none>>
  /initrd			-d	gen_context(system_u:object_r:root_t,s0)
  
  #
@@ -9412,7 +9415,7 @@ index b876c48..d8cdd96 100644
  #
  /lib/modules(/.*)?		gen_context(system_u:object_r:modules_object_t,s0)
  
-@@ -125,10 +129,12 @@ ifdef(`distro_debian',`
+@@ -125,10 +132,12 @@ ifdef(`distro_debian',`
  #
  # Mount points; do not relabel subdirectories, since
  # we don't want to change any removable media by default.
@@ -9426,7 +9429,7 @@ index b876c48..d8cdd96 100644
  
  #
  # /misc
-@@ -138,7 +144,7 @@ ifdef(`distro_debian',`
+@@ -138,7 +147,7 @@ ifdef(`distro_debian',`
  #
  # /mnt
  #
@@ -9435,7 +9438,7 @@ index b876c48..d8cdd96 100644
  /mnt(/[^/]*)?		-d	gen_context(system_u:object_r:mnt_t,s0)
  /mnt/[^/]*/.*			<<none>>
  
-@@ -150,10 +156,10 @@ ifdef(`distro_debian',`
+@@ -150,10 +159,10 @@ ifdef(`distro_debian',`
  #
  # /opt
  #
@@ -9448,7 +9451,7 @@ index b876c48..d8cdd96 100644
  
  #
  # /proc
-@@ -161,6 +167,12 @@ ifdef(`distro_debian',`
+@@ -161,6 +170,12 @@ ifdef(`distro_debian',`
  /proc			-d	<<none>>
  /proc/.*			<<none>>
  
@@ -9461,7 +9464,7 @@ index b876c48..d8cdd96 100644
  #
  # /run
  #
-@@ -169,6 +181,7 @@ ifdef(`distro_debian',`
+@@ -169,6 +184,7 @@ ifdef(`distro_debian',`
  /run/.*\.*pid			<<none>>
  /run/lock(/.*)?			gen_context(system_u:object_r:var_lock_t,s0)
  
@@ -9469,7 +9472,7 @@ index b876c48..d8cdd96 100644
  #
  # /selinux
  #
-@@ -178,13 +191,14 @@ ifdef(`distro_debian',`
+@@ -178,13 +194,14 @@ ifdef(`distro_debian',`
  #
  # /srv
  #
@@ -9486,7 +9489,7 @@ index b876c48..d8cdd96 100644
  /tmp/.*				<<none>>
  /tmp/\.journal			<<none>>
  
-@@ -194,9 +208,11 @@ ifdef(`distro_debian',`
+@@ -194,9 +211,11 @@ ifdef(`distro_debian',`
  #
  # /usr
  #
@@ -9499,7 +9502,7 @@ index b876c48..d8cdd96 100644
  
  /usr/doc(/.*)?/lib(/.*)?	gen_context(system_u:object_r:usr_t,s0)
  
-@@ -204,15 +220,9 @@ ifdef(`distro_debian',`
+@@ -204,15 +223,9 @@ ifdef(`distro_debian',`
  
  /usr/inclu.e(/.*)?		gen_context(system_u:object_r:usr_t,s0)
  
@@ -9516,7 +9519,7 @@ index b876c48..d8cdd96 100644
  
  /usr/share/doc(/.*)?/README.*	gen_context(system_u:object_r:usr_t,s0)
  
-@@ -220,8 +230,6 @@ ifdef(`distro_debian',`
+@@ -220,8 +233,6 @@ ifdef(`distro_debian',`
  /usr/tmp/.*			<<none>>
  
  ifndef(`distro_redhat',`
@@ -9525,7 +9528,7 @@ index b876c48..d8cdd96 100644
  /usr/src(/.*)?			gen_context(system_u:object_r:src_t,s0)
  /usr/src/kernels/.+/lib(/.*)?	gen_context(system_u:object_r:usr_t,s0)
  ')
-@@ -229,7 +237,7 @@ ifndef(`distro_redhat',`
+@@ -229,7 +240,7 @@ ifndef(`distro_redhat',`
  #
  # /var
  #
@@ -9534,7 +9537,7 @@ index b876c48..d8cdd96 100644
  /var/.*				gen_context(system_u:object_r:var_t,s0)
  /var/\.journal			<<none>>
  
-@@ -237,11 +245,25 @@ ifndef(`distro_redhat',`
+@@ -237,11 +248,25 @@ ifndef(`distro_redhat',`
  
  /var/ftp/etc(/.*)?		gen_context(system_u:object_r:etc_t,s0)
  
@@ -9561,7 +9564,7 @@ index b876c48..d8cdd96 100644
  
  /var/log/lost\+found	-d	gen_context(system_u:object_r:lost_found_t,mls_systemhigh)
  /var/log/lost\+found/.*		<<none>>
-@@ -256,12 +278,14 @@ ifndef(`distro_redhat',`
+@@ -256,12 +281,14 @@ ifndef(`distro_redhat',`
  /var/run		-l	gen_context(system_u:object_r:var_run_t,s0)
  /var/run/.*			gen_context(system_u:object_r:var_run_t,s0)
  /var/run/.*\.*pid		<<none>>
@@ -9576,14 +9579,14 @@ index b876c48..d8cdd96 100644
  /var/tmp/.*			<<none>>
  /var/tmp/lost\+found	-d	gen_context(system_u:object_r:lost_found_t,mls_systemhigh)
  /var/tmp/lost\+found/.*		<<none>>
-@@ -271,3 +295,5 @@ ifdef(`distro_debian',`
+@@ -271,3 +298,5 @@ ifdef(`distro_debian',`
  /var/run/motd		--	gen_context(system_u:object_r:initrc_var_run_t,s0)
  /var/run/motd\.dynamic	--	gen_context(system_u:object_r:initrc_var_run_t,s0)
  ')
 +/nsr(/.*)?			gen_context(system_u:object_r:var_t,s0)
 +/nsr/logs(/.*)?			gen_context(system_u:object_r:var_log_t,s0)
 diff --git a/policy/modules/kernel/files.if b/policy/modules/kernel/files.if
-index f962f76..d12f46e 100644
+index f962f76..47dc71f 100644
 --- a/policy/modules/kernel/files.if
 +++ b/policy/modules/kernel/files.if
 @@ -19,6 +19,136 @@
@@ -11073,7 +11076,7 @@ index f962f76..d12f46e 100644
  ')
  
  ########################################
-@@ -4217,192 +4975,215 @@ interface(`files_read_world_readable_sockets',`
+@@ -4217,192 +4975,218 @@ interface(`files_read_world_readable_sockets',`
  	allow $1 readable_t:sock_file read_sock_file_perms;
  ')
  
@@ -11161,7 +11164,7 @@ index f962f76..d12f46e 100644
 -	')
 +interface(`files_filetrans_system_conf_named_files',`
 +    gen_require(`
-+        type etc_t, system_conf_t;
++        type etc_t, system_conf_t, usr_t;
 +    ')
  
 -	dontaudit $1 tmp_t:dir getattr;
@@ -11182,6 +11185,9 @@ index f962f76..d12f46e 100644
 +    filetrans_pattern($1, etc_t, system_conf_t, file, "redhat.repo")
 +	filetrans_pattern($1, etc_t, system_conf_t, file, "system-config-firewall")
 +	filetrans_pattern($1, etc_t, system_conf_t, file, "system-config-firewall.old")
++	filetrans_pattern($1, etc_t, system_conf_t, dir, "yum.repos.d")
++	filetrans_pattern($1, etc_t, system_conf_t, dir, "remotes.d")
++	filetrans_pattern($1, usr_t, system_conf_t, dir, "repo")
  ')
  
 -########################################
@@ -11385,7 +11391,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -4410,53 +5191,56 @@ interface(`files_manage_generic_tmp_dirs',`
+@@ -4410,53 +5194,56 @@ interface(`files_manage_generic_tmp_dirs',`
  ##	</summary>
  ## </param>
  #
@@ -11454,7 +11460,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -4464,77 +5248,93 @@ interface(`files_rw_generic_tmp_sockets',`
+@@ -4464,77 +5251,93 @@ interface(`files_rw_generic_tmp_sockets',`
  ##	</summary>
  ## </param>
  #
@@ -11572,7 +11578,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -4542,110 +5342,98 @@ interface(`files_dontaudit_getattr_all_tmp_files',`
+@@ -4542,110 +5345,98 @@ interface(`files_dontaudit_getattr_all_tmp_files',`
  ##	</summary>
  ## </param>
  #
@@ -11711,7 +11717,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -4653,22 +5441,17 @@ interface(`files_tmp_filetrans',`
+@@ -4653,22 +5444,17 @@ interface(`files_tmp_filetrans',`
  ##	</summary>
  ## </param>
  #
@@ -11738,7 +11744,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -4676,17 +5459,17 @@ interface(`files_purge_tmp',`
+@@ -4676,17 +5462,17 @@ interface(`files_purge_tmp',`
  ##	</summary>
  ## </param>
  #
@@ -11760,7 +11766,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -4694,18 +5477,17 @@ interface(`files_setattr_usr_dirs',`
+@@ -4694,18 +5480,17 @@ interface(`files_setattr_usr_dirs',`
  ##	</summary>
  ## </param>
  #
@@ -11783,7 +11789,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -4713,35 +5495,35 @@ interface(`files_search_usr',`
+@@ -4713,35 +5498,35 @@ interface(`files_search_usr',`
  ##	</summary>
  ## </param>
  #
@@ -11828,7 +11834,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -4749,36 +5531,35 @@ interface(`files_dontaudit_write_usr_dirs',`
+@@ -4749,36 +5534,35 @@ interface(`files_dontaudit_write_usr_dirs',`
  ##	</summary>
  ## </param>
  #
@@ -11874,7 +11880,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -4786,17 +5567,17 @@ interface(`files_dontaudit_rw_usr_dirs',`
+@@ -4786,17 +5570,17 @@ interface(`files_dontaudit_rw_usr_dirs',`
  ##	</summary>
  ## </param>
  #
@@ -11896,7 +11902,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -4804,73 +5585,59 @@ interface(`files_delete_usr_dirs',`
+@@ -4804,73 +5588,59 @@ interface(`files_delete_usr_dirs',`
  ##	</summary>
  ## </param>
  #
@@ -11989,7 +11995,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -4878,55 +5645,58 @@ interface(`files_read_usr_files',`
+@@ -4878,55 +5648,58 @@ interface(`files_read_usr_files',`
  ##	</summary>
  ## </param>
  #
@@ -12064,7 +12070,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -4934,67 +5704,70 @@ interface(`files_manage_usr_files',`
+@@ -4934,67 +5707,70 @@ interface(`files_manage_usr_files',`
  ##	</summary>
  ## </param>
  #
@@ -12153,7 +12159,7 @@ index f962f76..d12f46e 100644
  ##	</summary>
  ## </param>
  ## <param name="name" optional="true">
-@@ -5003,35 +5776,50 @@ interface(`files_read_usr_symlinks',`
+@@ -5003,35 +5779,50 @@ interface(`files_read_usr_symlinks',`
  ##	</summary>
  ## </param>
  #
@@ -12213,7 +12219,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5039,20 +5827,17 @@ interface(`files_dontaudit_search_src',`
+@@ -5039,20 +5830,17 @@ interface(`files_dontaudit_search_src',`
  ##	</summary>
  ## </param>
  #
@@ -12238,7 +12244,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5060,20 +5845,18 @@ interface(`files_getattr_usr_src_files',`
+@@ -5060,20 +5848,18 @@ interface(`files_getattr_usr_src_files',`
  ##	</summary>
  ## </param>
  #
@@ -12263,7 +12269,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5081,38 +5864,35 @@ interface(`files_read_usr_src_files',`
+@@ -5081,38 +5867,35 @@ interface(`files_read_usr_src_files',`
  ##	</summary>
  ## </param>
  #
@@ -12311,7 +12317,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5120,37 +5900,36 @@ interface(`files_create_kernel_symbol_table',`
+@@ -5120,37 +5903,36 @@ interface(`files_create_kernel_symbol_table',`
  ##	</summary>
  ## </param>
  #
@@ -12359,7 +12365,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5158,35 +5937,35 @@ interface(`files_delete_kernel_symbol_table',`
+@@ -5158,35 +5940,35 @@ interface(`files_delete_kernel_symbol_table',`
  ##	</summary>
  ## </param>
  #
@@ -12404,7 +12410,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5194,36 +5973,55 @@ interface(`files_dontaudit_write_var_dirs',`
+@@ -5194,36 +5976,55 @@ interface(`files_dontaudit_write_var_dirs',`
  ##	</summary>
  ## </param>
  #
@@ -12470,7 +12476,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5231,36 +6029,37 @@ interface(`files_dontaudit_search_var',`
+@@ -5231,36 +6032,37 @@ interface(`files_dontaudit_search_var',`
  ##	</summary>
  ## </param>
  #
@@ -12518,7 +12524,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5268,17 +6067,17 @@ interface(`files_manage_var_dirs',`
+@@ -5268,17 +6070,17 @@ interface(`files_manage_var_dirs',`
  ##	</summary>
  ## </param>
  #
@@ -12540,7 +12546,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5286,17 +6085,17 @@ interface(`files_read_var_files',`
+@@ -5286,17 +6088,17 @@ interface(`files_read_var_files',`
  ##	</summary>
  ## </param>
  #
@@ -12562,7 +12568,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5304,73 +6103,86 @@ interface(`files_append_var_files',`
+@@ -5304,73 +6106,86 @@ interface(`files_append_var_files',`
  ##	</summary>
  ## </param>
  #
@@ -12669,7 +12675,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5378,50 +6190,41 @@ interface(`files_read_var_symlinks',`
+@@ -5378,50 +6193,41 @@ interface(`files_read_var_symlinks',`
  ##	</summary>
  ## </param>
  #
@@ -12734,7 +12740,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5429,69 +6232,56 @@ interface(`files_var_filetrans',`
+@@ -5429,69 +6235,56 @@ interface(`files_var_filetrans',`
  ##	</summary>
  ## </param>
  #
@@ -12819,7 +12825,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5499,17 +6289,18 @@ interface(`files_dontaudit_search_var_lib',`
+@@ -5499,17 +6292,18 @@ interface(`files_dontaudit_search_var_lib',`
  ##	</summary>
  ## </param>
  #
@@ -12843,7 +12849,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5517,70 +6308,54 @@ interface(`files_list_var_lib',`
+@@ -5517,70 +6311,54 @@ interface(`files_list_var_lib',`
  ##	</summary>
  ## </param>
  #
@@ -12927,7 +12933,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5588,41 +6363,36 @@ interface(`files_read_var_lib_files',`
+@@ -5588,41 +6366,36 @@ interface(`files_read_var_lib_files',`
  ##	</summary>
  ## </param>
  #
@@ -12979,7 +12985,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5630,36 +6400,36 @@ interface(`files_manage_urandom_seed',`
+@@ -5630,36 +6403,36 @@ interface(`files_manage_urandom_seed',`
  ##	</summary>
  ## </param>
  #
@@ -13026,7 +13032,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5667,38 +6437,35 @@ interface(`files_setattr_lock_dirs',`
+@@ -5667,38 +6440,35 @@ interface(`files_setattr_lock_dirs',`
  ##	</summary>
  ## </param>
  #
@@ -13074,7 +13080,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5706,19 +6473,17 @@ interface(`files_dontaudit_search_locks',`
+@@ -5706,19 +6476,17 @@ interface(`files_dontaudit_search_locks',`
  ##	</summary>
  ## </param>
  #
@@ -13098,7 +13104,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5726,60 +6491,54 @@ interface(`files_list_locks',`
+@@ -5726,60 +6494,54 @@ interface(`files_list_locks',`
  ##	</summary>
  ## </param>
  #
@@ -13174,7 +13180,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5787,20 +6546,18 @@ interface(`files_relabel_all_lock_dirs',`
+@@ -5787,20 +6549,18 @@ interface(`files_relabel_all_lock_dirs',`
  ##	</summary>
  ## </param>
  #
@@ -13200,7 +13206,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5808,165 +6565,156 @@ interface(`files_getattr_generic_locks',`
+@@ -5808,165 +6568,156 @@ interface(`files_getattr_generic_locks',`
  ##	</summary>
  ## </param>
  #
@@ -13428,7 +13434,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5974,59 +6722,71 @@ interface(`files_dontaudit_getattr_pid_dirs',`
+@@ -5974,59 +6725,71 @@ interface(`files_dontaudit_getattr_pid_dirs',`
  ##	</summary>
  ## </param>
  #
@@ -13519,7 +13525,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -6034,18 +6794,18 @@ interface(`files_dontaudit_search_pids',`
+@@ -6034,18 +6797,18 @@ interface(`files_dontaudit_search_pids',`
  ##	</summary>
  ## </param>
  #
@@ -13543,7 +13549,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -6053,19 +6813,21 @@ interface(`files_list_pids',`
+@@ -6053,19 +6816,21 @@ interface(`files_list_pids',`
  ##	</summary>
  ## </param>
  #
@@ -13571,7 +13577,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -6073,58 +6835,1243 @@ interface(`files_read_generic_pids',`
+@@ -6073,58 +6838,1243 @@ interface(`files_read_generic_pids',`
  ##	</summary>
  ## </param>
  #
@@ -14850,7 +14856,7 @@ index f962f76..d12f46e 100644
  ##	</summary>
  ## </param>
  ## <param name="name" optional="true">
-@@ -6132,44 +8079,165 @@ interface(`files_write_generic_pid_pipes',`
+@@ -6132,44 +8082,165 @@ interface(`files_write_generic_pid_pipes',`
  ##	The name of the object being created.
  ##	</summary>
  ## </param>
@@ -15035,7 +15041,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -6177,20 +8245,18 @@ interface(`files_pid_filetrans_lock_dir',`
+@@ -6177,20 +8248,18 @@ interface(`files_pid_filetrans_lock_dir',`
  ##	</summary>
  ## </param>
  #
@@ -15061,7 +15067,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -6198,19 +8264,17 @@ interface(`files_rw_generic_pids',`
+@@ -6198,19 +8267,17 @@ interface(`files_rw_generic_pids',`
  ##	</summary>
  ## </param>
  #
@@ -15085,7 +15091,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -6218,18 +8282,17 @@ interface(`files_dontaudit_getattr_all_pids',`
+@@ -6218,18 +8285,17 @@ interface(`files_dontaudit_getattr_all_pids',`
  ##	</summary>
  ## </param>
  #
@@ -15108,7 +15114,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -6237,41 +8300,43 @@ interface(`files_dontaudit_write_all_pids',`
+@@ -6237,41 +8303,43 @@ interface(`files_dontaudit_write_all_pids',`
  ##	</summary>
  ## </param>
  #
@@ -15166,7 +15172,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -6280,67 +8345,55 @@ interface(`files_read_all_pids',`
+@@ -6280,67 +8348,55 @@ interface(`files_read_all_pids',`
  ## </param>
  ## <rolecap/>
  #
@@ -15251,7 +15257,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -6348,37 +8401,37 @@ interface(`files_manage_all_pids',`
+@@ -6348,37 +8404,37 @@ interface(`files_manage_all_pids',`
  ##	</summary>
  ## </param>
  #
@@ -15300,7 +15306,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -6386,132 +8439,207 @@ interface(`files_search_spool',`
+@@ -6386,132 +8442,207 @@ interface(`files_search_spool',`
  ##	</summary>
  ## </param>
  #
@@ -15559,7 +15565,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -6519,53 +8647,17 @@ interface(`files_spool_filetrans',`
+@@ -6519,53 +8650,17 @@ interface(`files_spool_filetrans',`
  ##	</summary>
  ## </param>
  #
@@ -15617,7 +15623,7 @@ index f962f76..d12f46e 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -6573,10 +8665,10 @@ interface(`files_polyinstantiate_all',`
+@@ -6573,10 +8668,10 @@ interface(`files_polyinstantiate_all',`
  ##	</summary>
  ## </param>
  #
@@ -34272,10 +34278,10 @@ index 312cd04..3c62b4c 100644
 +userdom_use_inherited_user_terminals(setkey_t)
 +userdom_read_user_tmp_files(setkey_t)
 diff --git a/policy/modules/system/iptables.fc b/policy/modules/system/iptables.fc
-index 73a1c4e..738e9ff 100644
+index 73a1c4e..ef41ebe 100644
 --- a/policy/modules/system/iptables.fc
 +++ b/policy/modules/system/iptables.fc
-@@ -1,22 +1,33 @@
+@@ -1,22 +1,35 @@
  /etc/rc\.d/init\.d/ip6?tables	--	gen_context(system_u:object_r:iptables_initrc_exec_t,s0)
 -/etc/rc\.d/init\.d/ebtables	--	gen_context(system_u:object_r:iptables_initrc_exec_t,s0)
 -/etc/sysconfig/ip6?tables.*	--	gen_context(system_u:object_r:iptables_conf_t,s0)
@@ -34289,6 +34295,7 @@ index 73a1c4e..738e9ff 100644
 +
 +/usr/libexec/ipset          --  gen_context(system_u:object_r:iptables_exec_t,s0)
 +
++/sbin/arptables             --  gen_context(system_u:object_r:iptables_exec_t,s0)
 +/sbin/ebtables			    --	gen_context(system_u:object_r:iptables_exec_t,s0)
  /sbin/ebtables-restore		--	gen_context(system_u:object_r:iptables_exec_t,s0)
 -/sbin/ipchains.*		--	gen_context(system_u:object_r:iptables_exec_t,s0)
@@ -34309,6 +34316,7 @@ index 73a1c4e..738e9ff 100644
 +/sbin/xtables-multi		    --	gen_context(system_u:object_r:iptables_exec_t,s0)
  
 -/usr/sbin/conntrack		--	gen_context(system_u:object_r:iptables_exec_t,s0)
++/usr/sbin/arptables         --  gen_context(system_u:object_r:iptables_exec_t,s0)
 +/usr/sbin/conntrack		    --	gen_context(system_u:object_r:iptables_exec_t,s0)
 +/usr/sbin/ebtables		    --	gen_context(system_u:object_r:iptables_exec_t,s0)
 +/usr/sbin/ebtables-restore	--	gen_context(system_u:object_r:iptables_exec_t,s0)
