@@ -19,7 +19,7 @@
 Summary: SELinux policy configuration
 Name: selinux-policy
 Version: 3.13.1
-Release: 70%{?dist}
+Release: 71%{?dist}
 License: GPLv2+
 Group: System Environment/Base
 Source: serefpolicy-%{version}.tgz
@@ -602,6 +602,9 @@ SELinux Reference policy mls base module.
 %endif
 
 %changelog
+* Mon Aug 4 2014 Miroslav Grepl <mgrepl@redhat.com> 3.13.1-71
+- shell_exec_t should not be in cockip.fc
+
 * Mon Aug 4 2014 Miroslav Grepl <mgrepl@redhat.com> 3.13.1-70
 - Add additional fixes for  abrt-dump-journal-oops which is now labeled as abrt_dump_oops_exec_t.
 - Allow denyhosts to enable synchronization which needs to connect to tcp/9911 port.

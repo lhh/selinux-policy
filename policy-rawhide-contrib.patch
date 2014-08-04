@@ -13594,10 +13594,10 @@ index 5f306dd..e01156f 100644
  ')
 diff --git a/cockpit.fc b/cockpit.fc
 new file mode 100644
-index 0000000..276ea8a
+index 0000000..b71de28
 --- /dev/null
 +++ b/cockpit.fc
-@@ -0,0 +1,10 @@
+@@ -0,0 +1,8 @@
 +# cockpit stuff
 +
 +/usr/lib/systemd/system/cockpit.*		--	gen_context(system_u:object_r:cockpit_unit_file_t,s0)
@@ -13606,8 +13606,6 @@ index 0000000..276ea8a
 +/usr/libexec/cockpit-ws		--	gen_context(system_u:object_r:cockpit_ws_exec_t,s0)
 +
 +/usr/libexec/cockpit-session	--	gen_context(system_u:object_r:cockpit_session_exec_t,s0)
-+
-+/usr/libexec/cockpit-agent	--	gen_context(system_u:object_r:shell_exec_t,s0)
 diff --git a/cockpit.if b/cockpit.if
 new file mode 100644
 index 0000000..573dcae
