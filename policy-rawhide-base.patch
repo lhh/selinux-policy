@@ -6011,7 +6011,7 @@ index b31c054..5e37a40 100644
 +/usr/lib/udev/devices/null	-c	gen_context(system_u:object_r:null_device_t,s0)
 +/usr/lib/udev/devices/zero	-c	gen_context(system_u:object_r:zero_device_t,s0)
 diff --git a/policy/modules/kernel/devices.if b/policy/modules/kernel/devices.if
-index 76f285e..d86836b 100644
+index 76f285e..a3c0103 100644
 --- a/policy/modules/kernel/devices.if
 +++ b/policy/modules/kernel/devices.if
 @@ -143,13 +143,32 @@ interface(`dev_relabel_all_dev_nodes',`
@@ -6272,7 +6272,33 @@ index 76f285e..d86836b 100644
  ##	Create, delete, read, and write block device files.
  ## </summary>
  ## <param name="domain">
-@@ -1003,6 +1130,26 @@ interface(`dev_getattr_all_blk_files',`
+@@ -983,6 +1110,25 @@ interface(`dev_tmpfs_filetrans_dev',`
+ 
+ ########################################
+ ## <summary>
++##	Allow getattr on all device nodes.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`dev_getattr_all',`
++	gen_require(`
++		attribute device_node;
++		type device_t;
++	')
++
++	allow $1 { device_t device_node }:dir_file_class_set getattr;
++')
++
++########################################
++## <summary>
+ ##	Getattr on all block file device nodes.
+ ## </summary>
+ ## <param name="domain">
+@@ -1003,6 +1149,26 @@ interface(`dev_getattr_all_blk_files',`
  
  ########################################
  ## <summary>
@@ -6299,7 +6325,7 @@ index 76f285e..d86836b 100644
  ##	Dontaudit getattr on all block file device nodes.
  ## </summary>
  ## <param name="domain">
-@@ -1034,6 +1181,7 @@ interface(`dev_dontaudit_getattr_all_blk_files',`
+@@ -1034,6 +1200,7 @@ interface(`dev_dontaudit_getattr_all_blk_files',`
  interface(`dev_getattr_all_chr_files',`
  	gen_require(`
  		attribute device_node;
@@ -6307,7 +6333,7 @@ index 76f285e..d86836b 100644
  	')
  
  	getattr_chr_files_pattern($1, device_t, device_node)
-@@ -1206,6 +1354,42 @@ interface(`dev_create_all_chr_files',`
+@@ -1206,6 +1373,42 @@ interface(`dev_create_all_chr_files',`
  
  ########################################
  ## <summary>
@@ -6350,7 +6376,7 @@ index 76f285e..d86836b 100644
  ##	Delete all block device files.
  ## </summary>
  ## <param name="domain">
-@@ -1560,25 +1744,6 @@ interface(`dev_relabel_autofs_dev',`
+@@ -1560,25 +1763,6 @@ interface(`dev_relabel_autofs_dev',`
  
  ########################################
  ## <summary>
@@ -6376,7 +6402,7 @@ index 76f285e..d86836b 100644
  ##	Read and write the PCMCIA card manager device.
  ## </summary>
  ## <param name="domain">
-@@ -1682,6 +1847,26 @@ interface(`dev_filetrans_cardmgr',`
+@@ -1682,6 +1866,26 @@ interface(`dev_filetrans_cardmgr',`
  
  ########################################
  ## <summary>
@@ -6403,7 +6429,7 @@ index 76f285e..d86836b 100644
  ##	Get the attributes of the CPU
  ##	microcode and id interfaces.
  ## </summary>
-@@ -1791,6 +1976,24 @@ interface(`dev_rw_crypto',`
+@@ -1791,6 +1995,24 @@ interface(`dev_rw_crypto',`
  	rw_chr_files_pattern($1, device_t, crypt_device_t)
  ')
  
@@ -6428,7 +6454,7 @@ index 76f285e..d86836b 100644
  #######################################
  ## <summary>
  ##	Set the attributes of the dlm control devices.
-@@ -1883,6 +2086,25 @@ interface(`dev_rw_dri',`
+@@ -1883,6 +2105,25 @@ interface(`dev_rw_dri',`
  
  ########################################
  ## <summary>
@@ -6454,7 +6480,7 @@ index 76f285e..d86836b 100644
  ##	Dontaudit read and write on the dri devices.
  ## </summary>
  ## <param name="domain">
-@@ -2017,7 +2239,7 @@ interface(`dev_rw_input_dev',`
+@@ -2017,7 +2258,7 @@ interface(`dev_rw_input_dev',`
  
  ########################################
  ## <summary>
@@ -6463,7 +6489,7 @@ index 76f285e..d86836b 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -2025,17 +2247,19 @@ interface(`dev_rw_input_dev',`
+@@ -2025,17 +2266,73 @@ interface(`dev_rw_input_dev',`
  ##	</summary>
  ## </param>
  #
@@ -6484,63 +6510,51 @@ index 76f285e..d86836b 100644
  ## <summary>
 -##	Set the attributes of the framebuffer device node.
 +##	Read ipmi devices.
- ## </summary>
- ## <param name="domain">
- ##	<summary>
-@@ -2043,36 +2267,35 @@ interface(`dev_getattr_framebuffer_dev',`
- ##	</summary>
- ## </param>
- #
--interface(`dev_setattr_framebuffer_dev',`
-+interface(`dev_read_ipmi_dev',`
- 	gen_require(`
--		type device_t, framebuf_device_t;
-+		type device_t, ipmi_device_t;
- 	')
- 
--	setattr_chr_files_pattern($1, device_t, framebuf_device_t)
-+	read_chr_files_pattern($1, device_t, ipmi_device_t)
- ')
- 
- ########################################
- ## <summary>
--##	Dot not audit attempts to set the attributes
--##	of the framebuffer device node.
-+##	Read and write ipmi devices.
- ## </summary>
- ## <param name="domain">
- ##	<summary>
--##	Domain to not audit.
++## </summary>
++## <param name="domain">
++##	<summary>
 +##	Domain allowed access.
- ##	</summary>
- ## </param>
- #
--interface(`dev_dontaudit_setattr_framebuffer_dev',`
-+interface(`dev_rw_ipmi_dev',`
- 	gen_require(`
--		type framebuf_device_t;
++##	</summary>
++## </param>
++#
++interface(`dev_read_ipmi_dev',`
++	gen_require(`
 +		type device_t, ipmi_device_t;
- 	')
- 
--	dontaudit $1 framebuf_device_t:chr_file setattr;
++	')
++
++	read_chr_files_pattern($1, device_t, ipmi_device_t)
++')
++
++########################################
++## <summary>
++##	Read and write ipmi devices.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`dev_rw_ipmi_dev',`
++	gen_require(`
++		type device_t, ipmi_device_t;
++	')
++
 +	rw_chr_files_pattern($1, device_t, ipmi_device_t)
- ')
- 
- ########################################
- ## <summary>
--##	Read the framebuffer.
++')
++
++########################################
++## <summary>
 +##	Get the attributes of the framebuffer device node.
- ## </summary>
- ## <param name="domain">
- ##	<summary>
-@@ -2080,9 +2303,64 @@ interface(`dev_dontaudit_setattr_framebuffer_dev',`
- ##	</summary>
- ## </param>
- #
--interface(`dev_read_framebuffer',`
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
 +interface(`dev_getattr_framebuffer_dev',`
- 	gen_require(`
--		type framebuf_device_t;
++	gen_require(`
 +		type device_t, framebuf_device_t;
 +	')
 +
@@ -6550,57 +6564,10 @@ index 76f285e..d86836b 100644
 +########################################
 +## <summary>
 +##	Set the attributes of the framebuffer device node.
-+## </summary>
-+## <param name="domain">
-+##	<summary>
-+##	Domain allowed access.
-+##	</summary>
-+## </param>
-+#
-+interface(`dev_setattr_framebuffer_dev',`
-+	gen_require(`
-+		type device_t, framebuf_device_t;
-+	')
-+
-+	setattr_chr_files_pattern($1, device_t, framebuf_device_t)
-+')
-+
-+########################################
-+## <summary>
-+##	Dot not audit attempts to set the attributes
-+##	of the framebuffer device node.
-+## </summary>
-+## <param name="domain">
-+##	<summary>
-+##	Domain to not audit.
-+##	</summary>
-+## </param>
-+#
-+interface(`dev_dontaudit_setattr_framebuffer_dev',`
-+	gen_require(`
-+		type framebuf_device_t;
-+	')
-+
-+	dontaudit $1 framebuf_device_t:chr_file setattr;
-+')
-+
-+########################################
-+## <summary>
-+##	Read the framebuffer.
-+## </summary>
-+## <param name="domain">
-+##	<summary>
-+##	Domain allowed access.
-+##	</summary>
-+## </param>
-+#
-+interface(`dev_read_framebuffer',`
-+	gen_require(`
-+		type framebuf_device_t;
- 	')
- 
- 	read_chr_files_pattern($1, device_t, framebuf_device_t)
-@@ -2402,7 +2680,97 @@ interface(`dev_filetrans_lirc',`
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -2402,7 +2699,97 @@ interface(`dev_filetrans_lirc',`
  
  ########################################
  ## <summary>
@@ -6699,7 +6666,7 @@ index 76f285e..d86836b 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -2725,7 +3093,7 @@ interface(`dev_write_misc',`
+@@ -2725,7 +3112,7 @@ interface(`dev_write_misc',`
  ## </summary>
  ## <param name="domain">
  ##	<summary>
@@ -6708,7 +6675,7 @@ index 76f285e..d86836b 100644
  ##	</summary>
  ## </param>
  #
-@@ -2903,20 +3271,20 @@ interface(`dev_getattr_mtrr_dev',`
+@@ -2903,20 +3290,20 @@ interface(`dev_getattr_mtrr_dev',`
  
  ########################################
  ## <summary>
@@ -6733,7 +6700,7 @@ index 76f285e..d86836b 100644
  ##	</p>
  ## </desc>
  ## <param name="domain">
-@@ -2925,43 +3293,34 @@ interface(`dev_getattr_mtrr_dev',`
+@@ -2925,43 +3312,34 @@ interface(`dev_getattr_mtrr_dev',`
  ##	</summary>
  ## </param>
  #
@@ -6789,7 +6756,7 @@ index 76f285e..d86836b 100644
  ##	range registers (MTRR).
  ## </summary>
  ## <param name="domain">
-@@ -2970,13 +3329,13 @@ interface(`dev_write_mtrr',`
+@@ -2970,13 +3348,13 @@ interface(`dev_write_mtrr',`
  ##	</summary>
  ## </param>
  #
@@ -6806,7 +6773,7 @@ index 76f285e..d86836b 100644
  ')
  
  ########################################
-@@ -3144,6 +3503,42 @@ interface(`dev_create_null_dev',`
+@@ -3144,6 +3522,42 @@ interface(`dev_create_null_dev',`
  
  ########################################
  ## <summary>
@@ -6849,7 +6816,7 @@ index 76f285e..d86836b 100644
  ##	Do not audit attempts to get the attributes
  ##	of the BIOS non-volatile RAM device.
  ## </summary>
-@@ -3163,6 +3558,24 @@ interface(`dev_dontaudit_getattr_nvram_dev',`
+@@ -3163,6 +3577,24 @@ interface(`dev_dontaudit_getattr_nvram_dev',`
  
  ########################################
  ## <summary>
@@ -6874,7 +6841,7 @@ index 76f285e..d86836b 100644
  ##	Read and write BIOS non-volatile RAM.
  ## </summary>
  ## <param name="domain">
-@@ -3254,7 +3667,25 @@ interface(`dev_rw_printer',`
+@@ -3254,7 +3686,25 @@ interface(`dev_rw_printer',`
  
  ########################################
  ## <summary>
@@ -6901,7 +6868,7 @@ index 76f285e..d86836b 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -3262,12 +3693,13 @@ interface(`dev_rw_printer',`
+@@ -3262,12 +3712,13 @@ interface(`dev_rw_printer',`
  ##	</summary>
  ## </param>
  #
@@ -6918,7 +6885,7 @@ index 76f285e..d86836b 100644
  ')
  
  ########################################
-@@ -3399,7 +3831,7 @@ interface(`dev_dontaudit_read_rand',`
+@@ -3399,7 +3850,7 @@ interface(`dev_dontaudit_read_rand',`
  
  ########################################
  ## <summary>
@@ -6927,7 +6894,7 @@ index 76f285e..d86836b 100644
  ##	number generator devices (e.g., /dev/random)
  ## </summary>
  ## <param name="domain">
-@@ -3413,7 +3845,7 @@ interface(`dev_dontaudit_append_rand',`
+@@ -3413,7 +3864,7 @@ interface(`dev_dontaudit_append_rand',`
  		type random_device_t;
  	')
  
@@ -6936,7 +6903,7 @@ index 76f285e..d86836b 100644
  ')
  
  ########################################
-@@ -3855,7 +4287,7 @@ interface(`dev_getattr_sysfs_dirs',`
+@@ -3855,7 +4306,7 @@ interface(`dev_getattr_sysfs_dirs',`
  
  ########################################
  ## <summary>
@@ -6945,7 +6912,7 @@ index 76f285e..d86836b 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -3863,53 +4295,53 @@ interface(`dev_getattr_sysfs_dirs',`
+@@ -3863,53 +4314,53 @@ interface(`dev_getattr_sysfs_dirs',`
  ##	</summary>
  ## </param>
  #
@@ -7010,7 +6977,7 @@ index 76f285e..d86836b 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -3917,37 +4349,35 @@ interface(`dev_list_sysfs',`
+@@ -3917,37 +4368,35 @@ interface(`dev_list_sysfs',`
  ##	</summary>
  ## </param>
  #
@@ -7055,7 +7022,7 @@ index 76f285e..d86836b 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -3955,26 +4385,145 @@ interface(`dev_dontaudit_write_sysfs_dirs',`
+@@ -3955,41 +4404,160 @@ interface(`dev_dontaudit_write_sysfs_dirs',`
  ##	</summary>
  ## </param>
  #
@@ -7082,17 +7049,23 @@ index 76f285e..d86836b 100644
 -##	hardware installed on the system.
 -##	</p>
 -## </desc>
-+## <param name="domain">
-+##	<summary>
+ ## <param name="domain">
+ ##	<summary>
+-##	Domain allowed access.
 +##	Domain to not audit.
-+##	</summary>
-+## </param>
-+#
+ ##	</summary>
+ ## </param>
+-## <infoflow type="read" weight="10"/>
+ #
+-interface(`dev_read_sysfs',`
 +interface(`dev_dontaudit_search_sysfs',`
-+	gen_require(`
-+		type sysfs_t;
-+	')
-+
+ 	gen_require(`
+ 		type sysfs_t;
+ 	')
+ 
+-	read_files_pattern($1, sysfs_t, sysfs_t)
+-	read_lnk_files_pattern($1, sysfs_t, sysfs_t)
+-
 +	dontaudit $1 sysfs_t:dir search_dir_perms;
 +')
 +
@@ -7209,10 +7182,25 @@ index 76f285e..d86836b 100644
 +##	hardware installed on the system.
 +##	</p>
 +## </desc>
- ## <param name="domain">
- ##	<summary>
- ##	Domain allowed access.
-@@ -4016,6 +4565,62 @@ interface(`dev_rw_sysfs',`
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <infoflow type="read" weight="10"/>
++#
++interface(`dev_read_sysfs',`
++	gen_require(`
++		type sysfs_t;
++	')
++
++	read_files_pattern($1, sysfs_t, sysfs_t)
++	read_lnk_files_pattern($1, sysfs_t, sysfs_t)
++
+ 	list_dirs_pattern($1, sysfs_t, sysfs_t)
+ ')
+ 
+@@ -4016,6 +4584,62 @@ interface(`dev_rw_sysfs',`
  
  ########################################
  ## <summary>
@@ -7275,7 +7263,7 @@ index 76f285e..d86836b 100644
  ##	Read and write the TPM device.
  ## </summary>
  ## <param name="domain">
-@@ -4113,6 +4718,25 @@ interface(`dev_write_urand',`
+@@ -4113,6 +4737,25 @@ interface(`dev_write_urand',`
  
  ########################################
  ## <summary>
@@ -7301,7 +7289,7 @@ index 76f285e..d86836b 100644
  ##	Getattr generic the USB devices.
  ## </summary>
  ## <param name="domain">
-@@ -4409,9 +5033,9 @@ interface(`dev_rw_usbfs',`
+@@ -4409,9 +5052,9 @@ interface(`dev_rw_usbfs',`
  	read_lnk_files_pattern($1, usbfs_t, usbfs_t)
  ')
  
@@ -7313,7 +7301,7 @@ index 76f285e..d86836b 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -4419,17 +5043,17 @@ interface(`dev_rw_usbfs',`
+@@ -4419,17 +5062,17 @@ interface(`dev_rw_usbfs',`
  ##	</summary>
  ## </param>
  #
@@ -7336,7 +7324,7 @@ index 76f285e..d86836b 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -4437,12 +5061,12 @@ interface(`dev_getattr_video_dev',`
+@@ -4437,12 +5080,12 @@ interface(`dev_getattr_video_dev',`
  ##	</summary>
  ## </param>
  #
@@ -7352,7 +7340,7 @@ index 76f285e..d86836b 100644
  ')
  
  ########################################
-@@ -4539,6 +5163,134 @@ interface(`dev_write_video_dev',`
+@@ -4539,6 +5182,134 @@ interface(`dev_write_video_dev',`
  
  ########################################
  ## <summary>
@@ -7487,7 +7475,7 @@ index 76f285e..d86836b 100644
  ##	Allow read/write the vhost net device
  ## </summary>
  ## <param name="domain">
-@@ -4557,6 +5309,24 @@ interface(`dev_rw_vhost',`
+@@ -4557,6 +5328,24 @@ interface(`dev_rw_vhost',`
  
  ########################################
  ## <summary>
@@ -7512,7 +7500,7 @@ index 76f285e..d86836b 100644
  ##	Read and write VMWare devices.
  ## </summary>
  ## <param name="domain">
-@@ -4762,6 +5532,44 @@ interface(`dev_rw_xserver_misc',`
+@@ -4762,6 +5551,44 @@ interface(`dev_rw_xserver_misc',`
  
  ########################################
  ## <summary>
@@ -7557,7 +7545,7 @@ index 76f285e..d86836b 100644
  ##	Read and write to the zero device (/dev/zero).
  ## </summary>
  ## <param name="domain">
-@@ -4851,3 +5659,946 @@ interface(`dev_unconfined',`
+@@ -4851,3 +5678,946 @@ interface(`dev_unconfined',`
  
  	typeattribute $1 devices_unconfined_type;
  ')
@@ -8831,7 +8819,7 @@ index 6a1e4d1..1b9b0b5 100644
 +	dontaudit $1 domain:dir_file_class_set audit_access;
  ')
 diff --git a/policy/modules/kernel/domain.te b/policy/modules/kernel/domain.te
-index cf04cb5..32d58ca 100644
+index cf04cb5..8fd98fc 100644
 --- a/policy/modules/kernel/domain.te
 +++ b/policy/modules/kernel/domain.te
 @@ -4,17 +4,41 @@ policy_module(domain, 1.11.0)
@@ -8898,7 +8886,7 @@ index cf04cb5..32d58ca 100644
  
  # create child processes in the domain
 -allow domain self:process { fork sigchld };
-+allow domain self:process { getcap fork getsched sigchld };
++allow domain self:process { getcap fork getsched signal_perms };
  
  # Use trusted objects in /dev
 +dev_read_cpu_online(domain)
@@ -21411,10 +21399,10 @@ index ff92430..36740ea 100644
  ## <summary>
  ##	Execute a generic bin program in the sysadm domain.
 diff --git a/policy/modules/roles/sysadm.te b/policy/modules/roles/sysadm.te
-index 2522ca6..4786c5e 100644
+index 2522ca6..3651c0c 100644
 --- a/policy/modules/roles/sysadm.te
 +++ b/policy/modules/roles/sysadm.te
-@@ -5,39 +5,86 @@ policy_module(sysadm, 2.6.1)
+@@ -5,39 +5,88 @@ policy_module(sysadm, 2.6.1)
  # Declarations
  #
  
@@ -21428,11 +21416,12 @@ index 2522ca6..4786c5e 100644
  role sysadm_r;
  
  userdom_admin_user_template(sysadm)
++allow sysadm_t self:netlink_tcpdiag_socket create_netlink_socket_perms;
  
 -ifndef(`enable_mls',`
 -	userdom_security_admin_template(sysadm_t, sysadm_r)
 -')
--
+ 
  ########################################
  #
  # Local policy
@@ -21512,7 +21501,7 @@ index 2522ca6..4786c5e 100644
  
  ifdef(`direct_sysadm_daemon',`
  	optional_policy(`
-@@ -55,13 +102,7 @@ ifdef(`distro_gentoo',`
+@@ -55,13 +104,7 @@ ifdef(`distro_gentoo',`
  	init_exec_rc(sysadm_t)
  ')
  
@@ -21527,7 +21516,7 @@ index 2522ca6..4786c5e 100644
  	domain_ptrace_all_domains(sysadm_t)
  ')
  
-@@ -71,9 +112,9 @@ optional_policy(`
+@@ -71,9 +114,9 @@ optional_policy(`
  
  optional_policy(`
  	apache_run_helper(sysadm_t, sysadm_r)
@@ -21538,7 +21527,7 @@ index 2522ca6..4786c5e 100644
  ')
  
  optional_policy(`
-@@ -87,6 +128,7 @@ optional_policy(`
+@@ -87,6 +130,7 @@ optional_policy(`
  
  optional_policy(`
  	asterisk_stream_connect(sysadm_t)
@@ -21546,7 +21535,7 @@ index 2522ca6..4786c5e 100644
  ')
  
  optional_policy(`
-@@ -110,11 +152,17 @@ optional_policy(`
+@@ -110,11 +154,17 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -21564,7 +21553,7 @@ index 2522ca6..4786c5e 100644
  ')
  
  optional_policy(`
-@@ -122,11 +170,27 @@ optional_policy(`
+@@ -122,11 +172,27 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -21594,7 +21583,7 @@ index 2522ca6..4786c5e 100644
  ')
  
  optional_policy(`
-@@ -140,6 +204,10 @@ optional_policy(`
+@@ -140,6 +206,10 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -21605,7 +21594,7 @@ index 2522ca6..4786c5e 100644
  	dmesg_exec(sysadm_t)
  ')
  
-@@ -156,6 +224,10 @@ optional_policy(`
+@@ -156,6 +226,10 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -21616,7 +21605,7 @@ index 2522ca6..4786c5e 100644
  	fstools_run(sysadm_t, sysadm_r)
  ')
  
-@@ -175,6 +247,13 @@ optional_policy(`
+@@ -175,6 +249,13 @@ optional_policy(`
  	ipsec_stream_connect(sysadm_t)
  	# for lsof
  	ipsec_getattr_key_sockets(sysadm_t)
@@ -21630,7 +21619,7 @@ index 2522ca6..4786c5e 100644
  ')
  
  optional_policy(`
-@@ -182,15 +261,20 @@ optional_policy(`
+@@ -182,15 +263,20 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -21654,7 +21643,7 @@ index 2522ca6..4786c5e 100644
  ')
  
  optional_policy(`
-@@ -210,22 +294,20 @@ optional_policy(`
+@@ -210,22 +296,20 @@ optional_policy(`
  	modutils_run_depmod(sysadm_t, sysadm_r)
  	modutils_run_insmod(sysadm_t, sysadm_r)
  	modutils_run_update_mods(sysadm_t, sysadm_r)
@@ -21683,7 +21672,7 @@ index 2522ca6..4786c5e 100644
  ')
  
  optional_policy(`
-@@ -237,14 +319,27 @@ optional_policy(`
+@@ -237,14 +321,28 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -21698,6 +21687,7 @@ index 2522ca6..4786c5e 100644
  
  optional_policy(`
 +	networkmanager_filetrans_named_content(sysadm_t)
++	networkmanager_stream_connect(sysadm_t)
 +')
 +
 +optional_policy(`
@@ -21711,7 +21701,7 @@ index 2522ca6..4786c5e 100644
  ')
  
  optional_policy(`
-@@ -252,10 +347,20 @@ optional_policy(`
+@@ -252,10 +350,20 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -21732,7 +21722,7 @@ index 2522ca6..4786c5e 100644
  	portage_run(sysadm_t, sysadm_r)
  	portage_run_fetch(sysadm_t, sysadm_r)
  	portage_run_gcc_config(sysadm_t, sysadm_r)
-@@ -266,35 +371,41 @@ optional_policy(`
+@@ -266,35 +374,41 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -21781,7 +21771,7 @@ index 2522ca6..4786c5e 100644
  ')
  
  optional_policy(`
-@@ -308,6 +419,7 @@ optional_policy(`
+@@ -308,6 +422,7 @@ optional_policy(`
  
  optional_policy(`
  	screen_role_template(sysadm, sysadm_r, sysadm_t)
@@ -21789,7 +21779,7 @@ index 2522ca6..4786c5e 100644
  ')
  
  optional_policy(`
-@@ -315,12 +427,20 @@ optional_policy(`
+@@ -315,12 +430,20 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -21811,7 +21801,7 @@ index 2522ca6..4786c5e 100644
  ')
  
  optional_policy(`
-@@ -345,7 +465,18 @@ optional_policy(`
+@@ -345,7 +468,18 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -21831,7 +21821,7 @@ index 2522ca6..4786c5e 100644
  ')
  
  optional_policy(`
-@@ -356,19 +487,11 @@ optional_policy(`
+@@ -356,19 +490,11 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -21852,7 +21842,7 @@ index 2522ca6..4786c5e 100644
  ')
  
  optional_policy(`
-@@ -380,10 +503,6 @@ optional_policy(`
+@@ -380,10 +506,6 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -21863,7 +21853,7 @@ index 2522ca6..4786c5e 100644
  	usermanage_run_admin_passwd(sysadm_t, sysadm_r)
  	usermanage_run_groupadd(sysadm_t, sysadm_r)
  	usermanage_run_useradd(sysadm_t, sysadm_r)
-@@ -391,6 +510,9 @@ optional_policy(`
+@@ -391,6 +513,9 @@ optional_policy(`
  
  optional_policy(`
  	virt_stream_connect(sysadm_t)
@@ -21873,7 +21863,7 @@ index 2522ca6..4786c5e 100644
  ')
  
  optional_policy(`
-@@ -398,31 +520,34 @@ optional_policy(`
+@@ -398,31 +523,34 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -21914,7 +21904,7 @@ index 2522ca6..4786c5e 100644
  		auth_role(sysadm_r, sysadm_t)
  	')
  
-@@ -435,10 +560,6 @@ ifndef(`distro_redhat',`
+@@ -435,10 +563,6 @@ ifndef(`distro_redhat',`
  	')
  
  	optional_policy(`
@@ -21925,7 +21915,7 @@ index 2522ca6..4786c5e 100644
  		dbus_role_template(sysadm, sysadm_r, sysadm_t)
  
  		optional_policy(`
-@@ -459,15 +580,79 @@ ifndef(`distro_redhat',`
+@@ -459,15 +583,79 @@ ifndef(`distro_redhat',`
  	')
  
  	optional_policy(`
@@ -27130,7 +27120,7 @@ index 6bf0ecc..44be5f2 100644
 +')
 +
 diff --git a/policy/modules/services/xserver.te b/policy/modules/services/xserver.te
-index 8b40377..0777a7f 100644
+index 8b40377..635442b 100644
 --- a/policy/modules/services/xserver.te
 +++ b/policy/modules/services/xserver.te
 @@ -26,28 +26,59 @@ gen_require(`
@@ -27471,13 +27461,13 @@ index 8b40377..0777a7f 100644
 +ifdef(`hide_broken_symptoms',`
 +	term_dontaudit_use_unallocated_ttys(xauth_t)
 +	dev_dontaudit_rw_dri(xauth_t)
- ')
- 
- optional_policy(`
-+	nx_var_lib_filetrans(xauth_t, xauth_home_t, file)
 +')
 +
 +optional_policy(`
++	nx_var_lib_filetrans(xauth_t, xauth_home_t, file)
+ ')
+ 
+ optional_policy(`
 +	ssh_use_ptys(xauth_t)
  	ssh_sigchld(xauth_t)
  	ssh_read_pipes(xauth_t)
@@ -27961,17 +27951,17 @@ index 8b40377..0777a7f 100644
 +    optional_policy(`
 +        accountsd_dbus_chat(xdm_t)
 +    ')
- 
- 	optional_policy(`
--		accountsd_dbus_chat(xdm_t)
++
++	optional_policy(`
 +		bluetooth_dbus_chat(xdm_t)
 +	')
 +
 +	 optional_policy(`
 +		cpufreqselector_dbus_chat(xdm_t)
 +	')
-+
-+	optional_policy(`
+ 
+ 	optional_policy(`
+-		accountsd_dbus_chat(xdm_t)
 +		devicekit_dbus_chat_disk(xdm_t)
 +		devicekit_dbus_chat_power(xdm_t)
 +	')
@@ -28279,7 +28269,7 @@ index 8b40377..0777a7f 100644
  ifndef(`distro_redhat',`
  	allow xserver_t self:process { execmem execheap execstack };
  	domain_mmap_low_uncond(xserver_t)
-@@ -785,17 +1267,44 @@ optional_policy(`
+@@ -785,17 +1267,50 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -28316,6 +28306,12 @@ index 8b40377..0777a7f 100644
 +')
 +
 +optional_policy(`
++	mozilla_plugin_read_state(xserver_t)
++	mozilla_plugin_rw_tmp_files(xserver_t)
++	mozilla_plugin_rw_tmpfs_files(xserver_t)
++')
++
++optional_policy(`
  	udev_read_db(xserver_t)
  ')
  
@@ -28326,7 +28322,7 @@ index 8b40377..0777a7f 100644
  ')
  
  optional_policy(`
-@@ -803,6 +1312,10 @@ optional_policy(`
+@@ -803,6 +1318,10 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -28337,7 +28333,7 @@ index 8b40377..0777a7f 100644
  	xfs_stream_connect(xserver_t)
  ')
  
-@@ -818,18 +1331,17 @@ allow xserver_t xdm_t:shm rw_shm_perms;
+@@ -818,18 +1337,17 @@ allow xserver_t xdm_t:shm rw_shm_perms;
  
  # NB we do NOT allow xserver_t xdm_var_lib_t:dir, only access to an open
  # handle of a file inside the dir!!!
@@ -28362,7 +28358,7 @@ index 8b40377..0777a7f 100644
  can_exec(xserver_t, xkb_var_lib_t)
  
  # VNC v4 module in X server
-@@ -842,26 +1354,21 @@ init_use_fds(xserver_t)
+@@ -842,26 +1360,21 @@ init_use_fds(xserver_t)
  # to read ROLE_home_t - examine this in more detail
  # (xauth?)
  userdom_read_user_home_content_files(xserver_t)
@@ -28397,7 +28393,7 @@ index 8b40377..0777a7f 100644
  ')
  
  optional_policy(`
-@@ -912,7 +1419,7 @@ allow x_domain xproperty_t:x_property { getattr create read write append destroy
+@@ -912,7 +1425,7 @@ allow x_domain xproperty_t:x_property { getattr create read write append destroy
  allow x_domain root_xdrawable_t:x_drawable { getattr setattr list_child add_child remove_child send receive hide show };
  # operations allowed on my windows
  allow x_domain self:x_drawable { create destroy getattr setattr read write show hide list_child add_child remove_child manage send receive };
@@ -28406,7 +28402,7 @@ index 8b40377..0777a7f 100644
  # operations allowed on all windows
  allow x_domain x_domain:x_drawable { getattr get_property set_property remove_child };
  
-@@ -966,11 +1473,31 @@ allow x_domain self:x_resource { read write };
+@@ -966,11 +1479,31 @@ allow x_domain self:x_resource { read write };
  # can mess with the screensaver
  allow x_domain xserver_t:x_screen { getattr saver_getattr };
  
@@ -28438,7 +28434,7 @@ index 8b40377..0777a7f 100644
  tunable_policy(`! xserver_object_manager',`
  	# should be xserver_unconfined(x_domain),
  	# but typeattribute doesnt work in conditionals
-@@ -992,18 +1519,148 @@ tunable_policy(`! xserver_object_manager',`
+@@ -992,18 +1525,148 @@ tunable_policy(`! xserver_object_manager',`
  	allow x_domain xevent_type:{ x_event x_synthetic_event } *;
  ')
  

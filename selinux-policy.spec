@@ -19,7 +19,7 @@
 Summary: SELinux policy configuration
 Name: selinux-policy
 Version: 3.13.1
-Release: 71%{?dist}
+Release: 72%{?dist}
 License: GPLv2+
 Group: System Environment/Base
 Source: serefpolicy-%{version}.tgz
@@ -602,6 +602,21 @@ SELinux Reference policy mls base module.
 %endif
 
 %changelog
+* Tue Aug 12 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-72
+- docker needs to be able to look at everything in /dev
+- Allow all processes to send themselves signals
+- Allow sysadm_t to create netlink_tcpdiag socket
+- sysadm_t should be allowed to communicate with networkmanager
+- These are required for bluejeans to work on a unconfined.pp disabled machine
+- docker needs setfcap
+- Allow svirt domains to manage chr files and blk files for mknod commands
+- Allow fail2ban to read audit logs
+- Allow cachefilesd_t to send itself signals
+- Allow smokeping cgi script to send syslog messages
+- Allow svirt sandbox domains to relabel content
+- Since apache content can be placed anywhere, we should just allow apache to search through any directory
+- These are required for bluejeans to work on a unconfined.pp disabled machine
+
 * Mon Aug 4 2014 Miroslav Grepl <mgrepl@redhat.com> 3.13.1-71
 - shell_exec_t should not be in cockip.fc
 

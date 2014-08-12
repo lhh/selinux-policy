@@ -5077,7 +5077,7 @@ index f6eb485..9eba5f5 100644
 +	filetrans_pattern($1, { httpd_user_content_t httpd_user_script_exec_t }, httpd_user_htaccess_t, file, ".htaccess")
  ')
 diff --git a/apache.te b/apache.te
-index 6649962..e755e58 100644
+index 6649962..a78899a 100644
 --- a/apache.te
 +++ b/apache.te
 @@ -5,280 +5,339 @@ policy_module(apache, 2.7.2)
@@ -5780,7 +5780,7 @@ index 6649962..e755e58 100644
  allow httpd_t httpd_sys_script_t:unix_stream_socket connectto;
  
  manage_dirs_pattern(httpd_t, httpd_tmp_t, httpd_tmp_t)
-@@ -450,140 +567,172 @@ manage_dirs_pattern(httpd_t, squirrelmail_spool_t, squirrelmail_spool_t)
+@@ -450,140 +567,173 @@ manage_dirs_pattern(httpd_t, squirrelmail_spool_t, squirrelmail_spool_t)
  manage_files_pattern(httpd_t, squirrelmail_spool_t, squirrelmail_spool_t)
  manage_lnk_files_pattern(httpd_t, squirrelmail_spool_t, squirrelmail_spool_t)
  
@@ -5864,6 +5864,7 @@ index 6649962..e755e58 100644
 +files_exec_usr_files(httpd_t)
  files_list_mnt(httpd_t)
 +files_read_mnt_symlinks(httpd_t)
++files_search_all(httpd_t)
  files_search_spool(httpd_t)
  files_read_var_symlinks(httpd_t)
  files_read_var_lib_files(httpd_t)
@@ -6018,7 +6019,7 @@ index 6649962..e755e58 100644
  ')
  
  tunable_policy(`httpd_enable_cgi && httpd_use_nfs',`
-@@ -594,28 +743,50 @@ tunable_policy(`httpd_enable_cgi && httpd_use_cifs',`
+@@ -594,28 +744,50 @@ tunable_policy(`httpd_enable_cgi && httpd_use_cifs',`
  	fs_cifs_domtrans(httpd_t, httpd_sys_script_t)
  ')
  
@@ -6078,7 +6079,7 @@ index 6649962..e755e58 100644
  ')
  
  tunable_policy(`httpd_enable_homedirs && use_nfs_home_dirs',`
-@@ -624,68 +795,44 @@ tunable_policy(`httpd_enable_homedirs && use_nfs_home_dirs',`
+@@ -624,68 +796,44 @@ tunable_policy(`httpd_enable_homedirs && use_nfs_home_dirs',`
  	fs_read_nfs_symlinks(httpd_t)
  ')
  
@@ -6169,7 +6170,7 @@ index 6649962..e755e58 100644
  ')
  
  tunable_policy(`httpd_setrlimit',`
-@@ -695,49 +842,48 @@ tunable_policy(`httpd_setrlimit',`
+@@ -695,49 +843,48 @@ tunable_policy(`httpd_setrlimit',`
  
  tunable_policy(`httpd_ssi_exec',`
  	corecmd_shell_domtrans(httpd_t, httpd_sys_script_t)
@@ -6250,7 +6251,7 @@ index 6649962..e755e58 100644
  ')
  
  optional_policy(`
-@@ -749,24 +895,32 @@ optional_policy(`
+@@ -749,24 +896,32 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -6289,7 +6290,7 @@ index 6649962..e755e58 100644
  ')
  
  optional_policy(`
-@@ -775,6 +929,10 @@ optional_policy(`
+@@ -775,6 +930,10 @@ optional_policy(`
  	tunable_policy(`httpd_dbus_avahi',`
  		avahi_dbus_chat(httpd_t)
  	')
@@ -6300,7 +6301,7 @@ index 6649962..e755e58 100644
  ')
  
  optional_policy(`
-@@ -786,35 +944,60 @@ optional_policy(`
+@@ -786,35 +945,60 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -6374,7 +6375,7 @@ index 6649962..e755e58 100644
  
  	tunable_policy(`httpd_manage_ipa',`
  		memcached_manage_pid_files(httpd_t)
-@@ -822,8 +1005,18 @@ optional_policy(`
+@@ -822,8 +1006,18 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -6393,7 +6394,7 @@ index 6649962..e755e58 100644
  
  	tunable_policy(`httpd_can_network_connect_db',`
  		mysql_tcp_connect(httpd_t)
-@@ -832,6 +1025,7 @@ optional_policy(`
+@@ -832,6 +1026,7 @@ optional_policy(`
  
  optional_policy(`
  	nagios_read_config(httpd_t)
@@ -6401,7 +6402,7 @@ index 6649962..e755e58 100644
  ')
  
  optional_policy(`
-@@ -842,20 +1036,40 @@ optional_policy(`
+@@ -842,20 +1037,40 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -6448,7 +6449,7 @@ index 6649962..e755e58 100644
  ')
  
  optional_policy(`
-@@ -863,19 +1077,35 @@ optional_policy(`
+@@ -863,19 +1078,35 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -6484,7 +6485,7 @@ index 6649962..e755e58 100644
  	udev_read_db(httpd_t)
  ')
  
-@@ -883,65 +1113,189 @@ optional_policy(`
+@@ -883,65 +1114,189 @@ optional_policy(`
  	yam_read_content(httpd_t)
  ')
  
@@ -6696,7 +6697,7 @@ index 6649962..e755e58 100644
  files_dontaudit_search_pids(httpd_suexec_t)
  files_search_home(httpd_suexec_t)
  
-@@ -950,123 +1304,74 @@ auth_use_nsswitch(httpd_suexec_t)
+@@ -950,123 +1305,74 @@ auth_use_nsswitch(httpd_suexec_t)
  logging_search_logs(httpd_suexec_t)
  logging_send_syslog_msg(httpd_suexec_t)
  
@@ -6851,7 +6852,7 @@ index 6649962..e755e58 100644
  	mysql_read_config(httpd_suexec_t)
  
  	tunable_policy(`httpd_can_network_connect_db',`
-@@ -1083,172 +1388,106 @@ optional_policy(`
+@@ -1083,172 +1389,106 @@ optional_policy(`
  	')
  ')
  
@@ -7088,7 +7089,7 @@ index 6649962..e755e58 100644
  ')
  
  tunable_policy(`httpd_read_user_content',`
-@@ -1256,64 +1495,74 @@ tunable_policy(`httpd_read_user_content',`
+@@ -1256,64 +1496,74 @@ tunable_policy(`httpd_read_user_content',`
  ')
  
  tunable_policy(`httpd_use_cifs',`
@@ -7185,7 +7186,7 @@ index 6649962..e755e58 100644
  
  ########################################
  #
-@@ -1321,8 +1570,15 @@ miscfiles_read_localization(httpd_rotatelogs_t)
+@@ -1321,8 +1571,15 @@ miscfiles_read_localization(httpd_rotatelogs_t)
  #
  
  optional_policy(`
@@ -7202,7 +7203,7 @@ index 6649962..e755e58 100644
  ')
  
  ########################################
-@@ -1330,49 +1586,38 @@ optional_policy(`
+@@ -1330,49 +1587,38 @@ optional_policy(`
  # User content local policy
  #
  
@@ -7267,7 +7268,7 @@ index 6649962..e755e58 100644
  kernel_read_system_state(httpd_passwd_t)
  
  corecmd_exec_bin(httpd_passwd_t)
-@@ -1382,38 +1627,101 @@ dev_read_urand(httpd_passwd_t)
+@@ -1382,38 +1628,101 @@ dev_read_urand(httpd_passwd_t)
  
  domain_use_interactive_fds(httpd_passwd_t)
  
@@ -10718,10 +10719,10 @@ index 8de2ab9..3b41945 100644
 +	domtrans_pattern($1, cachefilesd_exec_t, cachefilesd_t)
  ')
 diff --git a/cachefilesd.te b/cachefilesd.te
-index a3760bc..a570048 100644
+index a3760bc..660e5d3 100644
 --- a/cachefilesd.te
 +++ b/cachefilesd.te
-@@ -1,52 +1,124 @@
+@@ -1,52 +1,125 @@
  policy_module(cachefilesd, 1.1.0)
  
 -########################################
@@ -10794,6 +10795,7 @@ index a3760bc..a570048 100644
 +# rules.
 +#
  allow cachefilesd_t self:capability { setuid setgid sys_admin dac_override };
++allow cachefilesd_t self:process signal_perms;
  
 +# Allow manipulation of pid file
 +allow cachefilesd_t cachefilesd_var_run_t:file create_file_perms;
@@ -24557,10 +24559,10 @@ index 0000000..76eb32e
 +')
 diff --git a/docker.te b/docker.te
 new file mode 100644
-index 0000000..96c47ea
+index 0000000..dfb6b04
 --- /dev/null
 +++ b/docker.te
-@@ -0,0 +1,273 @@
+@@ -0,0 +1,278 @@
 +policy_module(docker, 1.0.0)
 +
 +########################################
@@ -24620,7 +24622,7 @@ index 0000000..96c47ea
 +#
 +# docker local policy
 +#
-+allow docker_t self:capability { chown fowner fsetid mknod net_admin net_bind_service };
++allow docker_t self:capability { chown fowner fsetid mknod net_admin net_bind_service setfcap };
 +allow docker_t self:process { getattr signal_perms };
 +allow docker_t self:fifo_file rw_fifo_file_perms;
 +allow docker_t self:unix_stream_socket create_stream_socket_perms;
@@ -24754,7 +24756,7 @@ index 0000000..96c47ea
 +kernel_request_load_module(docker_t)
 +kernel_mounton_messages(docker_t)
 +
-+dev_getattr_all_blk_files(docker_t)
++dev_getattr_all(docker_t)
 +dev_getattr_sysfs_fs(docker_t)
 +dev_read_urand(docker_t)
 +dev_read_lvm_control(docker_t)
@@ -24782,6 +24784,7 @@ index 0000000..96c47ea
 +fs_relabelfrom_xattr_fs(docker_t)
 +fs_relabelfrom_tmpfs(docker_t)
 +fs_read_tmpfs_symlinks(docker_t)
++fs_list_hugetlbfs(docker_t)
 +
 +term_use_generic_ptys(docker_t)
 +term_use_ptmx(docker_t)
@@ -24797,6 +24800,10 @@ index 0000000..96c47ea
 +userdom_stream_connect(docker_t)
 +userdom_search_user_home_content(docker_t)
 +userdom_read_all_users_state(docker_t)
++
++optional_policy(`
++	gpm_getattr_gpmctl(docker_t)
++')
 +
 +optional_policy(`
 +	dbus_system_bus_client(docker_t)
@@ -26745,7 +26752,7 @@ index 50d0084..94e1936 100644
  
  	fail2ban_run_client($1, $2)
 diff --git a/fail2ban.te b/fail2ban.te
-index cf0e567..2b435ed 100644
+index cf0e567..a743483 100644
 --- a/fail2ban.te
 +++ b/fail2ban.te
 @@ -37,7 +37,7 @@ role fail2ban_client_roles types fail2ban_client_t;
@@ -26773,9 +26780,11 @@ index cf0e567..2b435ed 100644
  files_list_var(fail2ban_t)
  files_dontaudit_list_tmp(fail2ban_t)
  
-@@ -93,23 +91,35 @@ auth_use_nsswitch(fail2ban_t)
+@@ -92,24 +90,37 @@ fs_getattr_all_fs(fail2ban_t)
+ auth_use_nsswitch(fail2ban_t)
  
  logging_read_all_logs(fail2ban_t)
++logging_read_audit_log(fail2ban_t)
  logging_send_syslog_msg(fail2ban_t)
 +logging_dontaudit_search_audit_logs(fail2ban_t)
  
@@ -26813,7 +26822,7 @@ index cf0e567..2b435ed 100644
  	iptables_domtrans(fail2ban_t)
  ')
  
-@@ -118,6 +128,10 @@ optional_policy(`
+@@ -118,6 +129,10 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -26824,7 +26833,7 @@ index cf0e567..2b435ed 100644
  	shorewall_domtrans(fail2ban_t)
  ')
  
-@@ -131,22 +145,30 @@ allow fail2ban_client_t self:unix_stream_socket { create connect write read };
+@@ -131,22 +146,30 @@ allow fail2ban_client_t self:unix_stream_socket { create connect write read };
  
  domtrans_pattern(fail2ban_client_t, fail2ban_exec_t, fail2ban_t)
  
@@ -26851,7 +26860,7 @@ index cf0e567..2b435ed 100644
  logging_search_all_logs(fail2ban_client_t)
 -
 -miscfiles_read_localization(fail2ban_client_t)
-+logging_dontaudit_search_audit_logs(fail2ban_client_t)
++logging_read_audit_log(fail2ban_client_t)
  
  userdom_dontaudit_search_user_home_dirs(fail2ban_client_t)
  userdom_use_user_terminals(fail2ban_client_t)
@@ -45713,7 +45722,7 @@ index 6ffaba2..549fb8c 100644
 +/usr/lib/nspluginwrapper/plugin-config			--	gen_context(system_u:object_r:mozilla_plugin_config_exec_t,s0)
 +')
 diff --git a/mozilla.if b/mozilla.if
-index 6194b80..7490fe3 100644
+index 6194b80..f741e56 100644
 --- a/mozilla.if
 +++ b/mozilla.if
 @@ -1,146 +1,75 @@
@@ -45778,10 +45787,7 @@ index 6194b80..7490fe3 100644
 -	allow $2 mozilla_t:shm rw_shm_perms;
 -
 -	stream_connect_pattern($2, mozilla_tmpfs_t, mozilla_tmpfs_t, mozilla_t)
-+	allow $2 mozilla_t:shm { associate getattr };
-+	allow $2 mozilla_t:shm { unix_read unix_write };
-+	allow $2 mozilla_t:unix_stream_socket connectto;
- 
+-
 -	allow $2 { mozilla_home_t mozilla_plugin_home_t }:dir { manage_dir_perms relabel_dir_perms };
 -	allow $2 { mozilla_home_t mozilla_plugin_home_t }:file { manage_file_perms relabel_file_perms };
 -	allow $2 mozilla_home_t:lnk_file { manage_lnk_file_perms relabel_lnk_file_perms };
@@ -45789,6 +45795,11 @@ index 6194b80..7490fe3 100644
 -	userdom_user_home_dir_filetrans($2, mozilla_home_t, dir, ".mozilla")
 -	userdom_user_home_dir_filetrans($2, mozilla_home_t, dir, ".netscape")
 -	userdom_user_home_dir_filetrans($2, mozilla_home_t, dir, ".phoenix")
++	allow $2 mozilla_t:shm { associate getattr };
++	allow $2 mozilla_t:shm { unix_read unix_write };
++	allow $2 mozilla_t:unix_stream_socket connectto;
+ 
+-	filetrans_pattern($2, mozilla_home_t, mozilla_plugin_home_t, dir, "plugins")
 +	# X access, Home files
 +	manage_dirs_pattern($2, mozilla_home_t, mozilla_home_t)
 +	manage_files_pattern($2, mozilla_home_t, mozilla_home_t)
@@ -45797,15 +45808,13 @@ index 6194b80..7490fe3 100644
 +	relabel_files_pattern($2, mozilla_home_t, mozilla_home_t)
 +	relabel_lnk_files_pattern($2, mozilla_home_t, mozilla_home_t)
  
--	filetrans_pattern($2, mozilla_home_t, mozilla_plugin_home_t, dir, "plugins")
+-	allow $2 { mozilla_tmp_t mozilla_plugin_tmp_t }:dir { manage_dir_perms relabel_dir_perms };
+-	allow $2 { mozilla_tmp_t mozilla_plugin_tmp_t }:file { manage_file_perms relabel_file_perms };
+-	allow $2 mozilla_plugin_tmp_t:fifo_file { manage_fifo_file_perms relabel_fifo_file_perms };
 +	#should be remove then with adding of roleattribute
 +	mozilla_run_plugin(mozilla_t, $1)
 +	mozilla_dbus_chat($2)
  
--	allow $2 { mozilla_tmp_t mozilla_plugin_tmp_t }:dir { manage_dir_perms relabel_dir_perms };
--	allow $2 { mozilla_tmp_t mozilla_plugin_tmp_t }:file { manage_file_perms relabel_file_perms };
--	allow $2 mozilla_plugin_tmp_t:fifo_file { manage_fifo_file_perms relabel_fifo_file_perms };
--
 -	allow $2 { mozilla_tmpfs_t mozilla_plugin_tmpfs_t }:dir { manage_dir_perms relabel_dir_perms };
 -	allow $2 { mozilla_tmpfs_t mozilla_plugin_tmpfs_t }:file { manage_file_perms relabel_file_perms };
 -	allow $2 { mozilla_tmpfs_t mozilla_plugin_tmpfs_t }:fifo_file { manage_fifo_file_perms relabel_fifo_file_perms };
@@ -45845,14 +45854,14 @@ index 6194b80..7490fe3 100644
  
 -	mozilla_run_plugin($2, $1)
 -	mozilla_run_plugin_config($2, $1)
-+	mozilla_filetrans_home_content($2)
- 
+-
 -	allow $2 { mozilla_plugin_t mozilla_plugin_config_t }:process { ptrace signal_perms };
 -	ps_process_pattern($2, { mozilla_plugin_t mozilla_plugin_config_t })
 -
 -	allow $2 mozilla_plugin_t:unix_stream_socket rw_socket_perms;
 -	allow $2 mozilla_plugin_t:fd use;
--
++	mozilla_filetrans_home_content($2)
+ 
 -	stream_connect_pattern($2, mozilla_plugin_tmpfs_t, mozilla_plugin_tmpfs_t, mozilla_plugin_t)
 -
 -	allow mozilla_plugin_t $2:process signull;
@@ -46226,7 +46235,7 @@ index 6194b80..7490fe3 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -433,76 +356,144 @@ interface(`mozilla_dbus_chat',`
+@@ -433,57 +356,162 @@ interface(`mozilla_dbus_chat',`
  ##	</summary>
  ## </param>
  #
@@ -46241,33 +46250,23 @@ index 6194b80..7490fe3 100644
 -	allow $1 mozilla_plugin_t:dbus send_msg;
 -	allow mozilla_plugin_t $1:dbus send_msg;
 +	allow $1 mozilla_t:tcp_socket rw_socket_perms;
- ')
- 
--########################################
++')
++
 +#######################################
- ## <summary>
--##	Read and write mozilla TCP sockets.
++## <summary>
 +##  Read mozilla_plugin tmpfs files
- ## </summary>
- ## <param name="domain">
--##	<summary>
--##	Domain allowed access.
--##	</summary>
++## </summary>
++## <param name="domain">
 +##  <summary>
 +##  Domain allowed access
 +##  </summary>
- ## </param>
- #
--interface(`mozilla_rw_tcp_sockets',`
--	gen_require(`
--		type mozilla_t;
--	')
++## </param>
++#
 +interface(`mozilla_plugin_read_tmpfs_files',`
 +    gen_require(`
 +        type mozilla_plugin_tmpfs_t;
 +    ')
- 
--	allow $1 mozilla_t:tcp_socket rw_socket_perms;
++
 +    allow $1 mozilla_plugin_tmpfs_t:file read_file_perms;
 +')
 +
@@ -46291,8 +46290,7 @@ index 6194b80..7490fe3 100644
  
  ########################################
  ## <summary>
--##	Create, read, write, and delete
--##	mozilla plugin rw files.
+-##	Read and write mozilla TCP sockets.
 +##	Delete mozilla_plugin tmpfs files
  ## </summary>
  ## <param name="domain">
@@ -46302,15 +46300,14 @@ index 6194b80..7490fe3 100644
  ##	</summary>
  ## </param>
  #
--interface(`mozilla_manage_plugin_rw_files',`
+-interface(`mozilla_rw_tcp_sockets',`
 +interface(`mozilla_plugin_delete_tmpfs_files',`
  	gen_require(`
--		type mozilla_plugin_rw_t;
+-		type mozilla_t;
 +		type mozilla_plugin_tmpfs_t;
  	')
  
--	libs_search_lib($1)
--	manage_files_pattern($1, mozilla_plugin_rw_t, mozilla_plugin_rw_t)
+-	allow $1 mozilla_t:tcp_socket rw_socket_perms;
 +	allow $1 mozilla_plugin_tmpfs_t:file delete_file_perms;
 +')
 +
@@ -46352,7 +46349,8 @@ index 6194b80..7490fe3 100644
  
  ########################################
  ## <summary>
--##	Read mozilla_plugin tmpfs files.
+-##	Create, read, write, and delete
+-##	mozilla plugin rw files.
 +##	Dontaudit read/write to a mozilla_plugin leaks
  ## </summary>
  ## <param name="domain">
@@ -46362,15 +46360,15 @@ index 6194b80..7490fe3 100644
  ##	</summary>
  ## </param>
  #
--interface(`mozilla_plugin_read_tmpfs_files',`
+-interface(`mozilla_manage_plugin_rw_files',`
 +interface(`mozilla_plugin_dontaudit_leaks',`
  	gen_require(`
--		type mozilla_plugin_tmpfs_t;
+-		type mozilla_plugin_rw_t;
 +		type mozilla_plugin_t;
  	')
  
--	fs_search_tmpfs($1)
--	allow $1 mozilla_plugin_tmpfs_t:file read_file_perms;
+-	libs_search_lib($1)
+-	manage_files_pattern($1, mozilla_plugin_rw_t, mozilla_plugin_rw_t)
 +	dontaudit $1 mozilla_plugin_t:unix_stream_socket { read write };
 +')
 +
@@ -46390,21 +46388,39 @@ index 6194b80..7490fe3 100644
 +    ')
 +
 +    dontaudit $1 mozilla_plugin_tmp_t:file { read write };
++')
++
++#######################################
++## <summary>
++##  Allow read/write to a mozilla_plugin tmp files.
++## </summary>
++## <param name="domain">
++##  <summary>
++##	Domain allowed access.
++##  </summary>
++## </param>
++#
++interface(`mozilla_plugin_rw_tmp_files',`
++    gen_require(`
++        type mozilla_plugin_tmp_t;
++    ')
++
++    dontaudit $1 mozilla_plugin_tmp_t:file { read write };
  ')
  
  ########################################
  ## <summary>
--##	Delete mozilla_plugin tmpfs files.
+-##	Read mozilla_plugin tmpfs files.
 +##	Create, read, write, and delete
 +##	mozilla_plugin rw files.
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -510,19 +501,18 @@ interface(`mozilla_plugin_read_tmpfs_files',`
+@@ -491,18 +519,18 @@ interface(`mozilla_manage_plugin_rw_files',`
  ##	</summary>
  ## </param>
  #
--interface(`mozilla_plugin_delete_tmpfs_files',`
+-interface(`mozilla_plugin_read_tmpfs_files',`
 +interface(`mozilla_plugin_manage_rw_files',`
  	gen_require(`
 -		type mozilla_plugin_tmpfs_t;
@@ -46412,28 +46428,53 @@ index 6194b80..7490fe3 100644
  	')
  
 -	fs_search_tmpfs($1)
--	allow $1 mozilla_plugin_tmpfs_t:file delete_file_perms;
+-	allow $1 mozilla_plugin_tmpfs_t:file read_file_perms;
 +	allow $1 mozilla_plugin_rw_t:file manage_file_perms;
 +	allow $1 mozilla_plugin_rw_t:dir rw_dir_perms;
  ')
  
  ########################################
  ## <summary>
--##	Create, read, write, and delete
--##	generic mozilla plugin home content.
+-##	Delete mozilla_plugin tmpfs files.
 +##	read mozilla_plugin rw files.
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -530,45 +520,57 @@ interface(`mozilla_plugin_delete_tmpfs_files',`
+@@ -510,19 +538,18 @@ interface(`mozilla_plugin_read_tmpfs_files',`
+ ##	</summary>
+ ## </param>
+ #
+-interface(`mozilla_plugin_delete_tmpfs_files',`
++interface(`mozilla_plugin_read_rw_files',`
+ 	gen_require(`
+-		type mozilla_plugin_tmpfs_t;
++		type mozilla_plugin_rw_t;
+ 	')
+ 
+-	fs_search_tmpfs($1)
+-	allow $1 mozilla_plugin_tmpfs_t:file delete_file_perms;
++	read_files_pattern($1, mozilla_plugin_rw_t, mozilla_plugin_rw_t)
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	Create, read, write, and delete
+-##	generic mozilla plugin home content.
++##	Create mozilla content in the user home directory
++##	with an correct label.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -530,45 +557,57 @@ interface(`mozilla_plugin_delete_tmpfs_files',`
  ##	</summary>
  ## </param>
  #
 -interface(`mozilla_manage_generic_plugin_home_content',`
-+interface(`mozilla_plugin_read_rw_files',`
++interface(`mozilla_filetrans_home_content',`
++
  	gen_require(`
 -		type mozilla_plugin_home_t;
-+		type mozilla_plugin_rw_t;
++		type mozilla_home_t;
  	')
  
 -	userdom_search_user_home_dirs($1)
@@ -46442,42 +46483,6 @@ index 6194b80..7490fe3 100644
 -	allow $1 mozilla_plugin_home_t:fifo_file manage_fifo_file_perms;
 -	allow $1 mozilla_plugin_home_t:lnk_file manage_lnk_file_perms;
 -	allow $1 mozilla_plugin_home_t:sock_file manage_sock_file_perms;
-+	read_files_pattern($1, mozilla_plugin_rw_t, mozilla_plugin_rw_t)
- ')
- 
- ########################################
- ## <summary>
--##	Create objects in user home
--##	directories with the generic mozilla
--##	plugin home type.
-+##	Create mozilla content in the user home directory
-+##	with an correct label.
- ## </summary>
- ## <param name="domain">
- ##	<summary>
- ##	Domain allowed access.
- ##	</summary>
- ## </param>
--## <param name="object_class">
--##	<summary>
--##	Class of the object being created.
--##	</summary>
--## </param>
--## <param name="name" optional="true">
--##	<summary>
--##	The name of the object being created.
--##	</summary>
--## </param>
- #
--interface(`mozilla_home_filetrans_plugin_home',`
-+interface(`mozilla_filetrans_home_content',`
-+
- 	gen_require(`
--		type mozilla_plugin_home_t;
-+		type mozilla_home_t;
- 	')
- 
--	userdom_user_home_dir_filetrans($1, mozilla_plugin_home_t, $2, $3)
 +	userdom_user_home_dir_filetrans($1, mozilla_home_t, dir, ".galeon")
 +	userdom_user_home_dir_filetrans($1, mozilla_home_t, dir, ".java")
 +	userdom_user_home_dir_filetrans($1, mozilla_home_t, dir, ".mozilla")
@@ -46505,6 +46510,41 @@ index 6194b80..7490fe3 100644
 +		gnome_cache_filetrans($1, mozilla_home_t, dir, "mozilla")
 +		gnome_cache_filetrans($1, mozilla_home_t, dir, "icedtea-web")
 +	')
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	Create objects in user home
+-##	directories with the generic mozilla
+-##	plugin home type.
++##	Allow the domain to read mozilla_plugin state files in /proc.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+ ##	Domain allowed access.
+ ##	</summary>
+ ## </param>
+-## <param name="object_class">
+-##	<summary>
+-##	Class of the object being created.
+-##	</summary>
+-## </param>
+-## <param name="name" optional="true">
+-##	<summary>
+-##	The name of the object being created.
+-##	</summary>
+-## </param>
+ #
+-interface(`mozilla_home_filetrans_plugin_home',`
++interface(`mozilla_plugin_read_state',`
+ 	gen_require(`
+-		type mozilla_plugin_home_t;
++		type mozilla_plugin_t;
+ 	')
+ 
+-	userdom_user_home_dir_filetrans($1, mozilla_plugin_home_t, $2, $3)
++	kernel_search_proc($1)
++	ps_process_pattern($1, mozilla_plugin_t)
  ')
 +
 diff --git a/mozilla.te b/mozilla.te
@@ -91569,7 +91609,7 @@ index 1fa51c1..82e111c 100644
  	smokeping_initrc_domtrans($1)
  	domain_system_change_exemption($1)
 diff --git a/smokeping.te b/smokeping.te
-index ec031a0..26b6da1 100644
+index ec031a0..61a9f8c 100644
 --- a/smokeping.te
 +++ b/smokeping.te
 @@ -24,6 +24,7 @@ files_type(smokeping_var_lib_t)
@@ -91597,7 +91637,7 @@ index ec031a0..26b6da1 100644
  mta_send_mail(smokeping_t)
  
  netutils_domtrans_ping(smokeping_t)
-@@ -60,17 +58,20 @@ netutils_domtrans_ping(smokeping_t)
+@@ -60,17 +58,22 @@ netutils_domtrans_ping(smokeping_t)
  
  optional_policy(`
  	apache_content_template(smokeping_cgi)
@@ -91605,20 +91645,22 @@ index ec031a0..26b6da1 100644
 +
 +	manage_dirs_pattern(smokeping_cgi_script_t, smokeping_var_lib_t, smokeping_var_lib_t)
 +	manage_files_pattern(smokeping_cgi_script_t, smokeping_var_lib_t, smokeping_var_lib_t)
++
++	getattr_files_pattern(smokeping_cgi_script_t, smokeping_var_run_t, smokeping_var_run_t)
  
 -	manage_dirs_pattern(httpd_smokeping_cgi_script_t, smokeping_var_lib_t, smokeping_var_lib_t)
 -	manage_files_pattern(httpd_smokeping_cgi_script_t, smokeping_var_lib_t, smokeping_var_lib_t)
-+	getattr_files_pattern(smokeping_cgi_script_t, smokeping_var_run_t, smokeping_var_run_t)
- 
--	getattr_files_pattern(httpd_smokeping_cgi_script_t, smokeping_var_run_t, smokeping_var_run_t)
 +	files_read_etc_files(smokeping_cgi_script_t)
 +	files_search_tmp(smokeping_cgi_script_t)
 +	files_search_var_lib(smokeping_cgi_script_t)
  
+-	getattr_files_pattern(httpd_smokeping_cgi_script_t, smokeping_var_run_t, smokeping_var_run_t)
++	auth_read_passwd(smokeping_cgi_script_t)
+ 
 -	files_read_etc_files(httpd_smokeping_cgi_script_t)
 -	files_search_tmp(httpd_smokeping_cgi_script_t)
 -	files_search_var_lib(httpd_smokeping_cgi_script_t)
-+	auth_read_passwd(smokeping_cgi_script_t)
++	logging_send_syslog_msg(smokeping_cgi_script_t)
  
 -	sysnet_dns_name_resolve(httpd_smokeping_cgi_script_t)
 +	sysnet_dns_name_resolve(smokeping_cgi_script_t)
@@ -103067,7 +103109,7 @@ index facdee8..d179539 100644
 +	typeattribute $1 sandbox_caps_domain;
  ')
 diff --git a/virt.te b/virt.te
-index f03dcf5..f5766e6 100644
+index f03dcf5..eef3cb7 100644
 --- a/virt.te
 +++ b/virt.te
 @@ -1,150 +1,227 @@
@@ -104549,7 +104591,7 @@ index f03dcf5..f5766e6 100644
  selinux_get_enforce_mode(virtd_lxc_t)
  selinux_get_fs_mount(virtd_lxc_t)
  selinux_validate_context(virtd_lxc_t)
-@@ -974,194 +1153,316 @@ selinux_compute_create_context(virtd_lxc_t)
+@@ -974,194 +1153,317 @@ selinux_compute_create_context(virtd_lxc_t)
  selinux_compute_relabel_context(virtd_lxc_t)
  selinux_compute_user_contexts(virtd_lxc_t)
  
@@ -104625,8 +104667,8 @@ index f03dcf5..f5766e6 100644
 +manage_lnk_files_pattern(svirt_sandbox_domain, svirt_sandbox_file_t, svirt_sandbox_file_t)
 +manage_sock_files_pattern(svirt_sandbox_domain, svirt_sandbox_file_t, svirt_sandbox_file_t)
 +manage_fifo_files_pattern(svirt_sandbox_domain, svirt_sandbox_file_t, svirt_sandbox_file_t)
-+allow svirt_sandbox_domain svirt_sandbox_file_t:chr_file setattr;
-+rw_chr_files_pattern(svirt_sandbox_domain, svirt_sandbox_file_t, svirt_sandbox_file_t)
++manage_chr_files_pattern(svirt_sandbox_domain, svirt_sandbox_file_t, svirt_sandbox_file_t)
++allow svirt_sandbox_domain svirt_sandbox_file_t:file { relabelfrom relabelto };
 +
 +allow svirt_sandbox_domain svirt_sandbox_file_t:blk_file setattr;
 +rw_blk_files_pattern(svirt_sandbox_domain, svirt_sandbox_file_t, svirt_sandbox_file_t)
@@ -104845,6 +104887,7 @@ index f03dcf5..f5766e6 100644
 -kernel_read_network_state(svirt_lxc_net_t)
 -kernel_read_irq_sysctls(svirt_lxc_net_t)
 +allow svirt_lxc_net_t self:process { execstack execmem };
++manage_chr_files_pattern(svirt_lxc_net_t, svirt_sandbox_file_t, svirt_sandbox_file_t)
 +
 +tunable_policy(`virt_sandbox_use_sys_admin',`
 +	allow svirt_lxc_net_t self:capability sys_admin;
@@ -105004,7 +105047,7 @@ index f03dcf5..f5766e6 100644
  allow virt_qmf_t self:tcp_socket create_stream_socket_perms;
  allow virt_qmf_t self:netlink_route_socket create_netlink_socket_perms;
  
-@@ -1174,12 +1475,12 @@ dev_read_sysfs(virt_qmf_t)
+@@ -1174,12 +1476,12 @@ dev_read_sysfs(virt_qmf_t)
  dev_read_rand(virt_qmf_t)
  dev_read_urand(virt_qmf_t)
  
@@ -105019,7 +105062,7 @@ index f03dcf5..f5766e6 100644
  sysnet_read_config(virt_qmf_t)
  
  optional_policy(`
-@@ -1192,9 +1493,8 @@ optional_policy(`
+@@ -1192,9 +1494,8 @@ optional_policy(`
  
  ########################################
  #
@@ -105030,7 +105073,7 @@ index f03dcf5..f5766e6 100644
  allow virt_bridgehelper_t self:process { setcap getcap };
  allow virt_bridgehelper_t self:capability { setpcap setgid setuid net_admin };
  allow virt_bridgehelper_t self:tcp_socket create_stream_socket_perms;
-@@ -1207,5 +1507,218 @@ kernel_read_network_state(virt_bridgehelper_t)
+@@ -1207,5 +1508,218 @@ kernel_read_network_state(virt_bridgehelper_t)
  
  corenet_rw_tun_tap_dev(virt_bridgehelper_t)
  
