@@ -3618,7 +3618,7 @@ index 7caefc3..7e70f67 100644
 +/var/run/dirsrv/admin-serv.*	gen_context(system_u:object_r:httpd_var_run_t,s0)
 +/opt/dirsrv/var/run/dirsrv/dsgw/cookies(/.*)?       gen_context(system_u:object_r:httpd_var_run_t,s0)
 diff --git a/apache.if b/apache.if
-index f6eb485..9eba5f5 100644
+index f6eb485..499800e 100644
 --- a/apache.if
 +++ b/apache.if
 @@ -1,9 +1,9 @@
@@ -4085,7 +4085,13 @@ index f6eb485..9eba5f5 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -372,8 +413,8 @@ interface(`apache_dontaudit_rw_stream_sockets',`
+@@ -367,13 +408,13 @@ interface(`apache_dontaudit_rw_stream_sockets',`
+ 		type httpd_t;
+ 	')
+ 
+-	dontaudit $1 httpd_t:unix_stream_socket { read write };
++	dontaudit $1 httpd_t:unix_stream_socket { getattr read write };
+ ')
  
  ########################################
  ## <summary>
@@ -4241,11 +4247,10 @@ index f6eb485..9eba5f5 100644
  	apache_domtrans_helper($1)
 -	roleattribute $2 httpd_helper_roles;
 +	role $2 types httpd_helper_t;
- ')
- 
- ########################################
- ## <summary>
--##	Read httpd log files.
++')
++
++########################################
++## <summary>
 +##	dontaudit attempts to read
 +##	apache log files.
 +## </summary>
@@ -4263,10 +4268,11 @@ index f6eb485..9eba5f5 100644
 +
 +	dontaudit $1 httpd_log_t:file read_file_perms;
 +	dontaudit $1 httpd_log_t:lnk_file read_lnk_file_perms;
-+')
-+
-+########################################
-+## <summary>
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	Read httpd log files.
 +##	Allow the specified domain to read
 +##	apache log files.
  ## </summary>
@@ -4547,11 +4553,31 @@ index f6eb485..9eba5f5 100644
  
 -########################################
 +######################################
++## <summary>
++##	Allow the specified domain to read
++##	apache system content rw files.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <rolecap/>
++#
++interface(`apache_read_sys_content_rw_files',`
++	gen_require(`
++		type httpd_sys_rw_content_t;
++	')
++
++	read_files_pattern($1, httpd_sys_rw_content_t, httpd_sys_rw_content_t)
++')
++
++######################################
  ## <summary>
 -##	Create, read, write, and delete
 -##	httpd system rw content.
 +##	Allow the specified domain to read
-+##	apache system content rw files.
++##	apache system content rw dirs.
  ## </summary>
  ## <param name="domain">
  ##	<summary>
@@ -4561,32 +4587,12 @@ index f6eb485..9eba5f5 100644
 +## <rolecap/>
  #
 -interface(`apache_manage_sys_rw_content',`
-+interface(`apache_read_sys_content_rw_files',`
++interface(`apache_read_sys_content_rw_dirs',`
  	gen_require(`
  		type httpd_sys_rw_content_t;
  	')
  
 -	apache_search_sys_content($1)
-+	read_files_pattern($1, httpd_sys_rw_content_t, httpd_sys_rw_content_t)
-+')
-+
-+######################################
-+## <summary>
-+##	Allow the specified domain to read
-+##	apache system content rw dirs.
-+## </summary>
-+## <param name="domain">
-+##	<summary>
-+##	Domain allowed access.
-+##	</summary>
-+## </param>
-+## <rolecap/>
-+#
-+interface(`apache_read_sys_content_rw_dirs',`
-+	gen_require(`
-+		type httpd_sys_rw_content_t;
-+	')
-+
 +	list_dirs_pattern($1, httpd_sys_rw_content_t, httpd_sys_rw_content_t)
 +')
 +
@@ -4679,6 +4685,15 @@ index f6eb485..9eba5f5 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
+@@ -916,7 +1122,7 @@ interface(`apache_dontaudit_rw_sys_script_stream_sockets',`
+ 		type httpd_sys_script_t;
+ 	')
+ 
+-	dontaudit $1 httpd_sys_script_t:unix_stream_socket { read write };
++	dontaudit $1 httpd_sys_script_t:unix_stream_socket { getattr read write };
+ ')
+ 
+ ########################################
 @@ -941,7 +1147,7 @@ interface(`apache_domtrans_all_scripts',`
  ########################################
  ## <summary>
@@ -4972,7 +4987,7 @@ index f6eb485..9eba5f5 100644
 +	dontaudit $1 httpd_t:fifo_file rw_inherited_fifo_file_perms;
 +	dontaudit $1 httpd_t:tcp_socket { read write };
 +	dontaudit $1 httpd_t:unix_dgram_socket { read write };
-+	dontaudit $1 httpd_t:unix_stream_socket { read write };
++	dontaudit $1 httpd_t:unix_stream_socket { getattr read write };
 +	dontaudit $1 httpd_tmp_t:file { read write };
 +')
 +
@@ -13804,10 +13819,10 @@ index 0000000..573dcae
 +')
 diff --git a/cockpit.te b/cockpit.te
 new file mode 100644
-index 0000000..cc6201d
+index 0000000..4c9b3b1
 --- /dev/null
 +++ b/cockpit.te
-@@ -0,0 +1,89 @@
+@@ -0,0 +1,85 @@
 +policy_module(cockpit, 1.0.0)
 +
 +########################################
@@ -13845,11 +13860,7 @@ index 0000000..cc6201d
 +dev_read_urand(cockpit_ws_t) # for authkey
 +dev_read_rand(cockpit_ws_t)  # for libssh
 +
-+# cockpit-ws can read from the cockpit port
-+# TODO: disable this until we have it in our f20 selinux-policy-targeted
-+# corenet_tcp_bind_cockpit_port(cockpit_ws_t)
-+#allow cockpit_ws_t init_t:tcp_socket accept;
-+corenet_tcp_bind_all_reserved_ports(cockpit_ws_t)
++corenet_tcp_bind_websm_port(cockpit_ws_t)
 +
 +# cockpit-ws can connect to other hosts via ssh
 +corenet_tcp_connect_ssh_port(cockpit_ws_t)
@@ -24559,10 +24570,10 @@ index 0000000..76eb32e
 +')
 diff --git a/docker.te b/docker.te
 new file mode 100644
-index 0000000..dfb6b04
+index 0000000..ef1b924
 --- /dev/null
 +++ b/docker.te
-@@ -0,0 +1,278 @@
+@@ -0,0 +1,280 @@
 +policy_module(docker, 1.0.0)
 +
 +########################################
@@ -24672,7 +24683,7 @@ index 0000000..dfb6b04
 +manage_lnk_files_pattern(docker_t, docker_var_run_t, docker_var_run_t)
 +files_pid_filetrans(docker_t, docker_var_run_t, { dir file lnk_file sock_file })
 +
-+allow docker_t docker_devpts_t:chr_file { rw_chr_file_perms setattr_chr_file_perms };
++allow docker_t docker_devpts_t:chr_file { relabelfrom rw_chr_file_perms setattr_chr_file_perms };
 +term_create_pty(docker_t, docker_devpts_t)
 +
 +kernel_read_system_state(docker_t)
@@ -24755,6 +24766,8 @@ index 0000000..dfb6b04
 +kernel_get_sysvipc_info(docker_t)
 +kernel_request_load_module(docker_t)
 +kernel_mounton_messages(docker_t)
++kernel_mounton_all_proc(docker_t)
++kernel_mounton_all_sysctls(docker_t)
 +
 +dev_getattr_all(docker_t)
 +dev_getattr_sysfs_fs(docker_t)
@@ -39659,6 +39672,152 @@ index c5548c5..1356fcb 100644
 -miscfiles_read_localization(ktalkd_t)
 +userdom_use_user_ptys(ktalkd_t)
 +userdom_use_user_ttys(ktalkd_t)
+diff --git a/kubernetes.fc b/kubernetes.fc
+new file mode 100644
+index 0000000..9d05b4a
+--- /dev/null
++++ b/kubernetes.fc
+@@ -0,0 +1,15 @@
++/usr/lib/systemd/system/kubelet.* --  gen_context(system_u:object_r:kube_kubelet_unit_file_t,s0)
++/usr/lib/systemd/system/kube-apiserver.* --  gen_context(system_u:object_r:kube_apiserver_unit_file_t,s0)
++/usr/lib/systemd/system/kube-controller-manager.* --  gen_context(system_u:object_r:kube_controller_unit_file_t,s0)
++/usr/lib/systemd/system/kube-proxy.* --  gen_context(system_u:object_r:kube_proxy_unit_file_t,s0)
++/usr/lib/systemd/system/etcd.* --  gen_context(system_u:object_r:kube_etcd_unit_file_t,s0)
++
++/usr/bin/kubelet	--	gen_context(system_u:object_r:kube_kubelet_exec_t,s0)
++/usr/bin/kube-apiserver		--	gen_context(system_u:object_r:kube_apiserver_exec_t,s0)
++/usr/bin/kube-controller-manager	--	gen_context(system_u:object_r:kube_controller_exec_t,s0)
++/usr/bin/kube-proxy		--	gen_context(system_u:object_r:kube_proxy_exec_t,s0)
++/usr/bin/kubecfg		--	gen_context(system_u:object_r:kube_kubecfg_exec_t,s0)
++/usr/bin/etcd			--	gen_context(system_u:object_r:kube_etcd_exec_t,s0)
++
++/var/lib/etcd(/.*)?			gen_context(system_u:object_r:kube_etcd_var_lib_t,s0)
++
+diff --git a/kubernetes.if b/kubernetes.if
+new file mode 100644
+index 0000000..e9d90b0
+--- /dev/null
++++ b/kubernetes.if
+@@ -0,0 +1,43 @@
++## <summary>kube</summary>
++
++######################################
++## <summary>
++##	Creates types and rules for a basic
++##	kube init daemon domain.
++## </summary>
++## <param name="prefix">
++##	<summary>
++##	Prefix for the domain.
++##	</summary>
++## </param>
++#
++template(`kube_domain_template',`
++    gen_require(`
++	attribute kube_domain;
++        ')
++
++    ##############################
++    #
++    # $1_t declarations
++    #
++
++    type kube_$1_t, kube_domain;
++    type kube_$1_exec_t;
++    init_daemon_domain(kube_$1_t, kube_$1_exec_t)
++
++    type kube_$1_unit_file_t;
++    systemd_unit_file(kube_$1_unit_file_t)
++
++    ##############################
++    #
++    # kube_domain domain policy
++
++    kernel_read_unix_sysctls(kube_domain)
++    kernel_read_net_sysctls(kube_domain)
++
++    auth_read_passwd(kube_domain)
++
++    corenet_tcp_bind_generic_node(kube_domain)
++    corenet_tcp_connect_http_cache_port(kube_domain)
++    corenet_tcp_connect_kubernetes_port(kube_domain)
++')
+diff --git a/kubernetes.te b/kubernetes.te
+new file mode 100644
+index 0000000..7bfbbff
+--- /dev/null
++++ b/kubernetes.te
+@@ -0,0 +1,70 @@
++policy_module(kubernetes, 1.0.0)
++
++########################################
++#
++# Declarations
++#
++
++attribute kube_domain;
++
++kube_domain_template(kubelet)
++kube_domain_template(apiserver)
++kube_domain_template(controller)
++kube_domain_template(proxy)
++kube_domain_template(kubecfg)
++kube_domain_template(etcd)
++
++type kube_etcd_var_lib_t;
++files_type(kube_etcd_var_lib_t)
++
++########################################
++#
++# kubelet local policy
++#
++
++allow kube_kubelet_t self:capability net_admin;
++allow kube_kubelet_t self:tcp_socket { accept listen create_socket_perms };
++
++corenet_tcp_bind_kubernetes_port(kube_kubelet_t)
++
++########################################
++#
++# kube_controller local policy
++#
++
++allow kube_controller_t self:tcp_socket create_socket_perms;
++
++########################################
++#
++# kube_apiserver local policy
++#
++
++allow kube_apiserver_t self:tcp_socket { accept listen create_socket_perms };
++
++corenet_tcp_bind_http_cache_port(kube_apiserver_t)
++
++########################################
++#
++# kube_proxy local policy
++#
++
++allow kube_proxy_t self:capability net_admin;
++allow kube_proxy_t self:tcp_socket create_socket_perms;
++
++########################################
++#
++# kube_ectd local policy
++#
++
++allow kube_etcd_t self:tcp_socket { accept listen create_socket_perms };
++allow kube_etcd_t self:unix_dgram_socket create_socket_perms;
++
++fs_getattr_xattr_fs(kube_etcd_t)
++
++manage_files_pattern(kube_etcd_t, kube_etcd_var_lib_t, kube_etcd_var_lib_t)
++files_var_lib_filetrans(kube_etcd_t, kube_etcd_var_lib_t, file )
++
++corenet_tcp_bind_kubernetes_port(kube_etcd_t)
++corenet_tcp_bind_afs3_callback_port(kube_etcd_t)
++
++logging_send_syslog_msg(kube_etcd_t)
 diff --git a/kudzu.if b/kudzu.if
 index 5297064..6ba8108 100644
 --- a/kudzu.if
@@ -49187,7 +49346,7 @@ index ed81cac..837a43a 100644
 +	mta_filetrans_admin_home_content($1)
 +')
 diff --git a/mta.te b/mta.te
-index ff1d68c..45bdd6f 100644
+index ff1d68c..58ba0ce 100644
 --- a/mta.te
 +++ b/mta.te
 @@ -14,8 +14,6 @@ attribute mailserver_sender;
@@ -49414,7 +49573,7 @@ index ff1d68c..45bdd6f 100644
  ')
  
  optional_policy(`
-@@ -258,10 +282,16 @@ optional_policy(`
+@@ -258,10 +282,17 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -49428,10 +49587,11 @@ index ff1d68c..45bdd6f 100644
 +')
 +
 +optional_policy(`
++    nagios_append_spool(system_mail_t)
  	nagios_read_tmp_files(system_mail_t)
  ')
  
-@@ -272,6 +302,19 @@ optional_policy(`
+@@ -272,6 +303,19 @@ optional_policy(`
  	manage_fifo_files_pattern(system_mail_t, etc_aliases_t, etc_aliases_t)
  	manage_sock_files_pattern(system_mail_t, etc_aliases_t, etc_aliases_t)
  	files_etc_filetrans(system_mail_t, etc_aliases_t, { file lnk_file sock_file fifo_file })
@@ -49451,7 +49611,7 @@ index ff1d68c..45bdd6f 100644
  ')
  
  optional_policy(`
-@@ -287,42 +330,36 @@ optional_policy(`
+@@ -287,42 +331,36 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -49504,7 +49664,7 @@ index ff1d68c..45bdd6f 100644
  
  allow mailserver_delivery mail_spool_t:dir list_dir_perms;
  create_files_pattern(mailserver_delivery, mail_spool_t, mail_spool_t)
-@@ -331,44 +368,48 @@ append_files_pattern(mailserver_delivery, mail_spool_t, mail_spool_t)
+@@ -331,44 +369,48 @@ append_files_pattern(mailserver_delivery, mail_spool_t, mail_spool_t)
  create_lnk_files_pattern(mailserver_delivery, mail_spool_t, mail_spool_t)
  read_lnk_files_pattern(mailserver_delivery, mail_spool_t, mail_spool_t)
  
@@ -49574,7 +49734,7 @@ index ff1d68c..45bdd6f 100644
  ')
  
  optional_policy(`
-@@ -381,24 +422,49 @@ optional_policy(`
+@@ -381,24 +423,49 @@ optional_policy(`
  
  ########################################
  #
@@ -51910,7 +52070,7 @@ index d78dfc3..02f18ac 100644
  
 -/var/spool/nagios(/.*)?	gen_context(system_u:object_r:nagios_spool_t,s0)
 diff --git a/nagios.if b/nagios.if
-index 0641e97..d7d9a79 100644
+index 0641e97..cad402c 100644
 --- a/nagios.if
 +++ b/nagios.if
 @@ -1,12 +1,13 @@
@@ -52015,12 +52175,31 @@ index 0641e97..d7d9a79 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -132,13 +125,14 @@ interface(`nagios_search_spool',`
+@@ -132,13 +125,33 @@ interface(`nagios_search_spool',`
  		type nagios_spool_t;
  	')
  
 -	files_search_spool($1)
  	allow $1 nagios_spool_t:dir search_dir_perms;
++	files_search_spool($1)
++')
++
++########################################
++## <summary>
++##	Append nagios spool files.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`nagios_append_spool',`
++	gen_require(`
++		type nagios_spool_t;
++	')
++
++	allow $1 nagios_spool_t:file append_file_perms;
 +	files_search_spool($1)
  ')
  
@@ -52032,17 +52211,18 @@ index 0641e97..d7d9a79 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -151,13 +145,34 @@ interface(`nagios_read_tmp_files',`
+@@ -151,13 +164,34 @@ interface(`nagios_read_tmp_files',`
  		type nagios_tmp_t;
  	')
  
 -	files_search_tmp($1)
  	allow $1 nagios_tmp_t:file read_file_perms;
 +	files_search_tmp($1)
-+')
-+
-+########################################
-+## <summary>
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	Execute nrpe with a domain transition.
 +##	Allow the specified domain to read
 +##	nagios temporary files.
 +## </summary>
@@ -52059,17 +52239,16 @@ index 0641e97..d7d9a79 100644
 +
 +	allow $1 nagios_tmp_t:file rw_inherited_file_perms;
 +	files_search_tmp($1)
- ')
- 
- ########################################
- ## <summary>
--##	Execute nrpe with a domain transition.
++')
++
++########################################
++## <summary>
 +##	Execute the nagios NRPE with
 +##	a domain transition.
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -170,14 +185,13 @@ interface(`nagios_domtrans_nrpe',`
+@@ -170,14 +204,13 @@ interface(`nagios_domtrans_nrpe',`
  		type nrpe_t, nrpe_exec_t;
  	')
  
@@ -52086,7 +52265,7 @@ index 0641e97..d7d9a79 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -186,44 +200,43 @@ interface(`nagios_domtrans_nrpe',`
+@@ -186,44 +219,43 @@ interface(`nagios_domtrans_nrpe',`
  ## </param>
  ## <param name="role">
  ##	<summary>
@@ -54376,10 +54555,10 @@ index 0000000..d6de5b6
 +/var/run/nova(/.*)?     gen_context(system_u:object_r:nova_var_run_t,s0)
 diff --git a/nova.if b/nova.if
 new file mode 100644
-index 0000000..28936b4
+index 0000000..ce897e2
 --- /dev/null
 +++ b/nova.if
-@@ -0,0 +1,57 @@
+@@ -0,0 +1,59 @@
 +## <summary>openstack-nova</summary>
 +
 +######################################
@@ -54429,7 +54608,9 @@ index 0000000..28936b4
 +
 +	manage_dirs_pattern(nova_$1_t, nova_$1_tmp_t, nova_$1_tmp_t)
 +	manage_files_pattern(nova_$1_t, nova_$1_tmp_t, nova_$1_tmp_t)
-+	files_tmp_filetrans(nova_$1_t, nova_$1_tmp_t, { file dir })
++	manage_lnk_files_pattern(nova_$1_t, nova_$1_tmp_t, nova_$1_tmp_t)
++	files_tmp_filetrans(nova_$1_t, nova_$1_tmp_t, { lnk_file file dir })
++	fs_tmpfs_filetrans(nova_$1_t, nova_$1_tmp_t, { lnk_file file dir })
 +	can_exec(nova_$1_t, nova_$1_tmp_t)
 +
 +	kernel_read_system_state(nova_$1_t)
@@ -61732,7 +61913,7 @@ index bf59ef7..2d8335f 100644
 +')
 +
 diff --git a/passenger.te b/passenger.te
-index 08ec33b..24ce7e8 100644
+index 08ec33b..e478148 100644
 --- a/passenger.te
 +++ b/passenger.te
 @@ -14,6 +14,9 @@ role system_r types passenger_t;
@@ -61745,7 +61926,7 @@ index 08ec33b..24ce7e8 100644
  type passenger_var_lib_t;
  files_type(passenger_var_lib_t)
  
-@@ -22,22 +25,24 @@ files_pid_file(passenger_var_run_t)
+@@ -22,22 +25,25 @@ files_pid_file(passenger_var_run_t)
  
  ########################################
  #
@@ -61755,7 +61936,8 @@ index 08ec33b..24ce7e8 100644
  
  allow passenger_t self:capability { chown dac_override fsetid fowner kill setuid setgid sys_nice sys_ptrace sys_resource };
 -allow passenger_t self:process { setpgid setsched sigkill signal };
-+allow passenger_t self:process { setpgid setsched sigkill signal signull };
++allow passenger_t self:capability2 block_suspend;
++allow passenger_t self:process { setpgid setsched getsession signal_perms };
  allow passenger_t self:fifo_file rw_fifo_file_perms;
 -allow passenger_t self:unix_stream_socket { accept connectto listen };
 +allow passenger_t self:tcp_socket listen;
@@ -61777,7 +61959,7 @@ index 08ec33b..24ce7e8 100644
  
  manage_dirs_pattern(passenger_t, passenger_var_run_t, passenger_var_run_t)
  manage_files_pattern(passenger_t, passenger_var_run_t, passenger_var_run_t)
-@@ -45,7 +50,11 @@ manage_fifo_files_pattern(passenger_t, passenger_var_run_t, passenger_var_run_t)
+@@ -45,7 +51,11 @@ manage_fifo_files_pattern(passenger_t, passenger_var_run_t, passenger_var_run_t)
  manage_sock_files_pattern(passenger_t, passenger_var_run_t, passenger_var_run_t)
  files_pid_filetrans(passenger_t, passenger_var_run_t, { file dir sock_file })
  
@@ -61790,7 +61972,7 @@ index 08ec33b..24ce7e8 100644
  
  kernel_read_system_state(passenger_t)
  kernel_read_kernel_sysctls(passenger_t)
-@@ -53,13 +62,10 @@ kernel_read_network_state(passenger_t)
+@@ -53,13 +63,10 @@ kernel_read_network_state(passenger_t)
  kernel_read_net_sysctls(passenger_t)
  
  corenet_all_recvfrom_netlabel(passenger_t)
@@ -61805,7 +61987,7 @@ index 08ec33b..24ce7e8 100644
  
  corecmd_exec_bin(passenger_t)
  corecmd_exec_shell(passenger_t)
-@@ -68,8 +74,6 @@ dev_read_urand(passenger_t)
+@@ -68,8 +75,6 @@ dev_read_urand(passenger_t)
  
  domain_read_all_domains_state(passenger_t)
  
@@ -61814,7 +61996,7 @@ index 08ec33b..24ce7e8 100644
  auth_use_nsswitch(passenger_t)
  
  logging_send_syslog_msg(passenger_t)
-@@ -94,14 +98,21 @@ optional_policy(`
+@@ -94,14 +99,21 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -74611,7 +74793,7 @@ index fe2adf8..f7e9c70 100644
 +    admin_pattern($1, qpidd_var_run_t)
  ')
 diff --git a/qpid.te b/qpid.te
-index 83eb09e..b48c931 100644
+index 83eb09e..fc17eee 100644
 --- a/qpid.te
 +++ b/qpid.te
 @@ -12,6 +12,9 @@ init_daemon_domain(qpidd_t, qpidd_exec_t)
@@ -74624,7 +74806,7 @@ index 83eb09e..b48c931 100644
  type qpidd_tmpfs_t;
  files_tmpfs_file(qpidd_tmpfs_t)
  
-@@ -33,41 +36,52 @@ allow qpidd_t self:shm create_shm_perms;
+@@ -33,41 +36,54 @@ allow qpidd_t self:shm create_shm_perms;
  allow qpidd_t self:tcp_socket { accept listen };
  allow qpidd_t self:unix_stream_socket { accept listen };
  
@@ -74651,6 +74833,8 @@ index 83eb09e..b48c931 100644
  kernel_read_system_state(qpidd_t)
  
 -corenet_all_recvfrom_unlabeled(qpidd_t)
++auth_read_passwd(qpidd_t)
++
  corenet_all_recvfrom_netlabel(qpidd_t)
 +corenet_tcp_bind_generic_node(qpidd_t)
  corenet_tcp_sendrecv_generic_if(qpidd_t)
@@ -87896,10 +88080,10 @@ index 0000000..03bdcef
 +')
 diff --git a/sandboxX.te b/sandboxX.te
 new file mode 100644
-index 0000000..499e739
+index 0000000..a3319b0
 --- /dev/null
 +++ b/sandboxX.te
-@@ -0,0 +1,500 @@
+@@ -0,0 +1,501 @@
 +policy_module(sandboxX,1.0.0)
 +
 +dbus_stub()
@@ -88054,6 +88238,7 @@ index 0000000..499e739
 +manage_fifo_files_pattern(sandbox_x_domain, sandbox_file_t, sandbox_file_t);
 +manage_lnk_files_pattern(sandbox_x_domain, sandbox_file_t, sandbox_file_t);
 +dontaudit sandbox_x_domain sandbox_file_t:dir mounton;
++allow sandbox_x_domain sandbox_file_t:file execmod;
 +
 +kernel_getattr_proc(sandbox_x_domain)
 +kernel_read_network_state(sandbox_x_domain)
@@ -101276,7 +101461,7 @@ index a4f20bc..9ccc90c 100644
 +/var/log/qemu-ga\.log.*           --      gen_context(system_u:object_r:virt_qemu_ga_log_t,s0)
 +/var/log/qemu-ga(/.*)?		gen_context(system_u:object_r:virt_qemu_ga_log_t,s0)
 diff --git a/virt.if b/virt.if
-index facdee8..d179539 100644
+index facdee8..c43ef2e 100644
 --- a/virt.if
 +++ b/virt.if
 @@ -1,120 +1,51 @@
@@ -102325,7 +102510,7 @@ index facdee8..d179539 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -860,74 +695,265 @@ interface(`virt_read_lib_files',`
+@@ -860,74 +695,266 @@ interface(`virt_read_lib_files',`
  ##	</summary>
  ## </param>
  #
@@ -102474,6 +102659,7 @@ index facdee8..d179539 100644
 +	manage_fifo_files_pattern($1, svirt_sandbox_file_t, svirt_sandbox_file_t)
 +	manage_chr_files_pattern($1, svirt_sandbox_file_t, svirt_sandbox_file_t)
 +	manage_lnk_files_pattern($1, svirt_sandbox_file_t, svirt_sandbox_file_t)
++	allow $1 svirt_sandbox_file_t:dir_file_class_set { relabelfrom relabelto };
 +')
 +
 +#######################################
@@ -102613,7 +102799,7 @@ index facdee8..d179539 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -935,19 +961,17 @@ interface(`virt_read_log',`
+@@ -935,19 +962,17 @@ interface(`virt_read_log',`
  ##	</summary>
  ## </param>
  #
@@ -102637,7 +102823,7 @@ index facdee8..d179539 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -955,20 +979,17 @@ interface(`virt_append_log',`
+@@ -955,20 +980,17 @@ interface(`virt_append_log',`
  ##	</summary>
  ## </param>
  #
@@ -102662,7 +102848,7 @@ index facdee8..d179539 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -976,18 +997,17 @@ interface(`virt_manage_log',`
+@@ -976,18 +998,17 @@ interface(`virt_manage_log',`
  ##	</summary>
  ## </param>
  #
@@ -102685,7 +102871,7 @@ index facdee8..d179539 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -995,36 +1015,57 @@ interface(`virt_search_images',`
+@@ -995,36 +1016,57 @@ interface(`virt_search_images',`
  ##	</summary>
  ## </param>
  #
@@ -102762,7 +102948,7 @@ index facdee8..d179539 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -1032,20 +1073,28 @@ interface(`virt_read_images',`
+@@ -1032,20 +1074,28 @@ interface(`virt_read_images',`
  ##	</summary>
  ## </param>
  #
@@ -102798,7 +102984,7 @@ index facdee8..d179539 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -1053,37 +1102,133 @@ interface(`virt_rw_all_image_chr_files',`
+@@ -1053,37 +1103,133 @@ interface(`virt_rw_all_image_chr_files',`
  ##	</summary>
  ## </param>
  #
@@ -102946,7 +103132,7 @@ index facdee8..d179539 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -1091,36 +1236,54 @@ interface(`virt_manage_virt_cache',`
+@@ -1091,36 +1237,54 @@ interface(`virt_manage_virt_cache',`
  ##	</summary>
  ## </param>
  #
@@ -103020,7 +103206,7 @@ index facdee8..d179539 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -1136,50 +1299,53 @@ interface(`virt_manage_images',`
+@@ -1136,50 +1300,53 @@ interface(`virt_manage_images',`
  #
  interface(`virt_admin',`
  	gen_require(`

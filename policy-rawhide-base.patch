@@ -2667,7 +2667,7 @@ index 99e3903..fa68362 100644
  ## </summary>
  ## <param name="domain">
 diff --git a/policy/modules/admin/usermanage.te b/policy/modules/admin/usermanage.te
-index 1d732f1..1a53101 100644
+index 1d732f1..4aef39e 100644
 --- a/policy/modules/admin/usermanage.te
 +++ b/policy/modules/admin/usermanage.te
 @@ -26,6 +26,7 @@ type chfn_exec_t;
@@ -2896,11 +2896,12 @@ index 1d732f1..1a53101 100644
  userdom_use_unpriv_users_fds(passwd_t)
  # make sure that getcon succeeds
  userdom_getattr_all_users(passwd_t)
-@@ -352,6 +383,14 @@ userdom_read_user_tmp_files(passwd_t)
+@@ -352,6 +383,15 @@ userdom_read_user_tmp_files(passwd_t)
  # user generally runs this from their home directory, so do not audit a search
  # on user home dir
  userdom_dontaudit_search_user_home_content(passwd_t)
 +userdom_stream_connect(passwd_t)
++userdom_rw_stream(passwd_t)
 +
 +optional_policy(`
 +	gnome_exec_keyringd(passwd_t)
@@ -2911,7 +2912,7 @@ index 1d732f1..1a53101 100644
  
  optional_policy(`
  	nscd_run(passwd_t, passwd_roles)
-@@ -401,9 +440,10 @@ dev_read_urand(sysadm_passwd_t)
+@@ -401,9 +441,10 @@ dev_read_urand(sysadm_passwd_t)
  fs_getattr_xattr_fs(sysadm_passwd_t)
  fs_search_auto_mountpoints(sysadm_passwd_t)
  
@@ -2924,7 +2925,7 @@ index 1d732f1..1a53101 100644
  auth_manage_shadow(sysadm_passwd_t)
  auth_relabel_shadow(sysadm_passwd_t)
  auth_etc_filetrans_shadow(sysadm_passwd_t)
-@@ -416,7 +456,6 @@ files_read_usr_files(sysadm_passwd_t)
+@@ -416,7 +457,6 @@ files_read_usr_files(sysadm_passwd_t)
  
  domain_use_interactive_fds(sysadm_passwd_t)
  
@@ -2932,7 +2933,7 @@ index 1d732f1..1a53101 100644
  files_relabel_etc_files(sysadm_passwd_t)
  files_read_etc_runtime_files(sysadm_passwd_t)
  # for nscd lookups
-@@ -426,12 +465,9 @@ files_dontaudit_search_pids(sysadm_passwd_t)
+@@ -426,12 +466,9 @@ files_dontaudit_search_pids(sysadm_passwd_t)
  # correctly without it.  Do not audit write denials to utmp.
  init_dontaudit_rw_utmp(sysadm_passwd_t)
  
@@ -2945,7 +2946,7 @@ index 1d732f1..1a53101 100644
  userdom_use_unpriv_users_fds(sysadm_passwd_t)
  # user generally runs this from their home directory, so do not audit a search
  # on user home dir
-@@ -446,7 +482,8 @@ optional_policy(`
+@@ -446,7 +483,8 @@ optional_policy(`
  # Useradd local policy
  #
  
@@ -2955,7 +2956,7 @@ index 1d732f1..1a53101 100644
  dontaudit useradd_t self:capability sys_tty_config;
  allow useradd_t self:process ~{ ptrace setcurrent setexec setfscreate setrlimit execmem execstack execheap };
  allow useradd_t self:process setfscreate;
-@@ -461,6 +498,10 @@ allow useradd_t self:unix_stream_socket create_stream_socket_perms;
+@@ -461,6 +499,10 @@ allow useradd_t self:unix_stream_socket create_stream_socket_perms;
  allow useradd_t self:unix_dgram_socket sendto;
  allow useradd_t self:unix_stream_socket connectto;
  
@@ -2966,7 +2967,7 @@ index 1d732f1..1a53101 100644
  # for getting the number of groups
  kernel_read_kernel_sysctls(useradd_t)
  
-@@ -468,29 +509,28 @@ corecmd_exec_shell(useradd_t)
+@@ -468,29 +510,28 @@ corecmd_exec_shell(useradd_t)
  # Execute /usr/bin/{passwd,chfn,chsh} and /usr/sbin/{useradd,vipw}.
  corecmd_exec_bin(useradd_t)
  
@@ -3006,7 +3007,7 @@ index 1d732f1..1a53101 100644
  
  auth_run_chk_passwd(useradd_t, useradd_roles)
  auth_rw_lastlog(useradd_t)
-@@ -498,6 +538,7 @@ auth_rw_faillog(useradd_t)
+@@ -498,6 +539,7 @@ auth_rw_faillog(useradd_t)
  auth_use_nsswitch(useradd_t)
  # these may be unnecessary due to the above
  # domtrans_chk_passwd() call.
@@ -3014,7 +3015,7 @@ index 1d732f1..1a53101 100644
  auth_manage_shadow(useradd_t)
  auth_relabel_shadow(useradd_t)
  auth_etc_filetrans_shadow(useradd_t)
-@@ -508,33 +549,32 @@ init_rw_utmp(useradd_t)
+@@ -508,33 +550,32 @@ init_rw_utmp(useradd_t)
  logging_send_audit_msgs(useradd_t)
  logging_send_syslog_msg(useradd_t)
  
@@ -3059,7 +3060,7 @@ index 1d732f1..1a53101 100644
  optional_policy(`
  	apache_manage_all_user_content(useradd_t)
  ')
-@@ -549,10 +589,19 @@ optional_policy(`
+@@ -549,10 +590,19 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -3079,7 +3080,7 @@ index 1d732f1..1a53101 100644
  	tunable_policy(`samba_domain_controller',`
  		samba_append_log(useradd_t)
  	')
-@@ -562,3 +611,12 @@ optional_policy(`
+@@ -562,3 +612,12 @@ optional_policy(`
  	rpm_use_fds(useradd_t)
  	rpm_rw_pipes(useradd_t)
  ')
@@ -5460,7 +5461,7 @@ index 8e0f9cd..b9f45b9 100644
  
  define(`create_packet_interfaces',``
 diff --git a/policy/modules/kernel/corenetwork.te.in b/policy/modules/kernel/corenetwork.te.in
-index b191055..a19d634 100644
+index b191055..9ae3918 100644
 --- a/policy/modules/kernel/corenetwork.te.in
 +++ b/policy/modules/kernel/corenetwork.te.in
 @@ -5,6 +5,7 @@ policy_module(corenetwork, 1.19.2)
@@ -5534,7 +5535,7 @@ index b191055..a19d634 100644
  # reserved_port_t is the type of INET port numbers below 1024.
  #
  type reserved_port_t, port_type, reserved_port_type;
-@@ -84,55 +107,69 @@ network_port(amanda, udp,10080-10082,s0, tcp,10080-10083,s0)
+@@ -84,55 +107,68 @@ network_port(amanda, udp,10080-10082,s0, tcp,10080-10083,s0)
  network_port(amavisd_recv, tcp,10024,s0)
  network_port(amavisd_send, tcp,10025,s0)
  network_port(amqp, udp,5671-5672,s0, tcp,5671-5672,s0)
@@ -5553,7 +5554,6 @@ index b191055..a19d634 100644
  network_port(boinc_client, tcp,1043,s0, udp,1034,s0)
  network_port(biff) # no defined portcon
  network_port(certmaster, tcp,51235,s0)
-+network_port(cockpit, udp,1001,s0)
 +network_port(collectd, udp,25826,s0)
  network_port(chronyd, udp,323,s0)
  network_port(clamd, tcp,3310,s0)
@@ -5612,7 +5612,7 @@ index b191055..a19d634 100644
  network_port(gopher, tcp,70,s0, udp,70,s0)
  network_port(gpsd, tcp,2947,s0)
  network_port(hadoop_datanode, tcp,50010,s0)
-@@ -140,45 +177,52 @@ network_port(hadoop_namenode, tcp,8020,s0)
+@@ -140,45 +176,53 @@ network_port(hadoop_namenode, tcp,8020,s0)
  network_port(hddtemp, tcp,7634,s0)
  network_port(howl, tcp,5335,s0, udp,5353,s0)
  network_port(hplip, tcp,1782,s0, tcp,2207,s0, tcp,2208,s0, tcp, 8290,s0, tcp,50000,s0, tcp,50002,s0, tcp,8292,s0, tcp,9100,s0, tcp,9101,s0, tcp,9102,s0, tcp,9220,s0, tcp,9221,s0, tcp,9222,s0, tcp,9280,s0, tcp,9281,s0, tcp,9282,s0, tcp,9290,s0, tcp,9291,s0)
@@ -5651,6 +5651,7 @@ index b191055..a19d634 100644
 +network_port(kerberos_admin, tcp,749,s0)
 +network_port(kerberos_password, tcp,464,s0, udp,464,s0)
 +network_port(keystone, tcp, 35357,s0, udp, 35357,s0)
++network_port(kubernetes, tcp, 10250,s0, tcp, 4001,s0, tcp, 4194,s0)
 +network_port(rlogin, tcp,543,s0, tcp,2105,s0)
 +network_port(rtsclient, tcp,2501,s0)
  network_port(kprop, tcp,754,s0)
@@ -17457,7 +17458,7 @@ index 7be4ddf..71e675a 100644
 +/sys/class/net/ib.* 	  --	gen_context(system_u:object_r:sysctl_net_t,s0)
 +/sys/kernel/uevent_helper --	gen_context(system_u:object_r:usermodehelper_t,s0)
 diff --git a/policy/modules/kernel/kernel.if b/policy/modules/kernel/kernel.if
-index e100d88..fb8a1f1 100644
+index e100d88..5a45858 100644
 --- a/policy/modules/kernel/kernel.if
 +++ b/policy/modules/kernel/kernel.if
 @@ -126,6 +126,24 @@ interface(`kernel_setsched',`
@@ -17621,7 +17622,32 @@ index e100d88..fb8a1f1 100644
  ##	Allow caller to get the attributes of kernel message
  ##	interface (/proc/kmsg).
  ## </summary>
-@@ -1477,6 +1565,24 @@ interface(`kernel_dontaudit_list_all_proc',`
+@@ -1458,6 +1546,24 @@ interface(`kernel_list_all_proc',`
+ 
+ ########################################
+ ## <summary>
++##	Allow attempts to mounton all proc directories.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`kernel_mounton_all_proc',`
++	gen_require(`
++		attribute proc_type;
++	')
++
++	allow $1 proc_type:dir mounton;
++')
++
++########################################
++## <summary>
+ ##	Do not audit attempts to list all proc directories.
+ ## </summary>
+ ## <param name="domain">
+@@ -1477,6 +1583,24 @@ interface(`kernel_dontaudit_list_all_proc',`
  
  ########################################
  ## <summary>
@@ -17646,7 +17672,7 @@ index e100d88..fb8a1f1 100644
  ##	Do not audit attempts by caller to search
  ##	the base directory of sysctls.
  ## </summary>
-@@ -1672,7 +1778,7 @@ interface(`kernel_read_net_sysctls',`
+@@ -1672,7 +1796,7 @@ interface(`kernel_read_net_sysctls',`
  	')
  
  	read_files_pattern($1, { proc_t sysctl_t sysctl_net_t }, sysctl_net_t)
@@ -17655,7 +17681,7 @@ index e100d88..fb8a1f1 100644
  	list_dirs_pattern($1, { proc_t sysctl_t }, sysctl_net_t)
  ')
  
-@@ -1693,7 +1799,7 @@ interface(`kernel_rw_net_sysctls',`
+@@ -1693,7 +1817,7 @@ interface(`kernel_rw_net_sysctls',`
  	')
  
  	rw_files_pattern($1, { proc_t sysctl_t sysctl_net_t }, sysctl_net_t)
@@ -17664,7 +17690,7 @@ index e100d88..fb8a1f1 100644
  	list_dirs_pattern($1, { proc_t sysctl_t }, sysctl_net_t)
  ')
  
-@@ -1715,7 +1821,6 @@ interface(`kernel_read_unix_sysctls',`
+@@ -1715,7 +1839,6 @@ interface(`kernel_read_unix_sysctls',`
  	')
  
  	read_files_pattern($1, { proc_t sysctl_t sysctl_net_t }, sysctl_net_unix_t)
@@ -17672,7 +17698,7 @@ index e100d88..fb8a1f1 100644
  	list_dirs_pattern($1, { proc_t sysctl_t }, sysctl_net_t)
  ')
  
-@@ -1750,16 +1855,9 @@ interface(`kernel_rw_unix_sysctls',`
+@@ -1750,16 +1873,9 @@ interface(`kernel_rw_unix_sysctls',`
  ##	Domain allowed access.
  ##	</summary>
  ## </param>
@@ -17690,7 +17716,7 @@ index e100d88..fb8a1f1 100644
  ')
  
  ########################################
-@@ -1771,16 +1869,9 @@ interface(`kernel_read_hotplug_sysctls',`
+@@ -1771,16 +1887,9 @@ interface(`kernel_read_hotplug_sysctls',`
  ##	Domain allowed access.
  ##	</summary>
  ## </param>
@@ -17708,7 +17734,7 @@ index e100d88..fb8a1f1 100644
  ')
  
  ########################################
-@@ -1792,16 +1883,9 @@ interface(`kernel_rw_hotplug_sysctls',`
+@@ -1792,16 +1901,9 @@ interface(`kernel_rw_hotplug_sysctls',`
  ##	Domain allowed access.
  ##	</summary>
  ## </param>
@@ -17726,7 +17752,7 @@ index e100d88..fb8a1f1 100644
  ')
  
  ########################################
-@@ -1813,16 +1897,9 @@ interface(`kernel_read_modprobe_sysctls',`
+@@ -1813,16 +1915,9 @@ interface(`kernel_read_modprobe_sysctls',`
  ##	Domain allowed access.
  ##	</summary>
  ## </param>
@@ -17744,16 +17770,37 @@ index e100d88..fb8a1f1 100644
  ')
  
  ########################################
-@@ -2085,7 +2162,7 @@ interface(`kernel_dontaudit_list_all_sysctls',`
+@@ -2085,9 +2180,28 @@ interface(`kernel_dontaudit_list_all_sysctls',`
  	')
  
  	dontaudit $1 sysctl_type:dir list_dir_perms;
 -	dontaudit $1 sysctl_type:file getattr;
 +	dontaudit $1 sysctl_type:file read_file_perms;
++')
++
++########################################
++## <summary>
++##	Allow attempts to mounton all sysctl directories.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`kernel_mounton_all_sysctls',`
++	gen_require(`
++		attribute sysctl_type;
++	')
++
++	allow $1 sysctl_type:dir mounton;
  ')
  
++
  ########################################
-@@ -2282,6 +2359,25 @@ interface(`kernel_list_unlabeled',`
+ ## <summary>
+ ##	Allow caller to read all sysctls.
+@@ -2282,6 +2396,25 @@ interface(`kernel_list_unlabeled',`
  
  ########################################
  ## <summary>
@@ -17779,7 +17826,7 @@ index e100d88..fb8a1f1 100644
  ##	Read the process state (/proc/pid) of all unlabeled_t.
  ## </summary>
  ## <param name="domain">
-@@ -2306,7 +2402,7 @@ interface(`kernel_read_unlabeled_state',`
+@@ -2306,7 +2439,7 @@ interface(`kernel_read_unlabeled_state',`
  ## </summary>
  ## <param name="domain">
  ##	<summary>
@@ -17788,7 +17835,7 @@ index e100d88..fb8a1f1 100644
  ##	</summary>
  ## </param>
  #
-@@ -2488,6 +2584,24 @@ interface(`kernel_rw_unlabeled_blk_files',`
+@@ -2488,6 +2621,24 @@ interface(`kernel_rw_unlabeled_blk_files',`
  
  ########################################
  ## <summary>
@@ -17813,7 +17860,7 @@ index e100d88..fb8a1f1 100644
  ##	Do not audit attempts by caller to get attributes for
  ##	unlabeled character devices.
  ## </summary>
-@@ -2525,6 +2639,24 @@ interface(`kernel_relabelfrom_unlabeled_dirs',`
+@@ -2525,6 +2676,24 @@ interface(`kernel_relabelfrom_unlabeled_dirs',`
  
  ########################################
  ## <summary>
@@ -17838,7 +17885,7 @@ index e100d88..fb8a1f1 100644
  ##	Allow caller to relabel unlabeled files.
  ## </summary>
  ## <param name="domain">
-@@ -2667,6 +2799,24 @@ interface(`kernel_dontaudit_sendrecv_unlabeled_association',`
+@@ -2667,6 +2836,24 @@ interface(`kernel_dontaudit_sendrecv_unlabeled_association',`
  
  ########################################
  ## <summary>
@@ -17863,7 +17910,7 @@ index e100d88..fb8a1f1 100644
  ##	Receive TCP packets from an unlabeled connection.
  ## </summary>
  ## <desc>
-@@ -2694,6 +2844,25 @@ interface(`kernel_tcp_recvfrom_unlabeled',`
+@@ -2694,6 +2881,25 @@ interface(`kernel_tcp_recvfrom_unlabeled',`
  
  ########################################
  ## <summary>
@@ -17889,7 +17936,7 @@ index e100d88..fb8a1f1 100644
  ##	Do not audit attempts to receive TCP packets from an unlabeled
  ##	connection.
  ## </summary>
-@@ -2803,6 +2972,33 @@ interface(`kernel_raw_recvfrom_unlabeled',`
+@@ -2803,6 +3009,33 @@ interface(`kernel_raw_recvfrom_unlabeled',`
  
  	allow $1 unlabeled_t:rawip_socket recvfrom;
  ')
@@ -17923,10 +17970,11 @@ index e100d88..fb8a1f1 100644
  
  ########################################
  ## <summary>
-@@ -2958,6 +3154,24 @@ interface(`kernel_relabelfrom_unlabeled_database',`
+@@ -2958,7 +3191,25 @@ interface(`kernel_relabelfrom_unlabeled_database',`
  
  ########################################
  ## <summary>
+-##	Unconfined access to kernel module resources.
 +##      Relabel to unlabeled context .
 +## </summary>
 +## <param name="domain">
@@ -17945,10 +17993,11 @@ index e100d88..fb8a1f1 100644
 +
 +########################################
 +## <summary>
- ##	Unconfined access to kernel module resources.
++##	Unconfined access to kernel module resources.
  ## </summary>
  ## <param name="domain">
-@@ -2972,5 +3186,565 @@ interface(`kernel_unconfined',`
+ ##	<summary>
+@@ -2972,5 +3223,565 @@ interface(`kernel_unconfined',`
  	')
  
  	typeattribute $1 kern_unconfined;
@@ -34282,10 +34331,10 @@ index 312cd04..3c62b4c 100644
 +userdom_use_inherited_user_terminals(setkey_t)
 +userdom_read_user_tmp_files(setkey_t)
 diff --git a/policy/modules/system/iptables.fc b/policy/modules/system/iptables.fc
-index 73a1c4e..ef41ebe 100644
+index 73a1c4e..af8050d 100644
 --- a/policy/modules/system/iptables.fc
 +++ b/policy/modules/system/iptables.fc
-@@ -1,22 +1,35 @@
+@@ -1,22 +1,39 @@
  /etc/rc\.d/init\.d/ip6?tables	--	gen_context(system_u:object_r:iptables_initrc_exec_t,s0)
 -/etc/rc\.d/init\.d/ebtables	--	gen_context(system_u:object_r:iptables_initrc_exec_t,s0)
 -/etc/sysconfig/ip6?tables.*	--	gen_context(system_u:object_r:iptables_conf_t,s0)
@@ -34293,13 +34342,17 @@ index 73a1c4e..ef41ebe 100644
 +/etc/rc\.d/init\.d/ebtables		--  gen_context(system_u:object_r:iptables_initrc_exec_t,s0)
  
 -/sbin/ebtables			--	gen_context(system_u:object_r:iptables_exec_t,s0)
++/usr/lib/systemd/system/arptables.*     --  gen_context(system_u:object_r:iptables_unit_file_t,s0)
 +/usr/lib/systemd/system/iptables.* 		--	gen_context(system_u:object_r:iptables_unit_file_t,s0)
 +/usr/lib/systemd/system/ip6tables.* 	--	gen_context(system_u:object_r:iptables_unit_file_t,s0)
 +/usr/lib/systemd/system/ipset.*         --  gen_context(system_u:object_r:iptables_unit_file_t,s0)
 +
++
 +/usr/libexec/ipset          --  gen_context(system_u:object_r:iptables_exec_t,s0)
 +
 +/sbin/arptables             --  gen_context(system_u:object_r:iptables_exec_t,s0)
++/sbin/arptables-restore     --  gen_context(system_u:object_r:iptables_exec_t,s0)
++/sbin/arptables-save        --  gen_context(system_u:object_r:iptables_exec_t,s0)
 +/sbin/ebtables			    --	gen_context(system_u:object_r:iptables_exec_t,s0)
  /sbin/ebtables-restore		--	gen_context(system_u:object_r:iptables_exec_t,s0)
 -/sbin/ipchains.*		--	gen_context(system_u:object_r:iptables_exec_t,s0)
@@ -36767,7 +36820,7 @@ index 58bc27f..f5ae583 100644
 +')
 +
 diff --git a/policy/modules/system/lvm.te b/policy/modules/system/lvm.te
-index 79048c4..f505f63 100644
+index 79048c4..a7040f1 100644
 --- a/policy/modules/system/lvm.te
 +++ b/policy/modules/system/lvm.te
 @@ -12,6 +12,9 @@ init_daemon_domain(clvmd_t, clvmd_exec_t)
@@ -36851,7 +36904,7 @@ index 79048c4..f505f63 100644
  	ccs_stream_connect(clvmd_t)
  ')
  
-@@ -170,6 +181,7 @@ dontaudit lvm_t self:capability sys_tty_config;
+@@ -170,15 +181,22 @@ dontaudit lvm_t self:capability sys_tty_config;
  allow lvm_t self:process { sigchld sigkill sigstop signull signal setfscreate };
  # LVM will complain a lot if it cannot set its priority.
  allow lvm_t self:process setsched;
@@ -36859,7 +36912,10 @@ index 79048c4..f505f63 100644
  allow lvm_t self:file rw_file_perms;
  allow lvm_t self:fifo_file manage_fifo_file_perms;
  allow lvm_t self:unix_dgram_socket create_socket_perms;
-@@ -179,6 +191,11 @@ allow lvm_t self:sem create_sem_perms;
++allow lvm_t self:socket create_socket_perms;
+ allow lvm_t self:netlink_kobject_uevent_socket create_socket_perms;
+ allow lvm_t self:sem create_sem_perms;
+ 
  allow lvm_t self:unix_stream_socket { connectto create_stream_socket_perms };
  allow lvm_t clvmd_t:unix_stream_socket { connectto rw_socket_perms };
  
@@ -36871,7 +36927,7 @@ index 79048c4..f505f63 100644
  manage_dirs_pattern(lvm_t, lvm_tmp_t, lvm_tmp_t)
  manage_files_pattern(lvm_t, lvm_tmp_t, lvm_tmp_t)
  files_tmp_filetrans(lvm_t, lvm_tmp_t, { file dir })
-@@ -191,10 +208,12 @@ read_lnk_files_pattern(lvm_t, lvm_exec_t, lvm_exec_t)
+@@ -191,10 +209,12 @@ read_lnk_files_pattern(lvm_t, lvm_exec_t, lvm_exec_t)
  can_exec(lvm_t, lvm_exec_t)
  
  # Creating lock files
@@ -36884,7 +36940,7 @@ index 79048c4..f505f63 100644
  
  manage_dirs_pattern(lvm_t, lvm_var_lib_t, lvm_var_lib_t)
  manage_files_pattern(lvm_t, lvm_var_lib_t, lvm_var_lib_t)
-@@ -202,8 +221,10 @@ files_var_lib_filetrans(lvm_t, lvm_var_lib_t, { dir file })
+@@ -202,8 +222,10 @@ files_var_lib_filetrans(lvm_t, lvm_var_lib_t, { dir file })
  
  manage_dirs_pattern(lvm_t, lvm_var_run_t, lvm_var_run_t)
  manage_files_pattern(lvm_t, lvm_var_run_t, lvm_var_run_t)
@@ -36896,7 +36952,7 @@ index 79048c4..f505f63 100644
  
  read_files_pattern(lvm_t, lvm_etc_t, lvm_etc_t)
  read_lnk_files_pattern(lvm_t, lvm_etc_t, lvm_etc_t)
-@@ -220,6 +241,7 @@ kernel_read_kernel_sysctls(lvm_t)
+@@ -220,6 +242,7 @@ kernel_read_kernel_sysctls(lvm_t)
  # it has no reason to need this
  kernel_dontaudit_getattr_core_if(lvm_t)
  kernel_use_fds(lvm_t)
@@ -36904,7 +36960,7 @@ index 79048c4..f505f63 100644
  kernel_search_debugfs(lvm_t)
  
  corecmd_exec_bin(lvm_t)
-@@ -230,11 +252,13 @@ dev_delete_generic_dirs(lvm_t)
+@@ -230,11 +253,13 @@ dev_delete_generic_dirs(lvm_t)
  dev_read_rand(lvm_t)
  dev_read_urand(lvm_t)
  dev_rw_lvm_control(lvm_t)
@@ -36919,7 +36975,7 @@ index 79048c4..f505f63 100644
  # cjp: this has no effect since LVM does not
  # have lnk_file relabelto for anything else.
  # perhaps this should be blk_files?
-@@ -246,6 +270,7 @@ dev_dontaudit_getattr_generic_chr_files(lvm_t)
+@@ -246,6 +271,7 @@ dev_dontaudit_getattr_generic_chr_files(lvm_t)
  dev_dontaudit_getattr_generic_blk_files(lvm_t)
  dev_dontaudit_getattr_generic_pipes(lvm_t)
  dev_create_generic_dirs(lvm_t)
@@ -36927,7 +36983,7 @@ index 79048c4..f505f63 100644
  
  domain_use_interactive_fds(lvm_t)
  domain_read_all_domains_state(lvm_t)
-@@ -255,17 +280,21 @@ files_read_etc_files(lvm_t)
+@@ -255,17 +281,21 @@ files_read_etc_files(lvm_t)
  files_read_etc_runtime_files(lvm_t)
  # for when /usr is not mounted:
  files_dontaudit_search_isid_type_dirs(lvm_t)
@@ -36950,7 +37006,7 @@ index 79048c4..f505f63 100644
  
  selinux_get_fs_mount(lvm_t)
  selinux_validate_context(lvm_t)
-@@ -285,7 +314,7 @@ storage_dev_filetrans_fixed_disk(lvm_t)
+@@ -285,7 +315,7 @@ storage_dev_filetrans_fixed_disk(lvm_t)
  # Access raw devices and old /dev/lvm (c 109,0).  Is this needed?
  storage_manage_fixed_disk(lvm_t)
  
@@ -36959,7 +37015,7 @@ index 79048c4..f505f63 100644
  
  init_use_fds(lvm_t)
  init_dontaudit_getattr_initctl(lvm_t)
-@@ -293,15 +322,22 @@ init_use_script_ptys(lvm_t)
+@@ -293,15 +323,22 @@ init_use_script_ptys(lvm_t)
  init_read_script_state(lvm_t)
  
  logging_send_syslog_msg(lvm_t)
@@ -36983,7 +37039,7 @@ index 79048c4..f505f63 100644
  
  ifdef(`distro_redhat',`
  	# this is from the initrd:
-@@ -313,6 +349,11 @@ ifdef(`distro_redhat',`
+@@ -313,6 +350,11 @@ ifdef(`distro_redhat',`
  ')
  
  optional_policy(`
@@ -36995,7 +37051,7 @@ index 79048c4..f505f63 100644
  	bootloader_rw_tmp_files(lvm_t)
  ')
  
-@@ -333,14 +374,34 @@ optional_policy(`
+@@ -333,14 +375,34 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -42685,10 +42741,10 @@ index 0000000..d2a8fc7
 +')
 diff --git a/policy/modules/system/systemd.te b/policy/modules/system/systemd.te
 new file mode 100644
-index 0000000..e2c527a
+index 0000000..08a4e91
 --- /dev/null
 +++ b/policy/modules/system/systemd.te
-@@ -0,0 +1,685 @@
+@@ -0,0 +1,686 @@
 +policy_module(systemd, 1.0.0)
 +
 +#######################################
@@ -42787,6 +42843,7 @@ index 0000000..e2c527a
 +
 +fs_mount_tmpfs(systemd_logind_t)
 +fs_unmount_tmpfs(systemd_logind_t)
++fs_list_tmpfs(systemd_logind_t)
 +fs_manage_fusefs_dirs(systemd_logind_t)
 +fs_manage_fusefs_files(systemd_logind_t)
 +
@@ -44765,7 +44822,7 @@ index db75976..8f5380f 100644
 +/var/tmp/hsperfdata_root    gen_context(system_u:object_r:user_tmp_t,s0)
 +
 diff --git a/policy/modules/system/userdomain.if b/policy/modules/system/userdomain.if
-index 9dc60c6..d193211 100644
+index 9dc60c6..72d01d2 100644
 --- a/policy/modules/system/userdomain.if
 +++ b/policy/modules/system/userdomain.if
 @@ -30,9 +30,11 @@ template(`userdom_base_user_template',`
@@ -48054,7 +48111,7 @@ index 9dc60c6..d193211 100644
  ##	Create keys for all user domains.
  ## </summary>
  ## <param name="domain">
-@@ -3435,4 +4477,1666 @@ interface(`userdom_dbus_send_all_users',`
+@@ -3435,4 +4477,1684 @@ interface(`userdom_dbus_send_all_users',`
  	')
  
  	allow $1 userdomain:dbus send_msg;
@@ -48586,7 +48643,7 @@ index 9dc60c6..d193211 100644
 +########################################
 +## <summary>
 +##	Do not audit attempts to read and write
-+##	unserdomain stream.
++##	userdomain stream.
 +## </summary>
 +## <param name="domain">
 +##	<summary>
@@ -48600,6 +48657,24 @@ index 9dc60c6..d193211 100644
 +	')
 +
 +	dontaudit $1 userdomain:unix_stream_socket rw_socket_perms;
++')
++
++########################################
++## <summary>
++##	Read and write	userdomain stream.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`userdom_rw_stream',`
++	gen_require(`
++		attribute userdomain;
++	')
++
++	allow $1 userdomain:unix_stream_socket rw_socket_perms;
 +')
 +
 +########################################

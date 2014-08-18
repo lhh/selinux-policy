@@ -19,7 +19,7 @@
 Summary: SELinux policy configuration
 Name: selinux-policy
 Version: 3.13.1
-Release: 72%{?dist}
+Release: 73%{?dist}
 License: GPLv2+
 Group: System Environment/Base
 Source: serefpolicy-%{version}.tgz
@@ -602,6 +602,21 @@ SELinux Reference policy mls base module.
 %endif
 
 %changelog
+* Mon Aug 18 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-73
+- Allow ssytemd_logind_t to list tmpfs directories
+- Allow lvm_t to create undefined sockets
+- Allow passwd_t to read/write stream sockets
+- Allow docker lots more access.
+- Fix label for ports
+- Add support for arptables-{restore,save} and also labeling for /usr/lib/systemd/system/arptables.service.
+- Label tcp port 4194 as kubernetes port.
+- Additional access required for passenger_t
+- sandbox domains should be allowed to use libraries which require execmod
+- Allow qpid to read passwd files BZ (#1130086)
+- Remove cockpit port, it is now going to use websm port
+- Add getattr to the list of access to dontaudit on unix_stream_sockets
+- Allow sendmail to append dead.letter located in var/spool/nagios/dead.letter.
+
 * Tue Aug 12 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-72
 - docker needs to be able to look at everything in /dev
 - Allow all processes to send themselves signals
