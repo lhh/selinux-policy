@@ -19,7 +19,7 @@
 Summary: SELinux policy configuration
 Name: selinux-policy
 Version: 3.13.1
-Release: 73%{?dist}
+Release: 74%{?dist}
 License: GPLv2+
 Group: System Environment/Base
 Source: serefpolicy-%{version}.tgz
@@ -602,6 +602,9 @@ SELinux Reference policy mls base module.
 %endif
 
 %changelog
+* Thu Aug 21 2014 Kevin Fenzi <kevin@scrye.com> - 3.13.1-74
+- Rebuild for rpm bug 1131960
+
 * Mon Aug 18 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-73
 - Allow ssytemd_logind_t to list tmpfs directories
 - Allow lvm_t to create undefined sockets
