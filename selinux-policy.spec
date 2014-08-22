@@ -19,7 +19,7 @@
 Summary: SELinux policy configuration
 Name: selinux-policy
 Version: 3.13.1
-Release: 74%{?dist}
+Release: 75%{?dist}
 License: GPLv2+
 Group: System Environment/Base
 Source: serefpolicy-%{version}.tgz
@@ -602,6 +602,23 @@ SELinux Reference policy mls base module.
 %endif
 
 %changelog
+* Fri Aug 22 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-75
+- Allow haproxy to read /dev/random and /dev/urandom.
+- Allow mdadm to seng signull kernel_t which is proces type of mdadm on early boot.
+- geoclue needs to connect to http and http_cache ports
+- Allow passenger to use unix_stream_sockets leaked into it, from httpd
+- Add SELinux policy for highly-available key value store for shared configuration.
+- drbd executes modinfo.
+- Add glance_api_can_network boolean since glance-api uses huge range port.
+- Fix glance_api_can_network() definition.
+- Allow smoltclient to connect on http_cache port. (#982199)
+- Allow userdomains to stream connect to pcscd for smart cards
+- Allow programs to use pam to search through user_tmp_t dires (/tmp/.X11-unix)
+- Added MLS fixes to support labeled socket activation which is going to be done by systemd
+- Add kernel_signull() interface.
+- sulogin_t executes plymouth commands
+- lvm needs to be able to accept connections on stream generic sockets
+
 * Thu Aug 21 2014 Kevin Fenzi <kevin@scrye.com> - 3.13.1-74
 - Rebuild for rpm bug 1131960
 

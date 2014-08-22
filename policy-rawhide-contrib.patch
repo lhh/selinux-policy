@@ -25736,7 +25736,7 @@ index 9a21639..26c5986 100644
  ')
 +
 diff --git a/drbd.te b/drbd.te
-index f2516cc..2b307a8 100644
+index f2516cc..fa9ba56 100644
 --- a/drbd.te
 +++ b/drbd.te
 @@ -28,7 +28,7 @@ dontaudit drbd_t self:capability sys_tty_config;
@@ -25748,7 +25748,7 @@ index f2516cc..2b307a8 100644
  
  manage_dirs_pattern(drbd_t, drbd_var_lib_t, drbd_var_lib_t)
  manage_files_pattern(drbd_t, drbd_var_lib_t, drbd_var_lib_t)
-@@ -42,14 +42,12 @@ can_exec(drbd_t, drbd_exec_t)
+@@ -42,14 +42,16 @@ can_exec(drbd_t, drbd_exec_t)
  
  kernel_read_system_state(drbd_t)
  
@@ -25763,7 +25763,10 @@ index f2516cc..2b307a8 100644
  storage_raw_read_fixed_disk(drbd_t)
  
 -miscfiles_read_localization(drbd_t)
--
++auth_read_passwd(drbd_t)
++
++modutils_exec_insmod(drbd_t)
+ 
  sysnet_dns_name_resolve(drbd_t)
 diff --git a/dspam.fc b/dspam.fc
 index 5eddac5..b5fcb77 100644
@@ -26171,6 +26174,236 @@ index b8b8328..111084c 100644
  
  userdom_dontaudit_use_unpriv_user_fds(entropyd_t)
  userdom_dontaudit_search_user_home_dirs(entropyd_t)
+diff --git a/etcd.fc b/etcd.fc
+new file mode 100644
+index 0000000..eac30a3
+--- /dev/null
++++ b/etcd.fc
+@@ -0,0 +1,5 @@
++/usr/lib/systemd/system/etcd.*  --  gen_context(system_u:object_r:etcd_unit_file_t,s0)
++
++/usr/bin/etcd                   --  gen_context(system_u:object_r:etcd_exec_t,s0)
++
++/var/lib/etcd(/.*)?                 gen_context(system_u:object_r:etcd_var_lib_t,s0)
+diff --git a/etcd.if b/etcd.if
+new file mode 100644
+index 0000000..0827ab7
+--- /dev/null
++++ b/etcd.if
+@@ -0,0 +1,165 @@
++## <summary>A highly-available key value store for shared configuration.</summary>
++
++########################################
++## <summary>
++##	Execute etcd in the etcd domin.
++## </summary>
++## <param name="domain">
++## <summary>
++##	Domain allowed to transition.
++## </summary>
++## </param>
++#
++interface(`etcd_domtrans',`
++	gen_require(`
++		type etcd_t, etcd_exec_t;
++	')
++
++	corecmd_search_bin($1)
++	domtrans_pattern($1, etcd_exec_t, etcd_t)
++')
++
++########################################
++## <summary>
++##	Search etcd lib directories.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`etcd_search_lib',`
++	gen_require(`
++		type etcd_var_lib_t;
++	')
++
++	allow $1 etcd_var_lib_t:dir search_dir_perms;
++	files_search_var_lib($1)
++')
++
++########################################
++## <summary>
++##	Read etcd lib files.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`etcd_read_lib_files',`
++	gen_require(`
++		type etcd_var_lib_t;
++	')
++
++	files_search_var_lib($1)
++	read_files_pattern($1, etcd_var_lib_t, etcd_var_lib_t)
++')
++
++########################################
++## <summary>
++##	Manage etcd lib files.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`etcd_manage_lib_files',`
++	gen_require(`
++		type etcd_var_lib_t;
++	')
++
++	files_search_var_lib($1)
++	manage_files_pattern($1, etcd_var_lib_t, etcd_var_lib_t)
++')
++
++########################################
++## <summary>
++##	Manage etcd lib directories.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`etcd_manage_lib_dirs',`
++	gen_require(`
++		type etcd_var_lib_t;
++	')
++
++	files_search_var_lib($1)
++	manage_dirs_pattern($1, etcd_var_lib_t, etcd_var_lib_t)
++')
++
++########################################
++## <summary>
++##	Execute etcd server in the etcd domain.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed to transition.
++##	</summary>
++## </param>
++#
++interface(`etcd_systemctl',`
++	gen_require(`
++		type etcd_t;
++		type etcd_unit_file_t;
++	')
++
++	systemd_exec_systemctl($1)
++    systemd_read_fifo_file_passwd_run($1)
++	allow $1 etcd_unit_file_t:file read_file_perms;
++	allow $1 etcd_unit_file_t:service manage_service_perms;
++
++	ps_process_pattern($1, etcd_t)
++')
++
++
++########################################
++## <summary>
++##	All of the rules required to administrate
++##	an etcd environment
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <param name="role">
++##	<summary>
++##	Role allowed access.
++##	</summary>
++## </param>
++## <rolecap/>
++#
++interface(`etcd_admin',`
++	gen_require(`
++		type etcd_t;
++		type etcd_var_lib_t;
++	    type etcd_unit_file_t;
++	')
++
++	allow $1 etcd_t:process { signal_perms };
++	ps_process_pattern($1, etcd_t)
++
++    tunable_policy(`deny_ptrace',`',`
++        allow $1 etcd_t:process ptrace;
++    ')
++
++	files_search_var_lib($1)
++	admin_pattern($1, etcd_var_lib_t)
++
++	etcd_systemctl($1)
++	admin_pattern($1, etcd_unit_file_t)
++	allow $1 etcd_unit_file_t:service all_service_perms;
++
++	optional_policy(`
++		systemd_passwd_agent_exec($1)
++		systemd_read_fifo_file_passwd_run($1)
++	')
++')
+diff --git a/etcd.te b/etcd.te
+new file mode 100644
+index 0000000..7cee445
+--- /dev/null
++++ b/etcd.te
+@@ -0,0 +1,42 @@
++policy_module(etcd,1.0.0)
++
++########################################
++#
++# Declarations
++#
++
++type etcd_t;
++type etcd_exec_t;
++init_daemon_domain(etcd_t,etcd_exec_t)
++
++permissive etcd_t;
++
++type etcd_unit_file_t;
++systemd_unit_file(etcd_unit_file_t)
++
++type etcd_var_lib_t;
++files_type(etcd_var_lib_t)
++
++########################################
++#
++# ectd local policy
++#
++
++allow etcd_t self:tcp_socket create_stream_socket_perms;
++
++manage_dirs_pattern(etcd_t, etcd_var_lib_t, etcd_var_lib_t)
++manage_files_pattern(etcd_t, etcd_var_lib_t, etcd_var_lib_t)
++manage_lnk_files_pattern(etcd_t, etcd_var_lib_t, etcd_var_lib_t)
++files_var_lib_filetrans(etcd_t, etcd_var_lib_t, dir)
++
++kernel_read_unix_sysctls(etcd_t)
++kernel_read_net_sysctls(etcd_t)
++
++corenet_tcp_bind_generic_node(etcd_t)
++
++corenet_tcp_bind_kubernetes_port(etcd_t)
++corenet_tcp_bind_afs3_callback_port(etcd_t)
++
++fs_getattr_xattr_fs(etcd_t)
++
++logging_send_syslog_msg(etcd_t)
 diff --git a/evolution.fc b/evolution.fc
 index 597f305..8520653 100644
 --- a/evolution.fc
@@ -29097,10 +29330,10 @@ index 0000000..9e17d3e
 +')
 diff --git a/geoclue.te b/geoclue.te
 new file mode 100644
-index 0000000..baa5492
+index 0000000..105d6ae
 --- /dev/null
 +++ b/geoclue.te
-@@ -0,0 +1,57 @@
+@@ -0,0 +1,58 @@
 +policy_module(geoclue, 1.0.0)
 +
 +########################################
@@ -29139,6 +29372,7 @@ index 0000000..baa5492
 +auth_read_passwd(geoclue_t)
 +
 +corenet_tcp_connect_http_port(geoclue_t)
++corenet_tcp_connect_http_cache_port(geoclue_t)
 +
 +corecmd_exec_bin(geoclue_t)
 +
@@ -29548,13 +29782,21 @@ index 9eacb2c..2f3fa34 100644
  	init_labeled_script_domtrans($1, { glance_api_initrc_exec_t glance_registry_initrc_exec_t })
  	domain_system_change_exemption($1)
 diff --git a/glance.te b/glance.te
-index 5cd0909..e405249 100644
+index 5cd0909..b558e60 100644
 --- a/glance.te
 +++ b/glance.te
-@@ -5,10 +5,23 @@ policy_module(glance, 1.1.0)
+@@ -5,10 +5,31 @@ policy_module(glance, 1.1.0)
  # Declarations
  #
  
++## <desc>
++##  <p>
++##	Determine whether glance-api can
++##	connect to all TCP ports
++##	</p>
++## </desc>
++gen_tunable(glance_api_can_network, false)
++
 +## <desc>
 +## <p>
 +## Allow glance domain to manage fuse files
@@ -29577,7 +29819,7 @@ index 5cd0909..e405249 100644
  init_daemon_domain(glance_registry_t, glance_registry_exec_t)
  
  type glance_registry_initrc_exec_t;
-@@ -17,13 +30,21 @@ init_script_file(glance_registry_initrc_exec_t)
+@@ -17,13 +38,21 @@ init_script_file(glance_registry_initrc_exec_t)
  type glance_registry_tmp_t;
  files_tmp_file(glance_registry_tmp_t)
  
@@ -29601,7 +29843,7 @@ index 5cd0909..e405249 100644
  type glance_log_t;
  logging_log_file(glance_log_t)
  
-@@ -41,6 +62,7 @@ files_pid_file(glance_var_run_t)
+@@ -41,6 +70,7 @@ files_pid_file(glance_var_run_t)
  # Common local policy
  #
  
@@ -29609,7 +29851,7 @@ index 5cd0909..e405249 100644
  allow glance_domain self:fifo_file rw_fifo_file_perms;
  allow glance_domain self:unix_stream_socket create_stream_socket_perms;
  allow glance_domain self:tcp_socket { accept listen };
-@@ -56,29 +78,40 @@ manage_files_pattern(glance_domain, glance_var_lib_t, glance_var_lib_t)
+@@ -56,29 +86,40 @@ manage_files_pattern(glance_domain, glance_var_lib_t, glance_var_lib_t)
  manage_dirs_pattern(glance_domain, glance_var_run_t, glance_var_run_t)
  manage_files_pattern(glance_domain, glance_var_run_t, glance_var_run_t)
  
@@ -29658,7 +29900,7 @@ index 5cd0909..e405249 100644
  ########################################
  #
  # Registry local policy
-@@ -88,8 +121,14 @@ manage_dirs_pattern(glance_registry_t, glance_registry_tmp_t, glance_registry_tm
+@@ -88,8 +129,14 @@ manage_dirs_pattern(glance_registry_t, glance_registry_tmp_t, glance_registry_tm
  manage_files_pattern(glance_registry_t, glance_registry_tmp_t, glance_registry_tmp_t)
  files_tmp_filetrans(glance_registry_t, glance_registry_tmp_t, { dir file })
  
@@ -29673,7 +29915,7 @@ index 5cd0909..e405249 100644
  
  logging_send_syslog_msg(glance_registry_t)
  
-@@ -108,13 +147,24 @@ manage_files_pattern(glance_api_t, glance_tmp_t, glance_tmp_t)
+@@ -108,13 +155,30 @@ manage_files_pattern(glance_api_t, glance_tmp_t, glance_tmp_t)
  files_tmp_filetrans(glance_api_t, glance_tmp_t, { dir file })
  can_exec(glance_api_t, glance_tmp_t)
  
@@ -29699,6 +29941,12 @@ index 5cd0909..e405249 100644
 +corenet_tcp_bind_hplip_port(glance_api_t)
  
  fs_getattr_xattr_fs(glance_api_t)
++
++tunable_policy(`glance_api_can_network',`
++	corenet_sendrecv_all_client_packets(glance_api_t)
++	corenet_tcp_connect_all_ports(glance_api_t)
++	corenet_tcp_sendrecv_all_ports(glance_api_t)
++')
 +
 +optional_policy(`
 +    mysql_stream_connect(glance_api_t)
@@ -39674,32 +39922,30 @@ index c5548c5..1356fcb 100644
 +userdom_use_user_ttys(ktalkd_t)
 diff --git a/kubernetes.fc b/kubernetes.fc
 new file mode 100644
-index 0000000..9d05b4a
+index 0000000..6ab641c
 --- /dev/null
 +++ b/kubernetes.fc
-@@ -0,0 +1,15 @@
-+/usr/lib/systemd/system/kubelet.* --  gen_context(system_u:object_r:kube_kubelet_unit_file_t,s0)
-+/usr/lib/systemd/system/kube-apiserver.* --  gen_context(system_u:object_r:kube_apiserver_unit_file_t,s0)
-+/usr/lib/systemd/system/kube-controller-manager.* --  gen_context(system_u:object_r:kube_controller_unit_file_t,s0)
-+/usr/lib/systemd/system/kube-proxy.* --  gen_context(system_u:object_r:kube_proxy_unit_file_t,s0)
-+/usr/lib/systemd/system/etcd.* --  gen_context(system_u:object_r:kube_etcd_unit_file_t,s0)
+@@ -0,0 +1,13 @@
++/usr/lib/systemd/system/kubelet.*                   --  gen_context(system_u:object_r:kubelet_unit_file_t,s0)
++/usr/lib/systemd/system/kube-apiserver.*            --  gen_context(system_u:object_r:kube_apiserver_unit_file_t,s0)
++/usr/lib/systemd/system/kube-controller-manager.*   --  gen_context(system_u:object_r:kube_controller_manager_unit_file_t,s0)
++/usr/lib/systemd/system/kube-proxy.*                --  gen_context(system_u:object_r:kube_proxy_unit_file_t,s0)
 +
-+/usr/bin/kubelet	--	gen_context(system_u:object_r:kube_kubelet_exec_t,s0)
-+/usr/bin/kube-apiserver		--	gen_context(system_u:object_r:kube_apiserver_exec_t,s0)
-+/usr/bin/kube-controller-manager	--	gen_context(system_u:object_r:kube_controller_exec_t,s0)
-+/usr/bin/kube-proxy		--	gen_context(system_u:object_r:kube_proxy_exec_t,s0)
-+/usr/bin/kubecfg		--	gen_context(system_u:object_r:kube_kubecfg_exec_t,s0)
-+/usr/bin/etcd			--	gen_context(system_u:object_r:kube_etcd_exec_t,s0)
++/usr/bin/kubelet	                --	gen_context(system_u:object_r:kubelet_exec_t,s0)
++/usr/bin/kube-apiserver		        --	gen_context(system_u:object_r:kube_apiserver_exec_t,s0)
++/usr/bin/kube-controller-manager	--	gen_context(system_u:object_r:kube_controller_manager_exec_t,s0)
++/usr/bin/kube-proxy		            --	gen_context(system_u:object_r:kube_proxy_exec_t,s0)
 +
-+/var/lib/etcd(/.*)?			gen_context(system_u:object_r:kube_etcd_var_lib_t,s0)
++/var/lib/kubelet(/.*)?                  gen_context(system_u:object_r:kubelet_var_lib_t,s0)
++
 +
 diff --git a/kubernetes.if b/kubernetes.if
 new file mode 100644
-index 0000000..e9d90b0
+index 0000000..b2841e5
 --- /dev/null
 +++ b/kubernetes.if
-@@ -0,0 +1,43 @@
-+## <summary>kube</summary>
+@@ -0,0 +1,87 @@
++## <summary>SELinux policy for Kubernetes container management</summary>
 +
 +######################################
 +## <summary>
@@ -39712,42 +39958,86 @@ index 0000000..e9d90b0
 +##	</summary>
 +## </param>
 +#
-+template(`kube_domain_template',`
++template(`kubernetes_domain_template',`
 +    gen_require(`
-+	attribute kube_domain;
-+        ')
++	    attribute kubernetes_domain;
++    ')
 +
 +    ##############################
 +    #
 +    # $1_t declarations
 +    #
 +
-+    type kube_$1_t, kube_domain;
-+    type kube_$1_exec_t;
-+    init_daemon_domain(kube_$1_t, kube_$1_exec_t)
++    type $1_t, kubernetes_domain;
++    type $1_exec_t;
++    init_daemon_domain($1_t, $1_exec_t)
 +
-+    type kube_$1_unit_file_t;
-+    systemd_unit_file(kube_$1_unit_file_t)
++    type $1_unit_file_t;
++    systemd_unit_file($1_unit_file_t)
++')
 +
-+    ##############################
-+    #
-+    # kube_domain domain policy
++########################################
++## <summary>
++##	Search kubernetes lib directories.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`kubernetes_search_lib_kubelet',`
++	gen_require(`
++		type kubelet_var_lib_t;
++	')
 +
-+    kernel_read_unix_sysctls(kube_domain)
-+    kernel_read_net_sysctls(kube_domain)
++	allow $1 kubelet_var_lib_t:dir search_dir_perms;
++	files_search_var_lib($1)
++')
 +
-+    auth_read_passwd(kube_domain)
++########################################
++## <summary>
++##	Read kubernetes lib files.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`kubernetes_read_lib_files_kubelet',`
++	gen_require(`
++		type kubelet_var_lib_t;
++	')
 +
-+    corenet_tcp_bind_generic_node(kube_domain)
-+    corenet_tcp_connect_http_cache_port(kube_domain)
-+    corenet_tcp_connect_kubernetes_port(kube_domain)
++	files_search_var_lib($1)
++	read_files_pattern($1, kubelet_var_lib_t, kubelet_var_lib_t)
++')
++
++########################################
++## <summary>
++##	Manage kubernetes lib files.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`kubernetes_manage_lib_files_kubelet',`
++	gen_require(`
++		type kubelet_var_lib_t;
++	')
++
++	files_search_var_lib($1)
++	manage_files_pattern($1, kubelet_var_lib_t, kubelet_var_lib_t)
 +')
 diff --git a/kubernetes.te b/kubernetes.te
 new file mode 100644
-index 0000000..7bfbbff
+index 0000000..b625b53
 --- /dev/null
 +++ b/kubernetes.te
-@@ -0,0 +1,70 @@
+@@ -0,0 +1,76 @@
 +policy_module(kubernetes, 1.0.0)
 +
 +########################################
@@ -39755,41 +40045,66 @@ index 0000000..7bfbbff
 +# Declarations
 +#
 +
-+attribute kube_domain;
++attribute kubernetes_domain;
 +
-+kube_domain_template(kubelet)
-+kube_domain_template(apiserver)
-+kube_domain_template(controller)
-+kube_domain_template(proxy)
-+kube_domain_template(kubecfg)
-+kube_domain_template(etcd)
++kubernetes_domain_template(kube_apiserver)
++kubernetes_domain_template(kube_controller_manager)
++kubernetes_domain_template(kube_proxy)
++kubernetes_domain_template(kubelet)
 +
-+type kube_etcd_var_lib_t;
-+files_type(kube_etcd_var_lib_t)
++permissive kube_apiserver_t;
++permissive kube_controller_manager_t;
++permissive kube_proxy_t;
++permissive kubelet_t;
++
++type kubelet_var_lib_t;
++files_type(kubelet_var_lib_t)
++
++########################################
++#
++# kubernetes domain local policy
++#
++
++# this is kernel bug which is going to be fixed
++# needs to be removed then
++dontaudit kubernetes_domain self:capability2 block_suspend;
++
++allow kubernetes_domain self:tcp_socket create_stream_socket_perms;
++
++kernel_read_unix_sysctls(kubernetes_domain)
++kernel_read_net_sysctls(kubernetes_domain)
++
++auth_read_passwd(kubernetes_domain)
++
++corenet_tcp_bind_generic_node(kubernetes_domain)
++
++corenet_tcp_connect_http_cache_port(kubernetes_domain)
++corenet_tcp_connect_kubernetes_port(kubernetes_domain)
 +
 +########################################
 +#
 +# kubelet local policy
 +#
 +
-+allow kube_kubelet_t self:capability net_admin;
-+allow kube_kubelet_t self:tcp_socket { accept listen create_socket_perms };
++allow kubelet_t self:capability net_admin;
 +
-+corenet_tcp_bind_kubernetes_port(kube_kubelet_t)
++manage_dirs_pattern(kubelet_t, kubelet_var_lib_t, kubelet_var_lib_t)
++manage_files_pattern(kubelet_t, kubelet_var_lib_t, kubelet_var_lib_t)
++manage_lnk_files_pattern(kubelet_t, kubelet_var_lib_t, kubelet_var_lib_t)
++files_var_lib_filetrans(kubelet_t, kubelet_var_lib_t, dir)
++
++corenet_tcp_bind_kubernetes_port(kubelet_t)
 +
 +########################################
 +#
 +# kube_controller local policy
 +#
 +
-+allow kube_controller_t self:tcp_socket create_socket_perms;
 +
 +########################################
 +#
 +# kube_apiserver local policy
 +#
-+
-+allow kube_apiserver_t self:tcp_socket { accept listen create_socket_perms };
 +
 +corenet_tcp_bind_http_cache_port(kube_apiserver_t)
 +
@@ -39799,25 +40114,6 @@ index 0000000..7bfbbff
 +#
 +
 +allow kube_proxy_t self:capability net_admin;
-+allow kube_proxy_t self:tcp_socket create_socket_perms;
-+
-+########################################
-+#
-+# kube_ectd local policy
-+#
-+
-+allow kube_etcd_t self:tcp_socket { accept listen create_socket_perms };
-+allow kube_etcd_t self:unix_dgram_socket create_socket_perms;
-+
-+fs_getattr_xattr_fs(kube_etcd_t)
-+
-+manage_files_pattern(kube_etcd_t, kube_etcd_var_lib_t, kube_etcd_var_lib_t)
-+files_var_lib_filetrans(kube_etcd_t, kube_etcd_var_lib_t, file )
-+
-+corenet_tcp_bind_kubernetes_port(kube_etcd_t)
-+corenet_tcp_bind_afs3_callback_port(kube_etcd_t)
-+
-+logging_send_syslog_msg(kube_etcd_t)
 diff --git a/kudzu.if b/kudzu.if
 index 5297064..6ba8108 100644
 --- a/kudzu.if
@@ -61742,15 +62038,16 @@ index 2c389ea..9155bd0 100644
 +
 +/var/run/passenger(/.*)?		gen_context(system_u:object_r:passenger_var_run_t,s0)
 diff --git a/passenger.if b/passenger.if
-index bf59ef7..2d8335f 100644
+index bf59ef7..0e33327 100644
 --- a/passenger.if
 +++ b/passenger.if
-@@ -15,17 +15,16 @@ interface(`passenger_domtrans',`
+@@ -15,17 +15,17 @@ interface(`passenger_domtrans',`
  		type passenger_t, passenger_exec_t;
  	')
  
 -	corecmd_search_bin($1)
  	domtrans_pattern($1, passenger_exec_t, passenger_t)
++	allow passenger_t $1:unix_stream_socket { accept getattr read write };
  ')
  
  ######################################
@@ -61765,7 +62062,7 @@ index bf59ef7..2d8335f 100644
  ##	</summary>
  ## </param>
  #
-@@ -34,13 +33,30 @@ interface(`passenger_exec',`
+@@ -34,13 +34,30 @@ interface(`passenger_exec',`
  		type passenger_exec_t;
  	')
  
@@ -61798,7 +62095,7 @@ index bf59ef7..2d8335f 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -53,6 +69,112 @@ interface(`passenger_read_lib_files',`
+@@ -53,6 +70,112 @@ interface(`passenger_read_lib_files',`
  		type passenger_var_lib_t;
  	')
  
@@ -76500,7 +76797,7 @@ index 951db7f..c0cabe8 100644
 +    files_etc_filetrans($1, mdadm_conf_t, file, "mdadm.conf")
  ')
 diff --git a/raid.te b/raid.te
-index c99753f..91ab9f7 100644
+index c99753f..ec12db3 100644
 --- a/raid.te
 +++ b/raid.te
 @@ -15,6 +15,15 @@ role mdadm_roles types mdadm_t;
@@ -76519,7 +76816,7 @@ index c99753f..91ab9f7 100644
  type mdadm_var_run_t alias mdadm_map_t;
  files_pid_file(mdadm_var_run_t)
  dev_associate(mdadm_var_run_t)
-@@ -25,44 +34,66 @@ dev_associate(mdadm_var_run_t)
+@@ -25,44 +34,67 @@ dev_associate(mdadm_var_run_t)
  #
  
  allow mdadm_t self:capability { dac_override sys_admin ipc_lock };
@@ -76556,6 +76853,7 @@ index c99753f..91ab9f7 100644
  kernel_rw_software_raid_state(mdadm_t)
 +kernel_dontaudit_setsched(mdadm_t)
 +kernel_signal(mdadm_t)
++kernel_signull(mdadm_t)
 +kernel_stream_connect(mdadm_t)
  
  corecmd_exec_bin(mdadm_t)
@@ -76595,7 +76893,7 @@ index c99753f..91ab9f7 100644
  
  mls_file_read_all_levels(mdadm_t)
  mls_file_write_all_levels(mdadm_t)
-@@ -71,15 +102,20 @@ storage_dev_filetrans_fixed_disk(mdadm_t)
+@@ -71,15 +103,20 @@ storage_dev_filetrans_fixed_disk(mdadm_t)
  storage_manage_fixed_disk(mdadm_t)
  storage_read_scsi_generic(mdadm_t)
  storage_write_scsi_generic(mdadm_t)
@@ -76617,7 +76915,7 @@ index c99753f..91ab9f7 100644
  
  userdom_dontaudit_use_unpriv_user_fds(mdadm_t)
  userdom_dontaudit_search_user_home_content(mdadm_t)
-@@ -90,17 +126,38 @@ optional_policy(`
+@@ -90,17 +127,38 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -79822,7 +80120,7 @@ index c8bdea2..e6bcb25 100644
 +    allow $1 cluster_unit_file_t:service all_service_perms;
  ')
 diff --git a/rhcs.te b/rhcs.te
-index 6cf79c4..cdab23b 100644
+index 6cf79c4..37290b0 100644
 --- a/rhcs.te
 +++ b/rhcs.te
 @@ -20,6 +20,35 @@ gen_tunable(fenced_can_network_connect, false)
@@ -80313,7 +80611,7 @@ index 6cf79c4..cdab23b 100644
  optional_policy(`
  	lvm_exec(gfs_controld_t)
  	dev_rw_lvm_control(gfs_controld_t)
-@@ -275,10 +582,54 @@ domtrans_pattern(groupd_t, fenced_exec_t, fenced_t)
+@@ -275,10 +582,57 @@ domtrans_pattern(groupd_t, fenced_exec_t, fenced_t)
  
  dev_list_sysfs(groupd_t)
  
@@ -80358,6 +80656,9 @@ index 6cf79c4..cdab23b 100644
 +corenet_tcp_connect_http_cache_port(haproxy_t)
 +corenet_tcp_connect_rtp_media_port(haproxy_t)
 +
++dev_read_rand(haproxy_t)
++dev_read_urand(haproxy_t)
++
 +sysnet_dns_name_resolve(haproxy_t)
 +
 +tunable_policy(`haproxy_connect_any',`
@@ -80370,7 +80671,7 @@ index 6cf79c4..cdab23b 100644
  ######################################
  #
  # qdiskd local policy
-@@ -321,6 +672,8 @@ storage_raw_write_fixed_disk(qdiskd_t)
+@@ -321,6 +675,8 @@ storage_raw_write_fixed_disk(qdiskd_t)
  
  auth_use_nsswitch(qdiskd_t)
  
@@ -91854,10 +92155,18 @@ index ec031a0..61a9f8c 100644
 +	netutils_domtrans_ping(smokeping_cgi_script_t)
  ')
 diff --git a/smoltclient.te b/smoltclient.te
-index b3f2c6f..dccac2a 100644
+index b3f2c6f..4e629a1 100644
 --- a/smoltclient.te
 +++ b/smoltclient.te
-@@ -51,14 +51,12 @@ fs_list_auto_mountpoints(smoltclient_t)
+@@ -40,6 +40,7 @@ corenet_tcp_sendrecv_generic_node(smoltclient_t)
+ 
+ corenet_sendrecv_http_client_packets(smoltclient_t)
+ corenet_tcp_connect_http_port(smoltclient_t)
++corenet_tcp_connect_http_cache_port(smoltclient_t)
+ corenet_tcp_sendrecv_http_port(smoltclient_t)
+ 
+ dev_read_sysfs(smoltclient_t)
+@@ -51,14 +52,12 @@ fs_list_auto_mountpoints(smoltclient_t)
  
  files_getattr_generic_locks(smoltclient_t)
  files_read_etc_runtime_files(smoltclient_t)
@@ -91872,7 +92181,7 @@ index b3f2c6f..dccac2a 100644
  
  optional_policy(`
  	abrt_stream_connect(smoltclient_t)
-@@ -77,6 +75,10 @@ optional_policy(`
+@@ -77,6 +76,10 @@ optional_policy(`
  ')
  
  optional_policy(`
