@@ -19,7 +19,7 @@
 Summary: SELinux policy configuration
 Name: selinux-policy
 Version: 3.13.1
-Release: 75%{?dist}
+Release: 76%{?dist}
 License: GPLv2+
 Group: System Environment/Base
 Source: serefpolicy-%{version}.tgz
@@ -602,6 +602,14 @@ SELinux Reference policy mls base module.
 %endif
 
 %changelog
+* Tue Aug 26 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-76
+- Label ~/tmp and ~/.tmp directories in user tmp dirs as user_tmp_t
+- Add a port definition for shellinaboxd
+- Fix labeling for HOME_DIR/tmp and HOME_DIR/.tmp directories
+- Allow thumb_t to read/write video devices
+- fail2ban 0.9 reads the journal by default.
+- Allow sandbox net domains to bind to rawip socket
+
 * Fri Aug 22 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-75
 - Allow haproxy to read /dev/random and /dev/urandom.
 - Allow mdadm to seng signull kernel_t which is proces type of mdadm on early boot.

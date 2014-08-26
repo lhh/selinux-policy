@@ -26998,7 +26998,7 @@ index 50d0084..94e1936 100644
  
  	fail2ban_run_client($1, $2)
 diff --git a/fail2ban.te b/fail2ban.te
-index cf0e567..a743483 100644
+index cf0e567..9ebb247 100644
 --- a/fail2ban.te
 +++ b/fail2ban.te
 @@ -37,7 +37,7 @@ role fail2ban_client_roles types fail2ban_client_t;
@@ -27026,12 +27026,13 @@ index cf0e567..a743483 100644
  files_list_var(fail2ban_t)
  files_dontaudit_list_tmp(fail2ban_t)
  
-@@ -92,24 +90,37 @@ fs_getattr_all_fs(fail2ban_t)
+@@ -92,24 +90,38 @@ fs_getattr_all_fs(fail2ban_t)
  auth_use_nsswitch(fail2ban_t)
  
  logging_read_all_logs(fail2ban_t)
 +logging_read_audit_log(fail2ban_t)
  logging_send_syslog_msg(fail2ban_t)
++logging_read_syslog_pid(fail2ban_t)
 +logging_dontaudit_search_audit_logs(fail2ban_t)
  
 -miscfiles_read_localization(fail2ban_t)
@@ -27068,7 +27069,7 @@ index cf0e567..a743483 100644
  	iptables_domtrans(fail2ban_t)
  ')
  
-@@ -118,6 +129,10 @@ optional_policy(`
+@@ -118,6 +130,10 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -27079,7 +27080,7 @@ index cf0e567..a743483 100644
  	shorewall_domtrans(fail2ban_t)
  ')
  
-@@ -131,22 +146,30 @@ allow fail2ban_client_t self:unix_stream_socket { create connect write read };
+@@ -131,22 +147,30 @@ allow fail2ban_client_t self:unix_stream_socket { create connect write read };
  
  domtrans_pattern(fail2ban_client_t, fail2ban_exec_t, fail2ban_t)
  
@@ -98911,10 +98912,10 @@ index 0000000..c1fd8b4
 +')
 diff --git a/thumb.te b/thumb.te
 new file mode 100644
-index 0000000..ebb001b
+index 0000000..bc96302
 --- /dev/null
 +++ b/thumb.te
-@@ -0,0 +1,158 @@
+@@ -0,0 +1,160 @@
 +policy_module(thumb, 1.0.0)
 +
 +########################################
@@ -98990,6 +98991,8 @@ index 0000000..ebb001b
 +dev_read_urand(thumb_t)
 +dev_dontaudit_rw_dri(thumb_t)
 +dev_rw_xserver_misc(thumb_t)
++dev_read_video_dev(thumb_t)
++dev_write_video_dev(thumb_t)
 +
 +domain_use_interactive_fds(thumb_t)
 +domain_dontaudit_read_all_domains_state(thumb_t)
@@ -103604,7 +103607,7 @@ index facdee8..c43ef2e 100644
 +	typeattribute $1 sandbox_caps_domain;
  ')
 diff --git a/virt.te b/virt.te
-index f03dcf5..eef3cb7 100644
+index f03dcf5..329e056 100644
 --- a/virt.te
 +++ b/virt.te
 @@ -1,150 +1,227 @@
@@ -105568,7 +105571,7 @@ index f03dcf5..eef3cb7 100644
  allow virt_bridgehelper_t self:process { setcap getcap };
  allow virt_bridgehelper_t self:capability { setpcap setgid setuid net_admin };
  allow virt_bridgehelper_t self:tcp_socket create_stream_socket_perms;
-@@ -1207,5 +1508,218 @@ kernel_read_network_state(virt_bridgehelper_t)
+@@ -1207,5 +1508,219 @@ kernel_read_network_state(virt_bridgehelper_t)
  
  corenet_rw_tun_tap_dev(virt_bridgehelper_t)
  
@@ -105774,6 +105777,7 @@ index f03dcf5..eef3cb7 100644
 +
 +corenet_tcp_bind_generic_node(sandbox_net_domain)
 +corenet_udp_bind_generic_node(sandbox_net_domain)
++corenet_raw_bind_generic_node(sandbox_net_domain)
 +corenet_tcp_sendrecv_all_ports(sandbox_net_domain)
 +corenet_udp_sendrecv_all_ports(sandbox_net_domain)
 +corenet_udp_bind_all_ports(sandbox_net_domain)
