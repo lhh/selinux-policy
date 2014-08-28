@@ -1594,7 +1594,7 @@ index 01cbb67..94a4a24 100644
  
  	files_list_etc($1)
 diff --git a/aide.te b/aide.te
-index 03831e6..cfc9115 100644
+index 03831e6..94a723f 100644
 --- a/aide.te
 +++ b/aide.te
 @@ -10,6 +10,7 @@ attribute_role aide_roles;
@@ -1605,12 +1605,13 @@ index 03831e6..cfc9115 100644
  role aide_roles types aide_t;
  
  type aide_log_t;
-@@ -23,22 +24,30 @@ files_type(aide_db_t)
+@@ -23,22 +24,34 @@ files_type(aide_db_t)
  # Local policy
  #
  
 -allow aide_t self:capability { dac_override fowner };
 +allow aide_t self:capability { dac_override fowner ipc_lock sys_admin };
++allow aide_t self:process signal;
  
  manage_files_pattern(aide_t, aide_db_t, aide_db_t)
 +files_var_lib_filetrans(aide_t, aide_db_t, { dir file })
@@ -1621,6 +1622,9 @@ index 03831e6..cfc9115 100644
 +manage_files_pattern(aide_t, aide_log_t, aide_log_t)
  logging_log_filetrans(aide_t, aide_log_t, file)
  
++dev_read_rand(aide_t)
++dev_read_urand(aide_t)
++
  files_read_all_files(aide_t)
  files_read_all_symlinks(aide_t)
 +files_getattr_all_pipes(aide_t)
@@ -2365,15 +2369,16 @@ index 16d0d66..60abfd0 100644
  optional_policy(`
  	nscd_dontaudit_search_pid(amtu_t)
 diff --git a/anaconda.fc b/anaconda.fc
-index b098089..358c9f9 100644
+index b098089..37d428c 100644
 --- a/anaconda.fc
 +++ b/anaconda.fc
-@@ -1 +1,11 @@
+@@ -1 +1,12 @@
  # No file context specifications.
 +
 +/usr/libexec/anaconda/anaconda-yum  --  gen_context(system_u:object_r:install_exec_t,s0)
 +/usr/sbin/anaconda      --  gen_context(system_u:object_r:install_exec_t,s0)
 +
++/usr/bin/initial-setup  --  gen_context(system_u:object_r:install_exec_t,s0)
 +/usr/bin/ostree         --  gen_context(system_u:object_r:install_exec_t,s0)
 +/usr/bin/rpm-ostree     --  gen_context(system_u:object_r:install_exec_t,s0)
 +
@@ -8711,7 +8716,7 @@ index dcd774e..c240ffa 100644
  
  	allow $1 bacula_t:process { ptrace signal_perms };
 diff --git a/bacula.te b/bacula.te
-index f16b000..373576e 100644
+index f16b000..812f5bf 100644
 --- a/bacula.te
 +++ b/bacula.te
 @@ -43,16 +43,18 @@ role bacula_admin_roles types bacula_admin_t;
@@ -8753,16 +8758,30 @@ index f16b000..373576e 100644
  auth_read_shadow(bacula_t)
  
  logging_send_syslog_msg(bacula_t)
-@@ -148,9 +155,7 @@ corenet_tcp_connect_hplip_port(bacula_admin_t)
+@@ -125,6 +132,10 @@ optional_policy(`
+ 	ldap_stream_connect(bacula_t)
+ ')
+ 
++optional_policy(`
++    postgresql_tcp_connect(bacula_t)
++')
++
+ ########################################
+ #
+ # Client local policy
+@@ -148,11 +159,8 @@ corenet_tcp_connect_hplip_port(bacula_admin_t)
  
  domain_use_interactive_fds(bacula_admin_t)
  
 -files_read_etc_files(bacula_admin_t)
- 
+-
 -miscfiles_read_localization(bacula_admin_t)
- 
+-
  sysnet_dns_name_resolve(bacula_admin_t)
  
+ userdom_dontaudit_search_user_home_dirs(bacula_admin_t)
+ userdom_use_user_ptys(bacula_admin_t)
++
 diff --git a/bcfg2.fc b/bcfg2.fc
 index fb42e35..8af0e14 100644
 --- a/bcfg2.fc
@@ -69388,7 +69407,7 @@ index cd8b8b9..6c73980 100644
 +	allow $1 pppd_unit_file_t:service all_service_perms;
  ')
 diff --git a/ppp.te b/ppp.te
-index d616ca3..fd72341 100644
+index d616ca3..979a6e0 100644
 --- a/ppp.te
 +++ b/ppp.te
 @@ -6,41 +6,47 @@ policy_module(ppp, 1.14.0)
@@ -69544,11 +69563,12 @@ index d616ca3..fd72341 100644
  corenet_all_recvfrom_netlabel(pppd_t)
  corenet_tcp_sendrecv_generic_if(pppd_t)
  corenet_raw_sendrecv_generic_if(pppd_t)
-@@ -135,9 +145,21 @@ corenet_raw_sendrecv_generic_node(pppd_t)
+@@ -135,9 +145,22 @@ corenet_raw_sendrecv_generic_node(pppd_t)
  corenet_udp_sendrecv_generic_node(pppd_t)
  corenet_tcp_sendrecv_all_ports(pppd_t)
  corenet_udp_sendrecv_all_ports(pppd_t)
 -
++corenet_tcp_connect_http_port(pppd_t)
 +# Access /dev/ppp.
  corenet_rw_ppp_dev(pppd_t)
  
@@ -69567,7 +69587,7 @@ index d616ca3..fd72341 100644
  corecmd_exec_bin(pppd_t)
  corecmd_exec_shell(pppd_t)
  
-@@ -147,36 +169,31 @@ files_exec_etc_files(pppd_t)
+@@ -147,36 +170,31 @@ files_exec_etc_files(pppd_t)
  files_manage_etc_runtime_files(pppd_t)
  files_dontaudit_write_etc_files(pppd_t)
  
@@ -69613,7 +69633,7 @@ index d616ca3..fd72341 100644
  
  optional_policy(`
  	ddclient_run(pppd_t, pppd_roles)
-@@ -186,11 +203,13 @@ optional_policy(`
+@@ -186,11 +204,13 @@ optional_policy(`
  	l2tpd_dgram_send(pppd_t)
  	l2tpd_rw_socket(pppd_t)
  	l2tpd_stream_connect(pppd_t)
@@ -69628,7 +69648,7 @@ index d616ca3..fd72341 100644
  	')
  ')
  
-@@ -218,16 +237,19 @@ optional_policy(`
+@@ -218,16 +238,19 @@ optional_policy(`
  
  ########################################
  #
@@ -69651,7 +69671,7 @@ index d616ca3..fd72341 100644
  
  allow pptp_t pppd_etc_t:dir list_dir_perms;
  allow pptp_t pppd_etc_t:file read_file_perms;
-@@ -236,45 +258,43 @@ allow pptp_t pppd_etc_t:lnk_file read_lnk_file_perms;
+@@ -236,45 +259,43 @@ allow pptp_t pppd_etc_t:lnk_file read_lnk_file_perms;
  allow pptp_t pppd_etc_rw_t:dir list_dir_perms;
  allow pptp_t pppd_etc_rw_t:file read_file_perms;
  allow pptp_t pppd_etc_rw_t:lnk_file read_lnk_file_perms;
@@ -69708,7 +69728,7 @@ index d616ca3..fd72341 100644
  fs_getattr_all_fs(pptp_t)
  fs_search_auto_mountpoints(pptp_t)
  
-@@ -282,12 +302,12 @@ term_ioctl_generic_ptys(pptp_t)
+@@ -282,12 +303,12 @@ term_ioctl_generic_ptys(pptp_t)
  term_search_ptys(pptp_t)
  term_use_ptmx(pptp_t)
  
@@ -69723,7 +69743,7 @@ index d616ca3..fd72341 100644
  sysnet_exec_ifconfig(pptp_t)
  
  userdom_dontaudit_use_unpriv_user_fds(pptp_t)
-@@ -299,6 +319,10 @@ optional_policy(`
+@@ -299,6 +320,10 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -95540,7 +95560,7 @@ index a240455..16a04bf 100644
 -	admin_pattern($1, sssd_log_t)
  ')
 diff --git a/sssd.te b/sssd.te
-index 2d8db1f..1f205fe 100644
+index 2d8db1f..e1c568a 100644
 --- a/sssd.te
 +++ b/sssd.te
 @@ -28,9 +28,12 @@ logging_log_file(sssd_var_log_t)
@@ -95631,7 +95651,7 @@ index 2d8db1f..1f205fe 100644
  
  init_read_utmp(sssd_t)
  
-@@ -112,18 +109,35 @@ logging_send_syslog_msg(sssd_t)
+@@ -112,18 +109,36 @@ logging_send_syslog_msg(sssd_t)
  logging_send_audit_msgs(sssd_t)
  
  miscfiles_read_generic_certs(sssd_t)
@@ -95656,6 +95676,7 @@ index 2d8db1f..1f205fe 100644
 -	kerberos_tmp_filetrans_host_rcache(sssd_t, file, "host_0")
 +	kerberos_tmp_filetrans_host_rcache(sssd_t, "host_0")
 +	kerberos_read_home_content(sssd_t)
++    kerberos_rw_config(sssd_t)
 +')
 +
 +optional_policy(`

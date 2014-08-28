@@ -19,7 +19,7 @@
 Summary: SELinux policy configuration
 Name: selinux-policy
 Version: 3.13.1
-Release: 76%{?dist}
+Release: 77%{?dist}
 License: GPLv2+
 Group: System Environment/Base
 Source: serefpolicy-%{version}.tgz
@@ -602,6 +602,14 @@ SELinux Reference policy mls base module.
 %endif
 
 %changelog
+* Thu Aug 28 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-77
+- Allow aide to read random number generator
+- Allow pppd to connect to http port. (#1128947)
+- sssd needs to be able write krb5.conf.
+- Labeli initial-setup as install_exec_t.
+- Allow domains to are allowed to mounton proc to mount on files as well as dirs
+- Allow bacula to connect to postgresql if is configured for that as a back end.
+
 * Tue Aug 26 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-76
 - Label ~/tmp and ~/.tmp directories in user tmp dirs as user_tmp_t
 - Add a port definition for shellinaboxd

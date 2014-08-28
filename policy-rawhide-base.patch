@@ -17459,7 +17459,7 @@ index 7be4ddf..71e675a 100644
 +/sys/class/net/ib.* 	  --	gen_context(system_u:object_r:sysctl_net_t,s0)
 +/sys/kernel/uevent_helper --	gen_context(system_u:object_r:usermodehelper_t,s0)
 diff --git a/policy/modules/kernel/kernel.if b/policy/modules/kernel/kernel.if
-index e100d88..a4648ed 100644
+index e100d88..227ae89 100644
 --- a/policy/modules/kernel/kernel.if
 +++ b/policy/modules/kernel/kernel.if
 @@ -126,6 +126,24 @@ interface(`kernel_setsched',`
@@ -17648,7 +17648,7 @@ index e100d88..a4648ed 100644
  ##	Allow caller to get the attributes of kernel message
  ##	interface (/proc/kmsg).
  ## </summary>
-@@ -1458,6 +1564,24 @@ interface(`kernel_list_all_proc',`
+@@ -1458,6 +1564,25 @@ interface(`kernel_list_all_proc',`
  
  ########################################
  ## <summary>
@@ -17666,6 +17666,7 @@ index e100d88..a4648ed 100644
 +	')
 +
 +	allow $1 proc_type:dir mounton;
++	allow $1 proc_type:file mounton;
 +')
 +
 +########################################
@@ -17673,7 +17674,7 @@ index e100d88..a4648ed 100644
  ##	Do not audit attempts to list all proc directories.
  ## </summary>
  ## <param name="domain">
-@@ -1477,6 +1601,24 @@ interface(`kernel_dontaudit_list_all_proc',`
+@@ -1477,6 +1602,24 @@ interface(`kernel_dontaudit_list_all_proc',`
  
  ########################################
  ## <summary>
@@ -17698,7 +17699,7 @@ index e100d88..a4648ed 100644
  ##	Do not audit attempts by caller to search
  ##	the base directory of sysctls.
  ## </summary>
-@@ -1672,7 +1814,7 @@ interface(`kernel_read_net_sysctls',`
+@@ -1672,7 +1815,7 @@ interface(`kernel_read_net_sysctls',`
  	')
  
  	read_files_pattern($1, { proc_t sysctl_t sysctl_net_t }, sysctl_net_t)
@@ -17707,7 +17708,7 @@ index e100d88..a4648ed 100644
  	list_dirs_pattern($1, { proc_t sysctl_t }, sysctl_net_t)
  ')
  
-@@ -1693,7 +1835,7 @@ interface(`kernel_rw_net_sysctls',`
+@@ -1693,7 +1836,7 @@ interface(`kernel_rw_net_sysctls',`
  	')
  
  	rw_files_pattern($1, { proc_t sysctl_t sysctl_net_t }, sysctl_net_t)
@@ -17716,7 +17717,7 @@ index e100d88..a4648ed 100644
  	list_dirs_pattern($1, { proc_t sysctl_t }, sysctl_net_t)
  ')
  
-@@ -1715,7 +1857,6 @@ interface(`kernel_read_unix_sysctls',`
+@@ -1715,7 +1858,6 @@ interface(`kernel_read_unix_sysctls',`
  	')
  
  	read_files_pattern($1, { proc_t sysctl_t sysctl_net_t }, sysctl_net_unix_t)
@@ -17724,7 +17725,7 @@ index e100d88..a4648ed 100644
  	list_dirs_pattern($1, { proc_t sysctl_t }, sysctl_net_t)
  ')
  
-@@ -1750,16 +1891,9 @@ interface(`kernel_rw_unix_sysctls',`
+@@ -1750,16 +1892,9 @@ interface(`kernel_rw_unix_sysctls',`
  ##	Domain allowed access.
  ##	</summary>
  ## </param>
@@ -17742,7 +17743,7 @@ index e100d88..a4648ed 100644
  ')
  
  ########################################
-@@ -1771,16 +1905,9 @@ interface(`kernel_read_hotplug_sysctls',`
+@@ -1771,16 +1906,9 @@ interface(`kernel_read_hotplug_sysctls',`
  ##	Domain allowed access.
  ##	</summary>
  ## </param>
@@ -17760,7 +17761,7 @@ index e100d88..a4648ed 100644
  ')
  
  ########################################
-@@ -1792,16 +1919,9 @@ interface(`kernel_rw_hotplug_sysctls',`
+@@ -1792,16 +1920,9 @@ interface(`kernel_rw_hotplug_sysctls',`
  ##	Domain allowed access.
  ##	</summary>
  ## </param>
@@ -17778,7 +17779,7 @@ index e100d88..a4648ed 100644
  ')
  
  ########################################
-@@ -1813,16 +1933,9 @@ interface(`kernel_read_modprobe_sysctls',`
+@@ -1813,16 +1934,9 @@ interface(`kernel_read_modprobe_sysctls',`
  ##	Domain allowed access.
  ##	</summary>
  ## </param>
@@ -17796,7 +17797,7 @@ index e100d88..a4648ed 100644
  ')
  
  ########################################
-@@ -2085,9 +2198,28 @@ interface(`kernel_dontaudit_list_all_sysctls',`
+@@ -2085,9 +2199,28 @@ interface(`kernel_dontaudit_list_all_sysctls',`
  	')
  
  	dontaudit $1 sysctl_type:dir list_dir_perms;
@@ -17826,7 +17827,7 @@ index e100d88..a4648ed 100644
  ########################################
  ## <summary>
  ##	Allow caller to read all sysctls.
-@@ -2282,6 +2414,25 @@ interface(`kernel_list_unlabeled',`
+@@ -2282,6 +2415,25 @@ interface(`kernel_list_unlabeled',`
  
  ########################################
  ## <summary>
@@ -17852,7 +17853,7 @@ index e100d88..a4648ed 100644
  ##	Read the process state (/proc/pid) of all unlabeled_t.
  ## </summary>
  ## <param name="domain">
-@@ -2306,7 +2457,7 @@ interface(`kernel_read_unlabeled_state',`
+@@ -2306,7 +2458,7 @@ interface(`kernel_read_unlabeled_state',`
  ## </summary>
  ## <param name="domain">
  ##	<summary>
@@ -17861,7 +17862,7 @@ index e100d88..a4648ed 100644
  ##	</summary>
  ## </param>
  #
-@@ -2488,6 +2639,24 @@ interface(`kernel_rw_unlabeled_blk_files',`
+@@ -2488,6 +2640,24 @@ interface(`kernel_rw_unlabeled_blk_files',`
  
  ########################################
  ## <summary>
@@ -17886,7 +17887,7 @@ index e100d88..a4648ed 100644
  ##	Do not audit attempts by caller to get attributes for
  ##	unlabeled character devices.
  ## </summary>
-@@ -2525,6 +2694,24 @@ interface(`kernel_relabelfrom_unlabeled_dirs',`
+@@ -2525,6 +2695,24 @@ interface(`kernel_relabelfrom_unlabeled_dirs',`
  
  ########################################
  ## <summary>
@@ -17911,7 +17912,7 @@ index e100d88..a4648ed 100644
  ##	Allow caller to relabel unlabeled files.
  ## </summary>
  ## <param name="domain">
-@@ -2667,6 +2854,24 @@ interface(`kernel_dontaudit_sendrecv_unlabeled_association',`
+@@ -2667,6 +2855,24 @@ interface(`kernel_dontaudit_sendrecv_unlabeled_association',`
  
  ########################################
  ## <summary>
@@ -17936,7 +17937,7 @@ index e100d88..a4648ed 100644
  ##	Receive TCP packets from an unlabeled connection.
  ## </summary>
  ## <desc>
-@@ -2694,6 +2899,25 @@ interface(`kernel_tcp_recvfrom_unlabeled',`
+@@ -2694,6 +2900,25 @@ interface(`kernel_tcp_recvfrom_unlabeled',`
  
  ########################################
  ## <summary>
@@ -17962,7 +17963,7 @@ index e100d88..a4648ed 100644
  ##	Do not audit attempts to receive TCP packets from an unlabeled
  ##	connection.
  ## </summary>
-@@ -2803,20 +3027,47 @@ interface(`kernel_raw_recvfrom_unlabeled',`
+@@ -2803,20 +3028,47 @@ interface(`kernel_raw_recvfrom_unlabeled',`
  
  	allow $1 unlabeled_t:rawip_socket recvfrom;
  ')
@@ -18017,7 +18018,7 @@ index e100d88..a4648ed 100644
  ##	</p>
  ## </desc>
  ## <param name="domain">
-@@ -2958,6 +3209,24 @@ interface(`kernel_relabelfrom_unlabeled_database',`
+@@ -2958,6 +3210,24 @@ interface(`kernel_relabelfrom_unlabeled_database',`
  
  ########################################
  ## <summary>
@@ -18042,7 +18043,7 @@ index e100d88..a4648ed 100644
  ##	Unconfined access to kernel module resources.
  ## </summary>
  ## <param name="domain">
-@@ -2972,5 +3241,565 @@ interface(`kernel_unconfined',`
+@@ -2972,5 +3242,565 @@ interface(`kernel_unconfined',`
  	')
  
  	typeattribute $1 kern_unconfined;
