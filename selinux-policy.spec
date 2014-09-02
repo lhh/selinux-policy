@@ -19,7 +19,7 @@
 Summary: SELinux policy configuration
 Name: selinux-policy
 Version: 3.13.1
-Release: 77%{?dist}
+Release: 78%{?dist}
 License: GPLv2+
 Group: System Environment/Base
 Source: serefpolicy-%{version}.tgz
@@ -602,6 +602,33 @@ SELinux Reference policy mls base module.
 %endif
 
 %changelog
+* Tue Sep 02 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-78
+- Allow unconfined_service_t to dbus chat with all dbus domains
+- Assign rabbitmq port.  BZ#1135523
+- Add new interface to allow creation of file with lib_t type
+- Allow init to read all config files
+- We want to remove openshift_t domains ability to look at /proc/net
+- I guess lockdown is a file not a directory
+- Label /var/bacula/ as bacula_store_t
+- Allow rhsmcertd to seng signull to sosreport.
+- Allow sending of snmp trap messages by radiusd.
+- remove redundant rule fron nova.te.
+- Add auth_use_nsswitch() for ctdbd.
+- call nova_vncproxy_t instead of vncproxy.
+- Allow nova-vncproxy to use varnishd port.
+- Fix rhnsd_manage_config() to allow manage also symlinks.
+- Allow bacula to create dirs/files in /tmp
+- Allow nova-api to use nsswitch.
+- Clean up nut policy. Allow nut domains to create temp files. Add nut_domain_template() template interface.
+- Allow usbmuxd connect to itself by stream socket. (#1135945)
+- I see no reason why unconfined_t should transition to crontab_t, this looks like old cruft
+- Allow nswrapper_32_64.nppdf.so to be created with the proper label
+- Assign rabbitmq port.  BZ#1135523
+- Dontaudit leaks of file descriptors from domains that transition to  thumb_t
+- Fixes for usbmuxd, addition of /var/lib/lockdown, and allow it to use urand, dontaudit sys_resource
+- Allow unconfined_service_t to dbus chat with all dbus domains
+- Allow avahi_t communicate with pcp_pmproxy_t over dbus.(better way)
+
 * Thu Aug 28 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-77
 - Allow aide to read random number generator
 - Allow pppd to connect to http port. (#1128947)
