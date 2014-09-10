@@ -19,7 +19,7 @@
 Summary: SELinux policy configuration
 Name: selinux-policy
 Version: 3.13.1
-Release: 78%{?dist}
+Release: 79%{?dist}
 License: GPLv2+
 Group: System Environment/Base
 Source: serefpolicy-%{version}.tgz
@@ -602,6 +602,33 @@ SELinux Reference policy mls base module.
 %endif
 
 %changelog
+* Wed Sep 10 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-79
+- Re-arange openshift_net_read_t rules.
+- Kernel is reporting random block_suspends, we should dontaudit these until the kernel is fixed in Rawhide
+- Allow jockey_t to use tmpfs files
+- Allow pppd to create sock_files in /var/run
+- Allow geoclue to stream connect to smart card service
+- Allow docker to read all of /proc
+- ALlow passeneger to read/write apache stream socket.
+- Dontaudit read init state for svirt_t.
+- Label /usr/sbin/unbound-control as named_exec_t (#1130510)
+- Add support for /var/lbi/cockpit directory.
+- Add support for ~/. speech-dispatcher.
+- Allow nmbd to read /proc/sys/kernel/core_pattern.
+- aLlow wine domains to create wine_home symlinks.
+- Allow policykit_auth_t access check and read usr config files.
+- Dontaudit access check on home_root_t for policykit-auth.
+- hv_vss_daemon wants to list /boot
+- update gpg_agent_env_file booelan to allow manage user tmp files for gpg-agent
+- Fix label for /usr/bin/courier/bin/sendmail
+- Allow munin services plugins to execute fail2ban-client in fail2ban_client_t domain.
+- Allow unconfined_r to access unconfined_service_t.
+- Add label for ~/.local/share/fonts
+- Add init_dontaudit_read_state() interface.
+- Add systemd_networkd_var_run_t labeling for /var/run/systemd/netif and allow systemd-networkd to manage it.
+- Allow udev_t mounton udev_var_run_t dirs #(1128618)
+- Add files_dontaudit_access_check_home_dir() inteface.
+
 * Tue Sep 02 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-78
 - Allow unconfined_service_t to dbus chat with all dbus domains
 - Assign rabbitmq port.  BZ#1135523

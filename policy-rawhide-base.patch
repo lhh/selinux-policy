@@ -9585,7 +9585,7 @@ index b876c48..b2aed45 100644
 +/nsr(/.*)?			gen_context(system_u:object_r:var_t,s0)
 +/nsr/logs(/.*)?			gen_context(system_u:object_r:var_log_t,s0)
 diff --git a/policy/modules/kernel/files.if b/policy/modules/kernel/files.if
-index f962f76..9157763 100644
+index f962f76..d79969b 100644
 --- a/policy/modules/kernel/files.if
 +++ b/policy/modules/kernel/files.if
 @@ -19,6 +19,136 @@
@@ -11031,7 +11031,35 @@ index f962f76..9157763 100644
  ')
  
  ########################################
-@@ -3814,20 +4554,38 @@ interface(`files_list_mnt',`
+@@ -3552,6 +4292,27 @@ interface(`files_dontaudit_getattr_home_dir',`
+ 
+ ########################################
+ ## <summary>
++##	Do not audit attempts to check the 
++##	access on home root directory.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain to not audit.
++##	</summary>
++## </param>
++#
++interface(`files_dontaudit_access_check_home_dir',`
++	gen_require(`
++		type home_root_t;
++	')
++
++	dontaudit $1 home_root_t:dir_file_class_set audit_access;
++')
++
++
++
++########################################
++## <summary>
+ ##	Search home directories root (/home).
+ ## </summary>
+ ## <param name="domain">
+@@ -3814,20 +4575,38 @@ interface(`files_list_mnt',`
  
  ######################################
  ## <summary>
@@ -11075,7 +11103,7 @@ index f962f76..9157763 100644
  ')
  
  ########################################
-@@ -4217,192 +4975,218 @@ interface(`files_read_world_readable_sockets',`
+@@ -4217,174 +4996,218 @@ interface(`files_read_world_readable_sockets',`
  	allow $1 readable_t:sock_file read_sock_file_perms;
  ')
  
@@ -11310,36 +11338,26 @@ index f962f76..9157763 100644
 +##  File name transition for system db files in /var/lib.
  ## </summary>
  ## <param name="domain">
--##	<summary>
--##	Domain allowed access.
--##	</summary>
 +##  <summary>
 +##  Domain allowed access.
 +##  </summary>
- ## </param>
- #
--interface(`files_delete_tmp_dir_entry',`
--	gen_require(`
--		type tmp_t;
--	')
++## </param>
++#
 +interface(`files_filetrans_system_db_named_files',`
 +    gen_require(`
 +        type var_lib_t, system_db_t;
 +    ')
- 
--	allow $1 tmp_t:dir del_entry_dir_perms;
++
 +    filetrans_pattern($1, var_lib_t, system_db_t, file, "servicelog.db")
 +    filetrans_pattern($1, var_lib_t, system_db_t, file, "servicelog.db-journal")
- ')
- 
- ########################################
- ## <summary>
--##	Read files in the tmp directory (/tmp).
++')
++
++########################################
++## <summary>
 +##	Allow the specified type to associate
 +##	to a filesystem with the type of the
 +##	temporary directory (/tmp).
- ## </summary>
--## <param name="domain">
++## </summary>
 +## <param name="file_type">
  ##	<summary>
 -##	Domain allowed access.
@@ -11347,19 +11365,19 @@ index f962f76..9157763 100644
  ##	</summary>
  ## </param>
  #
--interface(`files_read_generic_tmp_files',`
+-interface(`files_delete_tmp_dir_entry',`
 +interface(`files_associate_tmp',`
  	gen_require(`
  		type tmp_t;
  	')
  
--	read_files_pattern($1, tmp_t, tmp_t)
+-	allow $1 tmp_t:dir del_entry_dir_perms;
 +	allow $1 tmp_t:filesystem associate;
  ')
  
  ########################################
  ## <summary>
--##	Manage temporary directories in /tmp.
+-##	Read files in the tmp directory (/tmp).
 +##	Allow the specified type to associate
 +##	to a filesystem with the type of the
 +##	/ file system
@@ -11372,42 +11390,42 @@ index f962f76..9157763 100644
  ##	</summary>
  ## </param>
  #
--interface(`files_manage_generic_tmp_dirs',`
+-interface(`files_read_generic_tmp_files',`
 +interface(`files_associate_rootfs',`
  	gen_require(`
 -		type tmp_t;
 +		type root_t;
  	')
  
--	manage_dirs_pattern($1, tmp_t, tmp_t)
+-	read_files_pattern($1, tmp_t, tmp_t)
 +	allow $1 root_t:filesystem associate;
  ')
  
  ########################################
  ## <summary>
--##	Manage temporary files and directories in /tmp.
+-##	Manage temporary directories in /tmp.
 +##	Get the	attributes of the tmp directory (/tmp).
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -4410,53 +5194,56 @@ interface(`files_manage_generic_tmp_dirs',`
+@@ -4392,53 +5215,56 @@ interface(`files_read_generic_tmp_files',`
  ##	</summary>
  ## </param>
  #
--interface(`files_manage_generic_tmp_files',`
+-interface(`files_manage_generic_tmp_dirs',`
 +interface(`files_getattr_tmp_dirs',`
  	gen_require(`
  		type tmp_t;
  	')
  
--	manage_files_pattern($1, tmp_t, tmp_t)
+-	manage_dirs_pattern($1, tmp_t, tmp_t)
 +	read_lnk_files_pattern($1, tmp_t, tmp_t)
 +	allow $1 tmp_t:dir getattr;
  ')
  
  ########################################
  ## <summary>
--##	Read symbolic links in the tmp directory (/tmp).
+-##	Manage temporary files and directories in /tmp.
 +##	Do not audit attempts to check the 
 +##	access on tmp files
  ## </summary>
@@ -11418,20 +11436,20 @@ index f962f76..9157763 100644
  ##	</summary>
  ## </param>
  #
--interface(`files_read_generic_tmp_symlinks',`
+-interface(`files_manage_generic_tmp_files',`
 +interface(`files_dontaudit_access_check_tmp',`
  	gen_require(`
 -		type tmp_t;
 +		type etc_t;
  	')
  
--	read_lnk_files_pattern($1, tmp_t, tmp_t)
+-	manage_files_pattern($1, tmp_t, tmp_t)
 +	dontaudit $1 tmp_t:dir_file_class_set audit_access;
  ')
  
  ########################################
  ## <summary>
--##	Read and write generic named sockets in the tmp directory (/tmp).
+-##	Read symbolic links in the tmp directory (/tmp).
 +##	Do not audit attempts to get the
 +##	attributes of the tmp directory (/tmp).
  ## </summary>
@@ -11442,35 +11460,34 @@ index f962f76..9157763 100644
  ##	</summary>
  ## </param>
  #
--interface(`files_rw_generic_tmp_sockets',`
+-interface(`files_read_generic_tmp_symlinks',`
 +interface(`files_dontaudit_getattr_tmp_dirs',`
  	gen_require(`
  		type tmp_t;
  	')
  
--	rw_sock_files_pattern($1, tmp_t, tmp_t)
+-	read_lnk_files_pattern($1, tmp_t, tmp_t)
 +	dontaudit $1 tmp_t:dir getattr;
  ')
  
  ########################################
  ## <summary>
--##	Set the attributes of all tmp directories.
+-##	Read and write generic named sockets in the tmp directory (/tmp).
 +##	Search the tmp directory (/tmp).
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -4464,77 +5251,93 @@ interface(`files_rw_generic_tmp_sockets',`
+@@ -4446,35 +5272,37 @@ interface(`files_read_generic_tmp_symlinks',`
  ##	</summary>
  ## </param>
  #
--interface(`files_setattr_all_tmp_dirs',`
+-interface(`files_rw_generic_tmp_sockets',`
 +interface(`files_search_tmp',`
  	gen_require(`
--		attribute tmpfile;
-+		type tmp_t;
+ 		type tmp_t;
  	')
  
--	allow $1 tmpfile:dir { search_dir_perms setattr };
+-	rw_sock_files_pattern($1, tmp_t, tmp_t)
 +    fs_search_tmpfs($1)
 +	read_lnk_files_pattern($1, tmp_t, tmp_t)
 +	allow $1 tmp_t:dir search_dir_perms;
@@ -11478,7 +11495,7 @@ index f962f76..9157763 100644
  
  ########################################
  ## <summary>
--##	List all tmp directories.
+-##	Set the attributes of all tmp directories.
 +##	Do not audit attempts to search the tmp directory (/tmp).
  ## </summary>
  ## <param name="domain">
@@ -11488,32 +11505,56 @@ index f962f76..9157763 100644
  ##	</summary>
  ## </param>
  #
--interface(`files_list_all_tmp',`
+-interface(`files_setattr_all_tmp_dirs',`
 +interface(`files_dontaudit_search_tmp',`
  	gen_require(`
 -		attribute tmpfile;
 +		type tmp_t;
  	')
  
--	allow $1 tmpfile:dir list_dir_perms;
+-	allow $1 tmpfile:dir { search_dir_perms setattr };
 +	dontaudit $1 tmp_t:dir search_dir_perms;
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	List all tmp directories.
++##	Read the tmp directory (/tmp).
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -4482,59 +5310,55 @@ interface(`files_setattr_all_tmp_dirs',`
+ ##	</summary>
+ ## </param>
+ #
+-interface(`files_list_all_tmp',`
++interface(`files_list_tmp',`
+ 	gen_require(`
+-		attribute tmpfile;
++		type tmp_t;
+ 	')
+ 
+-	allow $1 tmpfile:dir list_dir_perms;
++	read_lnk_files_pattern($1, tmp_t, tmp_t)
++	allow $1 tmp_t:dir list_dir_perms;
  ')
  
  ########################################
  ## <summary>
 -##	Relabel to and from all temporary
 -##	directory types.
-+##	Read the tmp directory (/tmp).
++##	Do not audit listing of the tmp directory (/tmp).
  ## </summary>
  ## <param name="domain">
  ##	<summary>
- ##	Domain allowed access.
+-##	Domain allowed access.
++##	Domain to not audit.
  ##	</summary>
  ## </param>
 -## <rolecap/>
  #
 -interface(`files_relabel_all_tmp_dirs',`
-+interface(`files_list_tmp',`
++interface(`files_dontaudit_list_tmp',`
  	gen_require(`
 -		attribute tmpfile;
 -		type var_t;
@@ -11522,49 +11563,35 @@ index f962f76..9157763 100644
  
 -	allow $1 var_t:dir search_dir_perms;
 -	relabel_dirs_pattern($1, tmpfile, tmpfile)
-+	read_lnk_files_pattern($1, tmp_t, tmp_t)
-+	allow $1 tmp_t:dir list_dir_perms;
++	dontaudit $1 tmp_t:dir list_dir_perms;
  ')
  
- ########################################
+-########################################
++#######################################
  ## <summary>
 -##	Do not audit attempts to get the attributes
 -##	of all tmp files.
-+##	Do not audit listing of the tmp directory (/tmp).
++##  Allow read and write to the tmp directory (/tmp).
  ## </summary>
  ## <param name="domain">
- ##	<summary>
+-##	<summary>
 -##	Domain not to audit.
-+##	Domain to not audit.
- ##	</summary>
- ## </param>
- #
--interface(`files_dontaudit_getattr_all_tmp_files',`
-+interface(`files_dontaudit_list_tmp',`
- 	gen_require(`
--		attribute tmpfile;
-+		type tmp_t;
- 	')
- 
--	dontaudit $1 tmpfile:file getattr;
-+	dontaudit $1 tmp_t:dir list_dir_perms;
-+')
-+
-+#######################################
-+## <summary>
-+##  Allow read and write to the tmp directory (/tmp).
-+## </summary>
-+## <param name="domain">
+-##	</summary>
 +##  <summary>
 +##  Domain not to audit.
 +##  </summary>
-+## </param>
-+#
+ ## </param>
+ #
+-interface(`files_dontaudit_getattr_all_tmp_files',`
+-	gen_require(`
+-		attribute tmpfile;
+-	')
 +interface(`files_rw_generic_tmp_dir',`
 +    gen_require(`
 +        type tmp_t;
 +    ')
-+
+ 
+-	dontaudit $1 tmpfile:file getattr;
 +    files_search_tmp($1)
 +    allow $1 tmp_t:dir rw_dir_perms;
  ')
@@ -11577,7 +11604,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -4542,110 +5345,98 @@ interface(`files_dontaudit_getattr_all_tmp_files',`
+@@ -4542,110 +5366,98 @@ interface(`files_dontaudit_getattr_all_tmp_files',`
  ##	</summary>
  ## </param>
  #
@@ -11716,7 +11743,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -4653,22 +5444,17 @@ interface(`files_tmp_filetrans',`
+@@ -4653,22 +5465,17 @@ interface(`files_tmp_filetrans',`
  ##	</summary>
  ## </param>
  #
@@ -11743,7 +11770,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -4676,17 +5462,17 @@ interface(`files_purge_tmp',`
+@@ -4676,17 +5483,17 @@ interface(`files_purge_tmp',`
  ##	</summary>
  ## </param>
  #
@@ -11765,7 +11792,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -4694,18 +5480,17 @@ interface(`files_setattr_usr_dirs',`
+@@ -4694,18 +5501,17 @@ interface(`files_setattr_usr_dirs',`
  ##	</summary>
  ## </param>
  #
@@ -11788,7 +11815,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -4713,35 +5498,35 @@ interface(`files_search_usr',`
+@@ -4713,35 +5519,35 @@ interface(`files_search_usr',`
  ##	</summary>
  ## </param>
  #
@@ -11833,7 +11860,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -4749,36 +5534,35 @@ interface(`files_dontaudit_write_usr_dirs',`
+@@ -4749,36 +5555,35 @@ interface(`files_dontaudit_write_usr_dirs',`
  ##	</summary>
  ## </param>
  #
@@ -11879,7 +11906,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -4786,17 +5570,17 @@ interface(`files_dontaudit_rw_usr_dirs',`
+@@ -4786,17 +5591,17 @@ interface(`files_dontaudit_rw_usr_dirs',`
  ##	</summary>
  ## </param>
  #
@@ -11901,7 +11928,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -4804,73 +5588,59 @@ interface(`files_delete_usr_dirs',`
+@@ -4804,73 +5609,59 @@ interface(`files_delete_usr_dirs',`
  ##	</summary>
  ## </param>
  #
@@ -11938,9 +11965,10 @@ index f962f76..9157763 100644
  	')
  
 -	getattr_files_pattern($1, usr_t, usr_t)
+-')
 +	allow $1 var_t:dir search_dir_perms;
 +	relabel_dirs_pattern($1, tmpfile, tmpfile)
- ')
++')
  
  ########################################
  ## <summary>
@@ -11994,7 +12022,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -4878,55 +5648,58 @@ interface(`files_read_usr_files',`
+@@ -4878,55 +5669,58 @@ interface(`files_read_usr_files',`
  ##	</summary>
  ## </param>
  #
@@ -12069,7 +12097,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -4934,67 +5707,70 @@ interface(`files_manage_usr_files',`
+@@ -4934,67 +5728,70 @@ interface(`files_manage_usr_files',`
  ##	</summary>
  ## </param>
  #
@@ -12158,7 +12186,7 @@ index f962f76..9157763 100644
  ##	</summary>
  ## </param>
  ## <param name="name" optional="true">
-@@ -5003,35 +5779,50 @@ interface(`files_read_usr_symlinks',`
+@@ -5003,35 +5800,50 @@ interface(`files_read_usr_symlinks',`
  ##	</summary>
  ## </param>
  #
@@ -12218,7 +12246,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5039,20 +5830,17 @@ interface(`files_dontaudit_search_src',`
+@@ -5039,20 +5851,17 @@ interface(`files_dontaudit_search_src',`
  ##	</summary>
  ## </param>
  #
@@ -12243,7 +12271,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5060,20 +5848,18 @@ interface(`files_getattr_usr_src_files',`
+@@ -5060,20 +5869,18 @@ interface(`files_getattr_usr_src_files',`
  ##	</summary>
  ## </param>
  #
@@ -12268,7 +12296,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5081,38 +5867,35 @@ interface(`files_read_usr_src_files',`
+@@ -5081,38 +5888,35 @@ interface(`files_read_usr_src_files',`
  ##	</summary>
  ## </param>
  #
@@ -12316,7 +12344,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5120,37 +5903,36 @@ interface(`files_create_kernel_symbol_table',`
+@@ -5120,37 +5924,36 @@ interface(`files_create_kernel_symbol_table',`
  ##	</summary>
  ## </param>
  #
@@ -12364,7 +12392,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5158,35 +5940,35 @@ interface(`files_delete_kernel_symbol_table',`
+@@ -5158,35 +5961,35 @@ interface(`files_delete_kernel_symbol_table',`
  ##	</summary>
  ## </param>
  #
@@ -12409,7 +12437,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5194,36 +5976,55 @@ interface(`files_dontaudit_write_var_dirs',`
+@@ -5194,36 +5997,55 @@ interface(`files_dontaudit_write_var_dirs',`
  ##	</summary>
  ## </param>
  #
@@ -12475,7 +12503,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5231,36 +6032,37 @@ interface(`files_dontaudit_search_var',`
+@@ -5231,36 +6053,37 @@ interface(`files_dontaudit_search_var',`
  ##	</summary>
  ## </param>
  #
@@ -12523,7 +12551,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5268,17 +6070,17 @@ interface(`files_manage_var_dirs',`
+@@ -5268,17 +6091,17 @@ interface(`files_manage_var_dirs',`
  ##	</summary>
  ## </param>
  #
@@ -12545,7 +12573,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5286,17 +6088,17 @@ interface(`files_read_var_files',`
+@@ -5286,17 +6109,17 @@ interface(`files_read_var_files',`
  ##	</summary>
  ## </param>
  #
@@ -12567,7 +12595,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5304,73 +6106,86 @@ interface(`files_append_var_files',`
+@@ -5304,73 +6127,86 @@ interface(`files_append_var_files',`
  ##	</summary>
  ## </param>
  #
@@ -12674,7 +12702,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5378,50 +6193,41 @@ interface(`files_read_var_symlinks',`
+@@ -5378,50 +6214,41 @@ interface(`files_read_var_symlinks',`
  ##	</summary>
  ## </param>
  #
@@ -12739,7 +12767,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5429,69 +6235,56 @@ interface(`files_var_filetrans',`
+@@ -5429,69 +6256,56 @@ interface(`files_var_filetrans',`
  ##	</summary>
  ## </param>
  #
@@ -12824,7 +12852,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5499,17 +6292,18 @@ interface(`files_dontaudit_search_var_lib',`
+@@ -5499,17 +6313,18 @@ interface(`files_dontaudit_search_var_lib',`
  ##	</summary>
  ## </param>
  #
@@ -12848,7 +12876,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5517,70 +6311,54 @@ interface(`files_list_var_lib',`
+@@ -5517,70 +6332,54 @@ interface(`files_list_var_lib',`
  ##	</summary>
  ## </param>
  #
@@ -12932,7 +12960,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5588,41 +6366,36 @@ interface(`files_read_var_lib_files',`
+@@ -5588,41 +6387,36 @@ interface(`files_read_var_lib_files',`
  ##	</summary>
  ## </param>
  #
@@ -12984,7 +13012,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5630,36 +6403,36 @@ interface(`files_manage_urandom_seed',`
+@@ -5630,36 +6424,36 @@ interface(`files_manage_urandom_seed',`
  ##	</summary>
  ## </param>
  #
@@ -13031,7 +13059,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5667,38 +6440,35 @@ interface(`files_setattr_lock_dirs',`
+@@ -5667,38 +6461,35 @@ interface(`files_setattr_lock_dirs',`
  ##	</summary>
  ## </param>
  #
@@ -13079,7 +13107,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5706,19 +6476,17 @@ interface(`files_dontaudit_search_locks',`
+@@ -5706,19 +6497,17 @@ interface(`files_dontaudit_search_locks',`
  ##	</summary>
  ## </param>
  #
@@ -13103,7 +13131,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5726,60 +6494,54 @@ interface(`files_list_locks',`
+@@ -5726,60 +6515,54 @@ interface(`files_list_locks',`
  ##	</summary>
  ## </param>
  #
@@ -13179,7 +13207,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5787,20 +6549,18 @@ interface(`files_relabel_all_lock_dirs',`
+@@ -5787,20 +6570,18 @@ interface(`files_relabel_all_lock_dirs',`
  ##	</summary>
  ## </param>
  #
@@ -13205,7 +13233,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5808,165 +6568,156 @@ interface(`files_getattr_generic_locks',`
+@@ -5808,165 +6589,156 @@ interface(`files_getattr_generic_locks',`
  ##	</summary>
  ## </param>
  #
@@ -13433,7 +13461,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -5974,59 +6725,71 @@ interface(`files_dontaudit_getattr_pid_dirs',`
+@@ -5974,59 +6746,71 @@ interface(`files_dontaudit_getattr_pid_dirs',`
  ##	</summary>
  ## </param>
  #
@@ -13524,7 +13552,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -6034,18 +6797,18 @@ interface(`files_dontaudit_search_pids',`
+@@ -6034,18 +6818,18 @@ interface(`files_dontaudit_search_pids',`
  ##	</summary>
  ## </param>
  #
@@ -13548,47 +13576,38 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -6053,19 +6816,21 @@ interface(`files_list_pids',`
+@@ -6053,19 +6837,1172 @@ interface(`files_list_pids',`
  ##	</summary>
  ## </param>
  #
 -interface(`files_read_generic_pids',`
 +interface(`files_manage_var_lib_symlinks',`
  	gen_require(`
--		type var_t, var_run_t;
 +		type var_lib_t;
- 	')
- 
--	allow $1 var_run_t:lnk_file read_lnk_file_perms;
--	list_dirs_pattern($1, var_t, var_run_t)
--	read_files_pattern($1, var_run_t, var_run_t)
++	')
++
 +	manage_lnk_files_pattern($1,var_lib_t,var_lib_t)
- ')
- 
++')
++
 +# cjp: the next two interfaces really need to be fixed
 +# in some way.  They really neeed their own types.
 +
- ########################################
- ## <summary>
--##	Write named generic process ID pipes
++########################################
++## <summary>
 +##	Create, read, write, and delete the
 +##	pseudorandom number generator seed.
- ## </summary>
- ## <param name="domain">
- ##	<summary>
-@@ -6073,43 +6838,1340 @@ interface(`files_read_generic_pids',`
- ##	</summary>
- ## </param>
- #
--interface(`files_write_generic_pid_pipes',`
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
 +interface(`files_manage_urandom_seed',`
- 	gen_require(`
--		type var_run_t;
++	gen_require(`
 +		type var_t, var_lib_t;
- 	')
- 
--	allow $1 var_run_t:lnk_file read_lnk_file_perms;
--	allow $1 var_run_t:fifo_file write;
++	')
++
 +	allow $1 var_t:dir search_dir_perms;
 +	manage_files_pattern($1, var_lib_t, var_lib_t)
 +')
@@ -14573,9 +14592,12 @@ index f962f76..9157763 100644
 +interface(`files_delete_all_pid_dirs',`
 +	gen_require(`
 +		attribute pidfile;
-+		type var_t, var_run_t;
-+	')
-+
+ 		type var_t, var_run_t;
+ 	')
+ 
+-	allow $1 var_run_t:lnk_file read_lnk_file_perms;
+-	list_dirs_pattern($1, var_t, var_run_t)
+-	read_files_pattern($1, var_run_t, var_run_t)
 +	files_search_pids($1)
 +	allow $1 var_t:dir search_dir_perms;
 +	delete_dirs_pattern($1, pidfile, pidfile)
@@ -14726,26 +14748,31 @@ index f962f76..9157763 100644
  
  ########################################
  ## <summary>
--##	Create an object in the process ID directory, with a private type.
+-##	Write named generic process ID pipes
 +##	List the contents of generic spool
 +##	(/var/spool) directories.
-+## </summary>
-+## <param name="domain">
-+##	<summary>
-+##	Domain allowed access.
-+##	</summary>
-+## </param>
-+#
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -6073,43 +8010,189 @@ interface(`files_read_generic_pids',`
+ ##	</summary>
+ ## </param>
+ #
+-interface(`files_write_generic_pid_pipes',`
 +interface(`files_list_spool',`
-+	gen_require(`
+ 	gen_require(`
+-		type var_run_t;
 +		type var_t, var_spool_t;
-+	')
-+
+ 	')
+ 
+-	allow $1 var_run_t:lnk_file read_lnk_file_perms;
+-	allow $1 var_run_t:fifo_file write;
 +	list_dirs_pattern($1, var_t, var_spool_t)
-+')
-+
-+########################################
-+## <summary>
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	Create an object in the process ID directory, with a private type.
 +##	Create, read, write, and delete generic
 +##	spool directories (/var/spool).
 +## </summary>
@@ -14944,7 +14971,7 @@ index f962f76..9157763 100644
  ##	</p>
  ## </desc>
  ## <param name="domain">
-@@ -6117,14 +8179,82 @@ interface(`files_write_generic_pid_pipes',`
+@@ -6117,14 +8200,82 @@ interface(`files_write_generic_pid_pipes',`
  ##	Domain allowed access.
  ##	</summary>
  ## </param>
@@ -15030,7 +15057,7 @@ index f962f76..9157763 100644
  ##	</summary>
  ## </param>
  ## <param name="name" optional="true">
-@@ -6132,65 +8262,56 @@ interface(`files_write_generic_pid_pipes',`
+@@ -6132,65 +8283,56 @@ interface(`files_write_generic_pid_pipes',`
  ##	The name of the object being created.
  ##	</summary>
  ## </param>
@@ -15114,7 +15141,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -6198,19 +8319,17 @@ interface(`files_rw_generic_pids',`
+@@ -6198,19 +8340,17 @@ interface(`files_rw_generic_pids',`
  ##	</summary>
  ## </param>
  #
@@ -15138,7 +15165,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -6218,38 +8337,43 @@ interface(`files_dontaudit_getattr_all_pids',`
+@@ -6218,38 +8358,43 @@ interface(`files_dontaudit_getattr_all_pids',`
  ##	</summary>
  ## </param>
  #
@@ -15194,7 +15221,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -6258,127 +8382,111 @@ interface(`files_dontaudit_ioctl_all_pids',`
+@@ -6258,127 +8403,111 @@ interface(`files_dontaudit_ioctl_all_pids',`
  ## </param>
  ## <rolecap/>
  #
@@ -15356,7 +15383,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -6386,132 +8494,189 @@ interface(`files_search_spool',`
+@@ -6386,132 +8515,189 @@ interface(`files_search_spool',`
  ##	</summary>
  ## </param>
  #
@@ -15599,7 +15626,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -6519,53 +8684,17 @@ interface(`files_spool_filetrans',`
+@@ -6519,53 +8705,17 @@ interface(`files_spool_filetrans',`
  ##	</summary>
  ## </param>
  #
@@ -15657,7 +15684,7 @@ index f962f76..9157763 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -6573,10 +8702,10 @@ interface(`files_polyinstantiate_all',`
+@@ -6573,10 +8723,10 @@ interface(`files_polyinstantiate_all',`
  ##	</summary>
  ## </param>
  #
@@ -22190,10 +22217,10 @@ index 0000000..0e8654b
 +/usr/sbin/xrdp-sesman   --  gen_context(system_u:object_r:unconfined_exec_t,s0)
 diff --git a/policy/modules/roles/unconfineduser.if b/policy/modules/roles/unconfineduser.if
 new file mode 100644
-index 0000000..b1163a6
+index 0000000..0573c76
 --- /dev/null
 +++ b/policy/modules/roles/unconfineduser.if
-@@ -0,0 +1,637 @@
+@@ -0,0 +1,653 @@
 +## <summary>Unconfined user role</summary>
 +
 +########################################
@@ -22358,6 +22385,22 @@ index 0000000..b1163a6
 +	domtrans_pattern(unconfined_t,$2,$1)
 +	role unconfined_r types $1;
 +	userdom_use_user_terminals($1)
++')
++
++######################################
++## <summary>
++##      Stub unconfined role.
++## </summary>
++## <param name="domain_prefix">
++##      <summary>
++##      Domain allowed access.
++##      </summary>
++## </param>
++#
++interface(`unconfined_stub_role',`
++        gen_require(`
++                role unconfined_r;
++        ')
 +')
 +
 +########################################
@@ -25358,15 +25401,16 @@ index cc877c7..2ef9dc6 100644
 +	xserver_rw_xdm_pipes(ssh_agent_type)
 +')
 diff --git a/policy/modules/services/xserver.fc b/policy/modules/services/xserver.fc
-index 8274418..a20467d 100644
+index 8274418..2873da0 100644
 --- a/policy/modules/services/xserver.fc
 +++ b/policy/modules/services/xserver.fc
-@@ -2,13 +2,35 @@
+@@ -2,13 +2,36 @@
  # HOME_DIR
  #
  HOME_DIR/\.fonts\.conf	--	gen_context(system_u:object_r:user_fonts_config_t,s0)
 +HOME_DIR/\.fonts\.d(/.*)?	gen_context(system_u:object_r:user_fonts_config_t,s0)
  HOME_DIR/\.fonts(/.*)?		gen_context(system_u:object_r:user_fonts_t,s0)
++HOME_DIR/\.local/share/fonts(/.*)?		gen_context(system_u:object_r:user_fonts_t,s0)
 +HOME_DIR/\.fontconfig(/.*)?	gen_context(system_u:object_r:user_fonts_cache_t,s0)
  HOME_DIR/\.fonts/auto(/.*)?	gen_context(system_u:object_r:user_fonts_cache_t,s0)
  HOME_DIR/\.fonts\.cache-.* --	gen_context(system_u:object_r:user_fonts_cache_t,s0)
@@ -25397,7 +25441,7 @@ index 8274418..a20467d 100644
  
  #
  # /dev
-@@ -22,13 +44,21 @@ HOME_DIR/\.Xauthority.*	--	gen_context(system_u:object_r:xauth_home_t,s0)
+@@ -22,13 +45,21 @@ HOME_DIR/\.Xauthority.*	--	gen_context(system_u:object_r:xauth_home_t,s0)
  /etc/gdm(3)?/PreSession/.*	--	gen_context(system_u:object_r:xsession_exec_t,s0)
  /etc/gdm(3)?/Xsession	--	gen_context(system_u:object_r:xsession_exec_t,s0)
  
@@ -25420,7 +25464,7 @@ index 8274418..a20467d 100644
  /etc/X11/[wx]dm/Xreset.* --	gen_context(system_u:object_r:xsession_exec_t,s0)
  /etc/X11/[wxg]dm/Xsession --	gen_context(system_u:object_r:xsession_exec_t,s0)
  /etc/X11/wdm(/.*)?		gen_context(system_u:object_r:xdm_rw_etc_t,s0)
-@@ -46,26 +76,31 @@ HOME_DIR/\.Xauthority.*	--	gen_context(system_u:object_r:xauth_home_t,s0)
+@@ -46,26 +77,31 @@ HOME_DIR/\.Xauthority.*	--	gen_context(system_u:object_r:xauth_home_t,s0)
  # /tmp
  #
  
@@ -25458,7 +25502,7 @@ index 8274418..a20467d 100644
  
  /usr/lib/qt-.*/etc/settings(/.*)? gen_context(system_u:object_r:xdm_var_run_t,s0)
  
-@@ -92,18 +127,32 @@ ifndef(`distro_debian',`
+@@ -92,18 +128,32 @@ ifndef(`distro_debian',`
  
  /var/lib/gdm(3)?(/.*)?		gen_context(system_u:object_r:xdm_var_lib_t,s0)
  /var/lib/lxdm(/.*)?		gen_context(system_u:object_r:xdm_var_lib_t,s0)
@@ -25495,7 +25539,7 @@ index 8274418..a20467d 100644
  /var/run/xdm\.pid	--	gen_context(system_u:object_r:xdm_var_run_t,s0)
  /var/run/lxdm\.auth	--	gen_context(system_u:object_r:xdm_var_run_t,s0)
  /var/run/lxdm\.pid	--	gen_context(system_u:object_r:xdm_var_run_t,s0)
-@@ -111,7 +160,18 @@ ifndef(`distro_debian',`
+@@ -111,7 +161,18 @@ ifndef(`distro_debian',`
  /var/run/slim.*			gen_context(system_u:object_r:xdm_var_run_t,s0)
  /var/run/xauth(/.*)?		gen_context(system_u:object_r:xdm_var_run_t,s0)
  /var/run/xdmctl(/.*)?		gen_context(system_u:object_r:xdm_var_run_t,s0)
@@ -25515,7 +25559,7 @@ index 8274418..a20467d 100644
 +/var/lib/pqsql/\.Xauthority.*	--	gen_context(system_u:object_r:xauth_home_t,s0)
 +
 diff --git a/policy/modules/services/xserver.if b/policy/modules/services/xserver.if
-index 6bf0ecc..44be5f2 100644
+index 6bf0ecc..28c914d 100644
 --- a/policy/modules/services/xserver.if
 +++ b/policy/modules/services/xserver.if
 @@ -18,100 +18,36 @@
@@ -26591,7 +26635,7 @@ index 6bf0ecc..44be5f2 100644
  ')
  
  ########################################
-@@ -1284,10 +1640,657 @@ interface(`xserver_manage_core_devices',`
+@@ -1284,10 +1640,660 @@ interface(`xserver_manage_core_devices',`
  #
  interface(`xserver_unconfined',`
  	gen_require(`
@@ -27128,6 +27172,9 @@ index 6bf0ecc..44be5f2 100644
 +	userdom_user_home_dir_filetrans($1, user_fonts_config_t, file, ".fonts.conf")
 +	userdom_user_home_dir_filetrans($1, user_fonts_config_t, dir, ".fonts.d")
 +	userdom_user_home_dir_filetrans($1, user_fonts_t, dir, ".fonts")
++	optional_policy(`
++		gnome_data_filetrans($1, user_fonts_t, dir, "fonts")
++	')
 +	userdom_user_home_dir_filetrans($1, user_fonts_cache_t, dir, ".fontconfig")
 +	filetrans_pattern($1, user_fonts_t, user_fonts_cache_t, dir, "auto")
 +	files_tmp_filetrans($1, user_fonts_t, dir, ".font-unix")
@@ -31038,7 +31085,7 @@ index bc0ffc8..7198bd9 100644
  ')
 +/var/run/systemd(/.*)?		gen_context(system_u:object_r:init_var_run_t,s0)
 diff --git a/policy/modules/system/init.if b/policy/modules/system/init.if
-index 79a45f6..c6373d9 100644
+index 79a45f6..c4546e2 100644
 --- a/policy/modules/system/init.if
 +++ b/policy/modules/system/init.if
 @@ -1,5 +1,21 @@
@@ -31558,10 +31605,30 @@ index 79a45f6..c6373d9 100644
  	files_search_etc($1)
  ')
  
-@@ -1012,6 +1222,42 @@ interface(`init_read_state',`
+@@ -1012,6 +1222,62 @@ interface(`init_read_state',`
  
  ########################################
  ## <summary>
++##	Dontaudit read the process state (/proc/pid) of init.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`init_dontaudit_read_state',`
++	gen_require(`
++		type init_t;
++	')
++
++	dontaudit $1 init_t:dir search_dir_perms;
++	dontaudit $1 init_t:file read_file_perms;
++	dontaudit $1 init_t:lnk_file read_lnk_file_perms;
++')
++
++########################################
++## <summary>
 +##	Read the process keyring of init.
 +## </summary>
 +## <param name="domain">
@@ -31601,7 +31668,7 @@ index 79a45f6..c6373d9 100644
  ##	Ptrace init
  ## </summary>
  ## <param name="domain">
-@@ -1026,7 +1272,9 @@ interface(`init_ptrace',`
+@@ -1026,7 +1292,9 @@ interface(`init_ptrace',`
  		type init_t;
  	')
  
@@ -31612,12 +31679,103 @@ index 79a45f6..c6373d9 100644
  ')
  
  ########################################
-@@ -1125,6 +1373,25 @@ interface(`init_getattr_all_script_files',`
+@@ -1125,7 +1393,8 @@ interface(`init_getattr_all_script_files',`
  
  ########################################
  ## <summary>
+-##	Read all init script files.
 +##	Allow the specified domain to modify the systemd configuration of 
 +##	all init scripts.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -1133,59 +1402,95 @@ interface(`init_getattr_all_script_files',`
+ ##	</summary>
+ ## </param>
+ #
+-interface(`init_read_all_script_files',`
++interface(`init_config_all_script_files',`
+ 	gen_require(`
+ 		attribute init_script_file_type;
+ 	')
+ 
+-	files_search_etc($1)
+-	allow $1 init_script_file_type:file read_file_perms;
++	allow $1 init_script_file_type:service all_service_perms;
+ ')
+ 
+-#######################################
++########################################
+ ## <summary>
+-##	Dontaudit read all init script files.
++##	Read all init script files.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+-##	Domain to not audit.
++##	Domain allowed access.
+ ##	</summary>
+ ## </param>
+ #
+-interface(`init_dontaudit_read_all_script_files',`
++interface(`init_read_all_script_files',`
+ 	gen_require(`
+ 		attribute init_script_file_type;
+ 	')
+ 
+-	dontaudit $1 init_script_file_type:file read_file_perms;
++	files_search_etc($1)
++	allow $1 init_script_file_type:file read_file_perms;
+ ')
+ 
+-########################################
++#######################################
+ ## <summary>
+-##	Execute all init scripts in the caller domain.
++##	Dontaudit getattr all init script files.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+-##	Domain allowed access.
++##	Domain to not audit.
+ ##	</summary>
+ ## </param>
+ #
+-interface(`init_exec_all_script_files',`
++interface(`init_dontaudit_getattr_all_script_files',`
+ 	gen_require(`
+ 		attribute init_script_file_type;
+ 	')
+ 
+-	files_list_etc($1)
+-	can_exec($1, init_script_file_type)
++	dontaudit $1 init_script_file_type:file getattr;
+ ')
+ 
+-########################################
++#######################################
+ ## <summary>
+-##	Read the process state (/proc/pid) of the init scripts.
++##	Dontaudit read all init script files.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+-##	Domain allowed access.
++##	Domain to not audit.
++##	</summary>
++## </param>
++#
++interface(`init_dontaudit_read_all_script_files',`
++	gen_require(`
++		attribute init_script_file_type;
++	')
++
++	dontaudit $1 init_script_file_type:file read_file_perms;
++')
++
++########################################
++## <summary>
++##	Execute all init scripts in the caller domain.
 +## </summary>
 +## <param name="domain">
 +##	<summary>
@@ -31625,45 +31783,26 @@ index 79a45f6..c6373d9 100644
 +##	</summary>
 +## </param>
 +#
-+interface(`init_config_all_script_files',`
++interface(`init_exec_all_script_files',`
 +	gen_require(`
 +		attribute init_script_file_type;
 +	')
 +
-+	allow $1 init_script_file_type:service all_service_perms;
++	files_list_etc($1)
++	can_exec($1, init_script_file_type)
 +')
 +
 +########################################
 +## <summary>
- ##	Read all init script files.
- ## </summary>
- ## <param name="domain">
-@@ -1144,6 +1411,24 @@ interface(`init_read_all_script_files',`
- 
- #######################################
- ## <summary>
-+##	Dontaudit getattr all init script files.
++##	Read the process state (/proc/pid) of the init scripts.
 +## </summary>
 +## <param name="domain">
 +##	<summary>
-+##	Domain to not audit.
-+##	</summary>
-+## </param>
-+#
-+interface(`init_dontaudit_getattr_all_script_files',`
-+	gen_require(`
-+		attribute init_script_file_type;
-+	')
-+
-+	dontaudit $1 init_script_file_type:file getattr;
-+')
-+
-+#######################################
-+## <summary>
- ##	Dontaudit read all init script files.
- ## </summary>
- ## <param name="domain">
-@@ -1195,12 +1480,7 @@ interface(`init_read_script_state',`
++##	Domain allowed access.
+ ##	</summary>
+ ## </param>
+ #
+@@ -1195,12 +1500,7 @@ interface(`init_read_script_state',`
  	')
  
  	kernel_search_proc($1)
@@ -31677,73 +31816,11 @@ index 79a45f6..c6373d9 100644
  ')
  
  ########################################
-@@ -1314,7 +1594,7 @@ interface(`init_signal_script',`
+@@ -1314,6 +1614,24 @@ interface(`init_signal_script',`
  
  ########################################
  ## <summary>
--##	Send null signals to init scripts.
 +##	Send kill signals to init scripts.
- ## </summary>
- ## <param name="domain">
- ##	<summary>
-@@ -1322,17 +1602,17 @@ interface(`init_signal_script',`
- ##	</summary>
- ## </param>
- #
--interface(`init_signull_script',`
-+interface(`init_sigkill_script',`
- 	gen_require(`
- 		type initrc_t;
- 	')
- 
--	allow $1 initrc_t:process signull;
-+	allow $1 initrc_t:process sigkill;
- ')
- 
- ########################################
- ## <summary>
--##	Read and write init script unnamed pipes.
-+##	Send null signals to init scripts.
- ## </summary>
- ## <param name="domain">
- ##	<summary>
-@@ -1340,17 +1620,17 @@ interface(`init_signull_script',`
- ##	</summary>
- ## </param>
- #
--interface(`init_rw_script_pipes',`
-+interface(`init_signull_script',`
- 	gen_require(`
- 		type initrc_t;
- 	')
- 
--	allow $1 initrc_t:fifo_file { read write };
-+	allow $1 initrc_t:process signull;
- ')
- 
- ########################################
- ## <summary>
--##	Send UDP network traffic to init scripts.  (Deprecated)
-+##	Read and write init script unnamed pipes.
- ## </summary>
- ## <param name="domain">
- ##	<summary>
-@@ -1358,7 +1638,25 @@ interface(`init_rw_script_pipes',`
- ##	</summary>
- ## </param>
- #
--interface(`init_udp_send_script',`
-+interface(`init_rw_script_pipes',`
-+	gen_require(`
-+		type initrc_t;
-+	')
-+
-+	allow $1 initrc_t:fifo_file { read write };
-+')
-+
-+########################################
-+## <summary>
-+##	Send UDP network traffic to init scripts.  (Deprecated)
 +## </summary>
 +## <param name="domain">
 +##	<summary>
@@ -31751,11 +31828,20 @@ index 79a45f6..c6373d9 100644
 +##	</summary>
 +## </param>
 +#
-+interface(`init_udp_send_script',`
- 	refpolicywarn(`$0($*) has been deprecated.')
- ')
- 
-@@ -1440,6 +1738,27 @@ interface(`init_dbus_send_script',`
++interface(`init_sigkill_script',`
++	gen_require(`
++		type initrc_t;
++	')
++
++	allow $1 initrc_t:process sigkill;
++')
++
++########################################
++## <summary>
+ ##	Send null signals to init scripts.
+ ## </summary>
+ ## <param name="domain">
+@@ -1440,6 +1758,27 @@ interface(`init_dbus_send_script',`
  ########################################
  ## <summary>
  ##	Send and receive messages from
@@ -31783,7 +31869,7 @@ index 79a45f6..c6373d9 100644
  ##	init scripts over dbus.
  ## </summary>
  ## <param name="domain">
-@@ -1547,6 +1866,25 @@ interface(`init_getattr_script_status_files',`
+@@ -1547,6 +1886,25 @@ interface(`init_getattr_script_status_files',`
  
  ########################################
  ## <summary>
@@ -31809,7 +31895,7 @@ index 79a45f6..c6373d9 100644
  ##	Do not audit attempts to read init script
  ##	status files.
  ## </summary>
-@@ -1605,6 +1943,24 @@ interface(`init_rw_script_tmp_files',`
+@@ -1605,6 +1963,24 @@ interface(`init_rw_script_tmp_files',`
  
  ########################################
  ## <summary>
@@ -31834,7 +31920,7 @@ index 79a45f6..c6373d9 100644
  ##	Create files in a init script
  ##	temporary data directory.
  ## </summary>
-@@ -1677,6 +2033,43 @@ interface(`init_read_utmp',`
+@@ -1677,6 +2053,43 @@ interface(`init_read_utmp',`
  
  ########################################
  ## <summary>
@@ -31878,7 +31964,7 @@ index 79a45f6..c6373d9 100644
  ##	Do not audit attempts to write utmp.
  ## </summary>
  ## <param name="domain">
-@@ -1765,7 +2158,7 @@ interface(`init_dontaudit_rw_utmp',`
+@@ -1765,7 +2178,7 @@ interface(`init_dontaudit_rw_utmp',`
  		type initrc_var_run_t;
  	')
  
@@ -31887,7 +31973,7 @@ index 79a45f6..c6373d9 100644
  ')
  
  ########################################
-@@ -1806,6 +2199,133 @@ interface(`init_pid_filetrans_utmp',`
+@@ -1806,6 +2219,133 @@ interface(`init_pid_filetrans_utmp',`
  	files_pid_filetrans($1, initrc_var_run_t, file, "utmp")
  ')
  
@@ -32021,7 +32107,7 @@ index 79a45f6..c6373d9 100644
  ########################################
  ## <summary>
  ##	Allow the specified domain to connect to daemon with a tcp socket
-@@ -1840,3 +2360,470 @@ interface(`init_udp_recvfrom_all_daemons',`
+@@ -1840,3 +2380,470 @@ interface(`init_udp_recvfrom_all_daemons',`
  	')
  	corenet_udp_recvfrom_labeled($1, daemon)
  ')
@@ -41327,10 +41413,10 @@ index a392fc4..4302955 100644
 +')
 diff --git a/policy/modules/system/systemd.fc b/policy/modules/system/systemd.fc
 new file mode 100644
-index 0000000..916c8ed
+index 0000000..a6664be
 --- /dev/null
 +++ b/policy/modules/system/systemd.fc
-@@ -0,0 +1,49 @@
+@@ -0,0 +1,50 @@
 +HOME_DIR/\.local/share/systemd(/.*)?		gen_context(system_u:object_r:systemd_home_t,s0)
 +/root/\.local/share/systemd(/.*)?		gen_context(system_u:object_r:systemd_home_t,s0)
 +
@@ -41379,6 +41465,7 @@ index 0000000..916c8ed
 +/var/run/systemd/inhibit(/.*)?	gen_context(system_u:object_r:systemd_logind_inhibit_var_run_t,s0)
 +/var/run/systemd/ask-password-block(/.*)?	gen_context(system_u:object_r:systemd_passwd_var_run_t,s0)
 +/var/run/systemd/ask-password(/.*)?	gen_context(system_u:object_r:systemd_passwd_var_run_t,s0)
++/var/run/systemd/netif(/.*)? gen_context(system_u:object_r:systemd_networkd_var_run_t,s0)
 +/var/run/initramfs(/.*)?	<<none>>
 diff --git a/policy/modules/system/systemd.if b/policy/modules/system/systemd.if
 new file mode 100644
@@ -42848,10 +42935,10 @@ index 0000000..d2a8fc7
 +')
 diff --git a/policy/modules/system/systemd.te b/policy/modules/system/systemd.te
 new file mode 100644
-index 0000000..08a4e91
+index 0000000..4fa43d7
 --- /dev/null
 +++ b/policy/modules/system/systemd.te
-@@ -0,0 +1,686 @@
+@@ -0,0 +1,695 @@
 +policy_module(systemd, 1.0.0)
 +
 +#######################################
@@ -42891,6 +42978,9 @@ index 0000000..08a4e91
 +
 +type systemd_networkd_unit_file_t;
 +systemd_unit_file(systemd_networkd_unit_file_t)
++
++type systemd_networkd_var_run_t;
++files_pid_file(systemd_networkd_var_run_t)
 +
 +# domain for systemd-tty-ask-password-agent and systemd-gnome-ask-password-agent
 +# systemd components
@@ -43092,6 +43182,10 @@ index 0000000..08a4e91
 +allow systemd_networkd_t self:unix_dgram_socket create_socket_perms;
 +allow systemd_networkd_t self:packet_socket create_socket_perms;
 +
++manage_files_pattern(systemd_networkd_t, systemd_networkd_var_run_t, systemd_networkd_var_run_t)
++manage_lnk_files_pattern(systemd_networkd_t, systemd_networkd_var_run_t, systemd_networkd_var_run_t)
++manage_dirs_pattern(systemd_networkd_t, systemd_networkd_var_run_t, systemd_networkd_var_run_t)
++
 +kernel_dgram_send(systemd_networkd_t)
 +
 +dev_read_sysfs(systemd_networkd_t)
@@ -43099,6 +43193,8 @@ index 0000000..08a4e91
 +sysnet_filetrans_named_content(systemd_networkd_t)
 +sysnet_manage_config(systemd_networkd_t)
 +sysnet_manage_config_dirs(systemd_networkd_t)
++
++init_named_pid_filetrans(systemd_logind_t, systemd_networkd_var_run_t, dir, "netif")
 +
 +optional_policy(`
 +    dbus_system_bus_client(systemd_networkd_t)
@@ -43836,7 +43932,7 @@ index 9a1650d..d7e8a01 100644
  
  ########################################
 diff --git a/policy/modules/system/udev.te b/policy/modules/system/udev.te
-index 39f185f..f5aa25f 100644
+index 39f185f..880b174 100644
 --- a/policy/modules/system/udev.te
 +++ b/policy/modules/system/udev.te
 @@ -17,16 +17,17 @@ init_daemon_domain(udev_t, udev_exec_t)
@@ -43882,7 +43978,7 @@ index 39f185f..f5aa25f 100644
  
  allow udev_t udev_exec_t:file write;
  can_exec(udev_t, udev_exec_t)
-@@ -64,31 +66,38 @@ can_exec(udev_t, udev_helper_exec_t)
+@@ -64,31 +66,39 @@ can_exec(udev_t, udev_helper_exec_t)
  # read udev config
  allow udev_t udev_etc_t:file read_file_perms;
  
@@ -43903,6 +43999,7 @@ index 39f185f..f5aa25f 100644
  manage_sock_files_pattern(udev_t, udev_var_run_t, udev_var_run_t)
  files_pid_filetrans(udev_t, udev_var_run_t, dir, "udev")
 +allow udev_t udev_var_run_t:file mounton;
++allow udev_t udev_var_run_t:dir mounton;
 +allow udev_t udev_var_run_t:lnk_file relabel_lnk_file_perms;
 +dev_filetrans(udev_t, udev_var_run_t, { file lnk_file } )
  
@@ -43928,7 +44025,7 @@ index 39f185f..f5aa25f 100644
  
  #https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=235182
  kernel_rw_net_sysctls(udev_t)
-@@ -99,6 +108,7 @@ corecmd_exec_all_executables(udev_t)
+@@ -99,6 +109,7 @@ corecmd_exec_all_executables(udev_t)
  
  dev_rw_sysfs(udev_t)
  dev_manage_all_dev_nodes(udev_t)
@@ -43936,7 +44033,7 @@ index 39f185f..f5aa25f 100644
  dev_rw_generic_files(udev_t)
  dev_delete_generic_files(udev_t)
  dev_search_usbfs(udev_t)
-@@ -107,23 +117,31 @@ dev_relabel_all_dev_nodes(udev_t)
+@@ -107,23 +118,31 @@ dev_relabel_all_dev_nodes(udev_t)
  # preserved, instead of short circuiting the relabel
  dev_relabel_generic_symlinks(udev_t)
  dev_manage_generic_symlinks(udev_t)
@@ -43972,7 +44069,7 @@ index 39f185f..f5aa25f 100644
  
  mls_file_read_all_levels(udev_t)
  mls_file_write_all_levels(udev_t)
-@@ -145,17 +163,20 @@ auth_use_nsswitch(udev_t)
+@@ -145,17 +164,20 @@ auth_use_nsswitch(udev_t)
  init_read_utmp(udev_t)
  init_dontaudit_write_utmp(udev_t)
  init_getattr_initctl(udev_t)
@@ -43994,7 +44091,7 @@ index 39f185f..f5aa25f 100644
  
  seutil_read_config(udev_t)
  seutil_read_default_contexts(udev_t)
-@@ -169,7 +190,11 @@ sysnet_read_dhcpc_pid(udev_t)
+@@ -169,7 +191,11 @@ sysnet_read_dhcpc_pid(udev_t)
  sysnet_delete_dhcpc_pid(udev_t)
  sysnet_signal_dhcpc(udev_t)
  sysnet_manage_config(udev_t)
@@ -44007,7 +44104,7 @@ index 39f185f..f5aa25f 100644
  
  userdom_dontaudit_search_user_home_content(udev_t)
  
-@@ -195,16 +220,9 @@ ifdef(`distro_gentoo',`
+@@ -195,16 +221,9 @@ ifdef(`distro_gentoo',`
  ')
  
  ifdef(`distro_redhat',`
@@ -44026,7 +44123,7 @@ index 39f185f..f5aa25f 100644
  
  	# for arping used for static IP addresses on PCMCIA ethernet
  	netutils_domtrans(udev_t)
-@@ -242,6 +260,7 @@ optional_policy(`
+@@ -242,6 +261,7 @@ optional_policy(`
  
  optional_policy(`
  	cups_domtrans_config(udev_t)
@@ -44034,7 +44131,7 @@ index 39f185f..f5aa25f 100644
  ')
  
  optional_policy(`
-@@ -249,17 +268,31 @@ optional_policy(`
+@@ -249,17 +269,31 @@ optional_policy(`
  	dbus_use_system_bus_fds(udev_t)
  
  	optional_policy(`
@@ -44068,7 +44165,7 @@ index 39f185f..f5aa25f 100644
  ')
  
  optional_policy(`
-@@ -289,6 +322,10 @@ optional_policy(`
+@@ -289,6 +323,10 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -44079,7 +44176,7 @@ index 39f185f..f5aa25f 100644
  	openct_read_pid_files(udev_t)
  	openct_domtrans(udev_t)
  ')
-@@ -303,6 +340,15 @@ optional_policy(`
+@@ -303,6 +341,15 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -44095,7 +44192,7 @@ index 39f185f..f5aa25f 100644
  	unconfined_signal(udev_t)
  ')
  
-@@ -315,6 +361,7 @@ optional_policy(`
+@@ -315,6 +362,7 @@ optional_policy(`
  	kernel_read_xen_state(udev_t)
  	xen_manage_log(udev_t)
  	xen_read_image_files(udev_t)
@@ -44668,10 +44765,10 @@ index 5ca20a9..e749152 100644
 +	corecmd_bin_domtrans($1, unconfined_service_t)
  ')
 diff --git a/policy/modules/system/unconfined.te b/policy/modules/system/unconfined.te
-index 5fe902d..b8aeff9 100644
+index 5fe902d..a349d18 100644
 --- a/policy/modules/system/unconfined.te
 +++ b/policy/modules/system/unconfined.te
-@@ -1,207 +1,24 @@
+@@ -1,207 +1,28 @@
 -policy_module(unconfined, 3.5.1)
 +policy_module(unconfined, 3.5.0)
  
@@ -44700,7 +44797,8 @@ index 5fe902d..b8aeff9 100644
 -type unconfined_execmem_exec_t;
 -init_system_domain(unconfined_execmem_t, unconfined_execmem_exec_t)
 -role unconfined_r types unconfined_execmem_t;
--
++unconfined_stub_role()
+ 
 -########################################
 -#
 -# Local policy
@@ -44737,16 +44835,13 @@ index 5fe902d..b8aeff9 100644
 -optional_policy(`
 -	ada_domtrans(unconfined_t)
 -')
-+corecmd_bin_entry_type(unconfined_service_t)
-+corecmd_shell_entry_type(unconfined_service_t)
- 
- optional_policy(`
+-
+-optional_policy(`
 -	apache_run_helper(unconfined_t, unconfined_r)
 -	apache_role(unconfined_r, unconfined_t)
-+	rpm_transition_script(unconfined_service_t, system_r)
- ')
- 
- optional_policy(`
+-')
+-
+-optional_policy(`
 -	bind_run_ndc(unconfined_t, unconfined_r)
 -')
 -
@@ -44761,7 +44856,8 @@ index 5fe902d..b8aeff9 100644
 -optional_policy(`
 -	firstboot_run(unconfined_t, unconfined_r)
 -')
--
++role unconfined_r types unconfined_service_t;
+ 
 -optional_policy(`
 -	ftp_run_ftpdctl(unconfined_t, unconfined_r)
 -')
@@ -44777,12 +44873,15 @@ index 5fe902d..b8aeff9 100644
 -optional_policy(`
 -	java_run_unconfined(unconfined_t, unconfined_r)
 -')
--
--optional_policy(`
++corecmd_bin_entry_type(unconfined_service_t)
++corecmd_shell_entry_type(unconfined_service_t)
+ 
+ optional_policy(`
 -	lpd_run_checkpc(unconfined_t, unconfined_r)
--')
--
--optional_policy(`
++	rpm_transition_script(unconfined_service_t, system_r)
+ ')
+ 
+ optional_policy(`
 -	modutils_run_update_mods(unconfined_t, unconfined_r)
 -')
 -
@@ -44932,7 +45031,7 @@ index db75976..1ee08ec 100644
 +/var/tmp/hsperfdata_root    gen_context(system_u:object_r:user_tmp_t,s0)
 +
 diff --git a/policy/modules/system/userdomain.if b/policy/modules/system/userdomain.if
-index 9dc60c6..ce8b28d 100644
+index 9dc60c6..3104d12 100644
 --- a/policy/modules/system/userdomain.if
 +++ b/policy/modules/system/userdomain.if
 @@ -30,9 +30,11 @@ template(`userdom_base_user_template',`
@@ -48200,7 +48299,7 @@ index 9dc60c6..ce8b28d 100644
  ########################################
  ## <summary>
  ##	Send a SIGCHLD signal to all user domains.
-@@ -3402,6 +4431,24 @@ interface(`userdom_sigchld_all_users',`
+@@ -3402,6 +4431,60 @@ interface(`userdom_sigchld_all_users',`
  
  ########################################
  ## <summary>
@@ -48222,10 +48321,46 @@ index 9dc60c6..ce8b28d 100644
 +
 +########################################
 +## <summary>
++##	Write keys for all user domains.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`userdom_write_all_users_keys',`
++	gen_require(`
++		attribute userdomain;
++	')
++
++	allow $1 userdomain:key write;
++')
++
++########################################
++## <summary>
++##	Read and write keys for all user domains.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`userdom_rw_all_users_keys',`
++	gen_require(`
++		attribute userdomain;
++	')
++
++	allow $1 userdomain:key { read view write };
++')
++
++########################################
++## <summary>
  ##	Create keys for all user domains.
  ## </summary>
  ## <param name="domain">
-@@ -3435,4 +4482,1686 @@ interface(`userdom_dbus_send_all_users',`
+@@ -3435,4 +4518,1686 @@ interface(`userdom_dbus_send_all_users',`
  	')
  
  	allow $1 userdomain:dbus send_msg;
