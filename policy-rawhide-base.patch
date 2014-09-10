@@ -29903,7 +29903,7 @@ index 3efd5b6..12dca57 100644
 +	allow $1 login_pgm:key manage_key_perms;
 +')
 diff --git a/policy/modules/system/authlogin.te b/policy/modules/system/authlogin.te
-index 09b791d..ff0708e 100644
+index 09b791d..49d8c47 100644
 --- a/policy/modules/system/authlogin.te
 +++ b/policy/modules/system/authlogin.te
 @@ -5,6 +5,19 @@ policy_module(authlogin, 2.5.1)
@@ -30227,7 +30227,7 @@ index 09b791d..ff0708e 100644
  optional_policy(`
  	kerberos_use(nsswitch_domain)
  ')
-@@ -456,10 +520,145 @@ optional_policy(`
+@@ -456,10 +520,151 @@ optional_policy(`
  
  optional_policy(`
  	sssd_stream_connect(nsswitch_domain)
@@ -30235,6 +30235,12 @@ index 09b791d..ff0708e 100644
 +	sssd_read_lib_files(nsswitch_domain)
  ')
  
++#1134389
++userdom_manage_all_users_keys(nsswitch_domain)
++optional_policy(`
++    sssd_manage_keys(nsswitch_domain)
++")
++
  optional_policy(`
  	samba_stream_connect_winbind(nsswitch_domain)
 +    samba_stream_connect_nmbd(nsswitch_domain)

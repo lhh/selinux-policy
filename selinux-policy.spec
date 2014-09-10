@@ -19,7 +19,7 @@
 Summary: SELinux policy configuration
 Name: selinux-policy
 Version: 3.13.1
-Release: 79%{?dist}
+Release: 80%{?dist}
 License: GPLv2+
 Group: System Environment/Base
 Source: serefpolicy-%{version}.tgz
@@ -602,6 +602,10 @@ SELinux Reference policy mls base module.
 %endif
 
 %changelog
+* Wed Sep 10 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-80
+- Back port workaround for #1134389 from F20. It needs to be removed from rawhide once we ship F21.
+- Since docker will now label volumes we can tighten the security of docker
+
 * Wed Sep 10 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-79
 - Re-arange openshift_net_read_t rules.
 - Kernel is reporting random block_suspends, we should dontaudit these until the kernel is fixed in Rawhide
