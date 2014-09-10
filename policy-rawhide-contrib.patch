@@ -103971,7 +103971,7 @@ index facdee8..c43ef2e 100644
 +	typeattribute $1 sandbox_caps_domain;
  ')
 diff --git a/virt.te b/virt.te
-index f03dcf5..7b38f46 100644
+index f03dcf5..b1e7d75 100644
 --- a/virt.te
 +++ b/virt.te
 @@ -1,150 +1,227 @@
@@ -105458,7 +105458,7 @@ index f03dcf5..7b38f46 100644
  selinux_get_enforce_mode(virtd_lxc_t)
  selinux_get_fs_mount(virtd_lxc_t)
  selinux_validate_context(virtd_lxc_t)
-@@ -974,194 +1155,316 @@ selinux_compute_create_context(virtd_lxc_t)
+@@ -974,194 +1155,317 @@ selinux_compute_create_context(virtd_lxc_t)
  selinux_compute_relabel_context(virtd_lxc_t)
  selinux_compute_user_contexts(virtd_lxc_t)
  
@@ -105737,7 +105737,8 @@ index f03dcf5..7b38f46 100644
 +virt_sandbox_domain_template(svirt_lxc_net)
 +virt_default_capabilities(svirt_lxc_net_t)
 +typeattribute svirt_lxc_net_t sandbox_net_domain;
-+dontaudit svirt_lxc_net_t self:capability2 {fsetid block_suspend };
++dontaudit svirt_lxc_net_t self:capability fsetid;
++dontaudit svirt_lxc_net_t self:capability2  block_suspend ;
 +allow svirt_lxc_net_t self:process { execstack execmem };
 +manage_chr_files_pattern(svirt_lxc_net_t, svirt_sandbox_file_t, svirt_sandbox_file_t)
 +
@@ -105913,7 +105914,7 @@ index f03dcf5..7b38f46 100644
  allow virt_qmf_t self:tcp_socket create_stream_socket_perms;
  allow virt_qmf_t self:netlink_route_socket create_netlink_socket_perms;
  
-@@ -1174,12 +1477,12 @@ dev_read_sysfs(virt_qmf_t)
+@@ -1174,12 +1478,12 @@ dev_read_sysfs(virt_qmf_t)
  dev_read_rand(virt_qmf_t)
  dev_read_urand(virt_qmf_t)
  
@@ -105928,7 +105929,7 @@ index f03dcf5..7b38f46 100644
  sysnet_read_config(virt_qmf_t)
  
  optional_policy(`
-@@ -1192,9 +1495,8 @@ optional_policy(`
+@@ -1192,9 +1496,8 @@ optional_policy(`
  
  ########################################
  #
@@ -105939,7 +105940,7 @@ index f03dcf5..7b38f46 100644
  allow virt_bridgehelper_t self:process { setcap getcap };
  allow virt_bridgehelper_t self:capability { setpcap setgid setuid net_admin };
  allow virt_bridgehelper_t self:tcp_socket create_stream_socket_perms;
-@@ -1207,5 +1509,219 @@ kernel_read_network_state(virt_bridgehelper_t)
+@@ -1207,5 +1510,219 @@ kernel_read_network_state(virt_bridgehelper_t)
  
  corenet_rw_tun_tap_dev(virt_bridgehelper_t)
  
