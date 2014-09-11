@@ -19,7 +19,7 @@
 Summary: SELinux policy configuration
 Name: selinux-policy
 Version: 3.13.1
-Release: 80%{?dist}
+Release: 81%{?dist}
 License: GPLv2+
 Group: System Environment/Base
 Source: serefpolicy-%{version}.tgz
@@ -602,6 +602,19 @@ SELinux Reference policy mls base module.
 %endif
 
 %changelog
+* Thu Sep 11 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-81
+- Label /usr/lib/erlang/erts.*/bin files as bin_t
+- Added changes related to rabbitmq daemon.
+- Fix labeling in couchdb policy
+- Allow rabbitmq bind on epmd port
+- Clean up rabbitmq policy
+- fix domtrans_rabbitmq interface
+- Added rabbitmq_beam_t and rabbitmq_epmd_t alias
+- Allow couchdb to getattr
+- Allow couchdb write to couchdb_conf files
+- Allow couchdb to create dgram_sockets
+- Added support for ejabberd
+
 * Wed Sep 10 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-80
 - Back port workaround for #1134389 from F20. It needs to be removed from rawhide once we ship F21.
 - Since docker will now label volumes we can tighten the security of docker

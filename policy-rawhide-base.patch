@@ -3265,7 +3265,7 @@ index 7590165..85186a9 100644
 +	fs_mounton_fusefs(seunshare_domain)
  ')
 diff --git a/policy/modules/kernel/corecommands.fc b/policy/modules/kernel/corecommands.fc
-index 33e0f8d..baf1082 100644
+index 33e0f8d..885da9a 100644
 --- a/policy/modules/kernel/corecommands.fc
 +++ b/policy/modules/kernel/corecommands.fc
 @@ -1,9 +1,10 @@
@@ -3347,7 +3347,12 @@ index 33e0f8d..baf1082 100644
  
  ifdef(`distro_gentoo',`
  /lib/dhcpcd/dhcpcd-run-hooks	--	gen_context(system_u:object_r:bin_t,s0)
-@@ -152,7 +166,7 @@ ifdef(`distro_gentoo',`
+@@ -149,10 +163,12 @@ ifdef(`distro_gentoo',`
+ /lib/rcscripts/net\.modules\.d/helpers\.d/udhcpc-.* -- gen_context(system_u:object_r:bin_t,s0)
+ ')
+ 
++/usr/lib/erlang/erts.*/bin(/.*)?        gen_context(system_u:object_r:bin_t,s0)
++
  #
  # /sbin
  #
@@ -3356,7 +3361,7 @@ index 33e0f8d..baf1082 100644
  /sbin/.*				gen_context(system_u:object_r:bin_t,s0)
  /sbin/insmod_ksymoops_clean	--	gen_context(system_u:object_r:bin_t,s0)
  /sbin/mkfs\.cramfs		--	gen_context(system_u:object_r:bin_t,s0)
-@@ -168,6 +182,7 @@ ifdef(`distro_gentoo',`
+@@ -168,6 +184,7 @@ ifdef(`distro_gentoo',`
  /opt/(.*/)?sbin(/.*)?			gen_context(system_u:object_r:bin_t,s0)
  
  /opt/google/talkplugin(/.*)?		gen_context(system_u:object_r:bin_t,s0)
@@ -3364,7 +3369,7 @@ index 33e0f8d..baf1082 100644
  
  /opt/gutenprint/cups/lib/filter(/.*)?	gen_context(system_u:object_r:bin_t,s0)
  
-@@ -179,34 +194,50 @@ ifdef(`distro_gentoo',`
+@@ -179,34 +196,50 @@ ifdef(`distro_gentoo',`
  /opt/vmware/workstation/lib/lib/wrapper-gtk24\.sh -- gen_context(system_u:object_r:bin_t,s0)
  ')
  
@@ -3424,7 +3429,7 @@ index 33e0f8d..baf1082 100644
  /usr/lib/dpkg/.+		--	gen_context(system_u:object_r:bin_t,s0)
  /usr/lib/emacsen-common/.*		gen_context(system_u:object_r:bin_t,s0)
  /usr/lib/gimp/.*/plug-ins(/.*)?		gen_context(system_u:object_r:bin_t,s0)
-@@ -218,19 +249,32 @@ ifdef(`distro_gentoo',`
+@@ -218,19 +251,32 @@ ifdef(`distro_gentoo',`
  /usr/lib/mailman/mail(/.*)?		gen_context(system_u:object_r:bin_t,s0)
  /usr/lib/mediawiki/math/texvc.*		gen_context(system_u:object_r:bin_t,s0)
  /usr/lib/misc/sftp-server	--	gen_context(system_u:object_r:bin_t,s0)
@@ -3464,7 +3469,7 @@ index 33e0f8d..baf1082 100644
  /usr/lib/xfce4/exo-1/exo-compose-mail-1 -- gen_context(system_u:object_r:bin_t,s0)
  /usr/lib/xfce4/exo-1/exo-helper-1 --	gen_context(system_u:object_r:bin_t,s0)
  /usr/lib/xfce4/panel/migrate	--	gen_context(system_u:object_r:bin_t,s0)
-@@ -245,26 +289,39 @@ ifdef(`distro_gentoo',`
+@@ -245,26 +291,39 @@ ifdef(`distro_gentoo',`
  /usr/lib/debug/sbin(/.*)?	--	gen_context(system_u:object_r:bin_t,s0)
  /usr/lib/debug/usr/bin(/.*)?	--	gen_context(system_u:object_r:bin_t,s0)
  /usr/lib/debug/usr/sbin(/.*)?	--	gen_context(system_u:object_r:bin_t,s0)
@@ -3509,7 +3514,7 @@ index 33e0f8d..baf1082 100644
  /usr/sbin/scponlyc		--	gen_context(system_u:object_r:shell_exec_t,s0)
  /usr/sbin/sesh			--	gen_context(system_u:object_r:shell_exec_t,s0)
  /usr/sbin/smrsh			--	gen_context(system_u:object_r:shell_exec_t,s0)
-@@ -280,10 +337,15 @@ ifdef(`distro_gentoo',`
+@@ -280,10 +339,15 @@ ifdef(`distro_gentoo',`
  /usr/share/cluster/.*\.sh		gen_context(system_u:object_r:bin_t,s0)
  /usr/share/cluster/ocf-shellfuncs --	gen_context(system_u:object_r:bin_t,s0)
  /usr/share/cluster/svclib_nfslock --	gen_context(system_u:object_r:bin_t,s0)
@@ -3525,7 +3530,7 @@ index 33e0f8d..baf1082 100644
  /usr/share/gnucash/finance-quote-check -- gen_context(system_u:object_r:bin_t,s0)
  /usr/share/gnucash/finance-quote-helper -- gen_context(system_u:object_r:bin_t,s0)
  /usr/share/hal/device-manager/hal-device-manager -- gen_context(system_u:object_r:bin_t,s0)
-@@ -298,16 +360,22 @@ ifdef(`distro_gentoo',`
+@@ -298,16 +362,22 @@ ifdef(`distro_gentoo',`
  /usr/share/selinux/devel/policygentool -- gen_context(system_u:object_r:bin_t,s0)
  /usr/share/smolt/client(/.*)?		gen_context(system_u:object_r:bin_t,s0)
  /usr/share/shorewall/compiler\.pl --	gen_context(system_u:object_r:bin_t,s0)
@@ -3550,7 +3555,7 @@ index 33e0f8d..baf1082 100644
  
  ifdef(`distro_debian',`
  /usr/lib/ConsoleKit/.*		--	gen_context(system_u:object_r:bin_t,s0)
-@@ -325,20 +393,27 @@ ifdef(`distro_redhat', `
+@@ -325,20 +395,27 @@ ifdef(`distro_redhat', `
  /etc/gdm/[^/]+			-d	gen_context(system_u:object_r:bin_t,s0)
  /etc/gdm/[^/]+/.*			gen_context(system_u:object_r:bin_t,s0)
  
@@ -3579,7 +3584,7 @@ index 33e0f8d..baf1082 100644
  /usr/share/pwlib/make/ptlib-config --	gen_context(system_u:object_r:bin_t,s0)
  /usr/share/pydict/pydict\.py	--	gen_context(system_u:object_r:bin_t,s0)
  /usr/share/rhn/rhn_applet/applet\.py -- gen_context(system_u:object_r:bin_t,s0)
-@@ -346,6 +421,7 @@ ifdef(`distro_redhat', `
+@@ -346,6 +423,7 @@ ifdef(`distro_redhat', `
  /usr/share/ssl/misc(/.*)?		gen_context(system_u:object_r:bin_t,s0)
  /usr/share/switchdesk/switchdesk-gui\.py -- gen_context(system_u:object_r:bin_t,s0)
  /usr/share/system-config-date/system-config-date\.py -- gen_context(system_u:object_r:bin_t,s0)
@@ -3587,7 +3592,7 @@ index 33e0f8d..baf1082 100644
  /usr/share/system-config-selinux/polgen\.py -- gen_context(system_u:object_r:bin_t,s0)
  /usr/share/system-config-selinux/system-config-selinux\.py -- gen_context(system_u:object_r:bin_t,s0)
  /usr/share/system-config-display/system-config-display -- gen_context(system_u:object_r:bin_t,s0)
-@@ -387,11 +463,16 @@ ifdef(`distro_suse', `
+@@ -387,11 +465,16 @@ ifdef(`distro_suse', `
  #
  # /var
  #
@@ -3605,7 +3610,7 @@ index 33e0f8d..baf1082 100644
  /usr/lib/yp/.+			--	gen_context(system_u:object_r:bin_t,s0)
  
  /var/qmail/bin			-d	gen_context(system_u:object_r:bin_t,s0)
-@@ -401,3 +482,12 @@ ifdef(`distro_suse', `
+@@ -401,3 +484,12 @@ ifdef(`distro_suse', `
  ifdef(`distro_suse',`
  /var/lib/samba/bin/.+			gen_context(system_u:object_r:bin_t,s0)
  ')
