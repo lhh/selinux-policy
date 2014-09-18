@@ -19,7 +19,7 @@
 Summary: SELinux policy configuration
 Name: selinux-policy
 Version: 3.13.1
-Release: 81%{?dist}
+Release: 82%{?dist}
 License: GPLv2+
 Group: System Environment/Base
 Source: serefpolicy-%{version}.tgz
@@ -602,6 +602,23 @@ SELinux Reference policy mls base module.
 %endif
 
 %changelog
+* Thu Sep 18 2014 Miroslav Grepl <mgrepl@redhat.com> 3.13.1-82
+- Allow du running in logwatch_t read hwdata.
+- Allow sys_admin capability for antivirus domians.
+- Use nagios_var_lib_t instead of nagios_lib_t in nagios.fc.
+- Add support for pnp4nagios.
+- Add missing labeling for /var/lib/cockpit.
+- Label resolv.conf as docker_share_t under docker so we can read within a container
+- Remove labeling for rabbitmqctl
+- setfscreate in pki.te is not capability class.
+- Allow virt domains to use virtd tap FDs until we get proper handling in libvirtd.
+- Allow wine domains to create cache dirs.
+- Allow newaliases to systemd inhibit pipes.
+- Add fixes for pki-tomcat scriptlet handling.
+- Allow user domains to manage all gnome home content
+- Allow locate to look at files/directories without labels, and chr_file and blk_file on non dev file systems
+- Allow usbmuxd chown capabilitiesllow locate to look at files/directories without labels, and chr_file and blk_file on non dev file systems
+
 * Thu Sep 11 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-81
 - Label /usr/lib/erlang/erts.*/bin files as bin_t
 - Added changes related to rabbitmq daemon.
