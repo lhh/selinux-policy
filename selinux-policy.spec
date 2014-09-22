@@ -19,7 +19,7 @@
 Summary: SELinux policy configuration
 Name: selinux-policy
 Version: 3.13.1
-Release: 82%{?dist}
+Release: 83%{?dist}
 License: GPLv2+
 Group: System Environment/Base
 Source: serefpolicy-%{version}.tgz
@@ -602,6 +602,11 @@ SELinux Reference policy mls base module.
 %endif
 
 %changelog
+* Mon Sep 22 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-83
+- Make sure /run/systemd/generator and system is labeled correctly on creation.
+- Additional access required by usbmuxd
+- Allow sensord read in /proc BZ(#1143799)
+
 * Thu Sep 18 2014 Miroslav Grepl <mgrepl@redhat.com> 3.13.1-82
 - Allow du running in logwatch_t read hwdata.
 - Allow sys_admin capability for antivirus domians.

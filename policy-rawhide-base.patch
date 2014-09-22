@@ -29122,7 +29122,7 @@ index bc0ffc8..7198bd9 100644
  ')
 +/var/run/systemd(/.*)?		gen_context(system_u:object_r:init_var_run_t,s0)
 diff --git a/policy/modules/system/init.if b/policy/modules/system/init.if
-index 79a45f6..c4546e2 100644
+index 79a45f6..f142c45 100644
 --- a/policy/modules/system/init.if
 +++ b/policy/modules/system/init.if
 @@ -1,5 +1,21 @@
@@ -30144,7 +30144,7 @@ index 79a45f6..c4546e2 100644
  ########################################
  ## <summary>
  ##	Allow the specified domain to connect to daemon with a tcp socket
-@@ -1840,3 +2380,470 @@ interface(`init_udp_recvfrom_all_daemons',`
+@@ -1840,3 +2380,473 @@ interface(`init_udp_recvfrom_all_daemons',`
  	')
  	corenet_udp_recvfrom_labeled($1, daemon)
  ')
@@ -30608,12 +30608,15 @@ index 79a45f6..c4546e2 100644
 +		type initrc_var_run_t;
 +		type machineid_t;
 +		type initctl_t;
++        type systemd_unit_file_t;
 +	')
 +
 +	files_pid_filetrans($1, initrc_var_run_t, file, "utmp")
 +	files_pid_filetrans($1, init_var_run_t, file, "random-seed")
 +	files_etc_filetrans($1, machineid_t, file, "machine-id" )
 +	files_pid_filetrans($1, initctl_t, fifo_file, "fifo" )
++	init_pid_filetrans($1, systemd_unit_file_t, dir, "generator")
++	init_pid_filetrans($1, systemd_unit_file_t, dir, "system")
 +')
 diff --git a/policy/modules/system/init.te b/policy/modules/system/init.te
 index 17eda24..dd417eb 100644

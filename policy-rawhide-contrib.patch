@@ -13983,10 +13983,10 @@ index 0000000..2b8cac8
 +	unconfined_domtrans(cockpit_session_t)
 +')
 diff --git a/collectd.fc b/collectd.fc
-index 79a3abe..8d70290 100644
+index 79a3abe..3237fb0 100644
 --- a/collectd.fc
 +++ b/collectd.fc
-@@ -1,9 +1,11 @@
+@@ -1,9 +1,12 @@
  /etc/rc\.d/init\.d/collectd	--	gen_context(system_u:object_r:collectd_initrc_exec_t,s0)
  
 +/usr/lib/systemd/system/collectd.*  -- gen_context(system_u:object_r:collectd_unit_file_t,s0)
@@ -13996,6 +13996,7 @@ index 79a3abe..8d70290 100644
  /var/lib/collectd(/.*)?	gen_context(system_u:object_r:collectd_var_lib_t,s0)
  
  /var/run/collectd\.pid	--	gen_context(system_u:object_r:collectd_var_run_t,s0)
++/var/run/collectd-unixsock  -s  gen_context(system_u:object_r:collectd_var_run_t,s0)
  
 -/usr/share/collectd/collection3/bin/.*\.cgi	--	gen_context(system_u:object_r:httpd_collectd_script_exec_t,s0)
 +/usr/share/collectd/collection3/bin/.*\.cgi	--	gen_context(system_u:object_r:collectd_script_exec_t,s0)
@@ -14182,10 +14183,10 @@ index 954309e..f4db2ca 100644
  ')
 +
 diff --git a/collectd.te b/collectd.te
-index 6471fa8..e6d320a 100644
+index 6471fa8..1d00efb 100644
 --- a/collectd.te
 +++ b/collectd.te
-@@ -26,18 +26,28 @@ files_type(collectd_var_lib_t)
+@@ -26,43 +26,59 @@ files_type(collectd_var_lib_t)
  type collectd_var_run_t;
  files_pid_file(collectd_var_run_t)
  
@@ -14215,9 +14216,12 @@ index 6471fa8..e6d320a 100644
  
  manage_dirs_pattern(collectd_t, collectd_var_lib_t, collectd_var_lib_t)
  manage_files_pattern(collectd_t, collectd_var_lib_t, collectd_var_lib_t)
-@@ -46,23 +56,29 @@ files_var_lib_filetrans(collectd_t, collectd_var_lib_t, dir)
+ files_var_lib_filetrans(collectd_t, collectd_var_lib_t, dir)
+ 
  manage_files_pattern(collectd_t, collectd_var_run_t, collectd_var_run_t)
- files_pid_filetrans(collectd_t, collectd_var_run_t, file)
+-files_pid_filetrans(collectd_t, collectd_var_run_t, file)
++manage_sock_files_pattern(collectd_t, collectd_var_run_t, collectd_var_run_t)
++files_pid_filetrans(collectd_t, collectd_var_run_t, { file sock_file })
  
 -domain_use_interactive_fds(collectd_t)
 +kernel_read_all_sysctls(collectd_t)
@@ -14227,8 +14231,7 @@ index 6471fa8..e6d320a 100644
 -kernel_read_network_state(collectd_t)
 -kernel_read_net_sysctls(collectd_t)
 -kernel_read_system_state(collectd_t)
-+auth_getattr_passwd(collectd_t)
-+auth_read_passwd(collectd_t)
++auth_use_nsswitch(collectd_t)
 +
 +corenet_udp_bind_generic_node(collectd_t)
 +corenet_udp_bind_collectd_port(collectd_t)
@@ -21265,7 +21268,7 @@ index 62d22cb..cbf09ce 100644
 +    files_var_filetrans($1, system_dbusd_var_lib_t, dir, "ibus")
  ')
 diff --git a/dbus.te b/dbus.te
-index c9998c8..9c12159 100644
+index c9998c8..94ff984 100644
 --- a/dbus.te
 +++ b/dbus.te
 @@ -4,17 +4,15 @@ gen_require(`
@@ -21389,7 +21392,7 @@ index c9998c8..9c12159 100644
  mls_fd_use_all_levels(system_dbusd_t)
  mls_rangetrans_target(system_dbusd_t)
  mls_file_read_all_levels(system_dbusd_t)
-@@ -123,66 +122,162 @@ term_dontaudit_use_console(system_dbusd_t)
+@@ -123,66 +122,165 @@ term_dontaudit_use_console(system_dbusd_t)
  auth_use_nsswitch(system_dbusd_t)
  auth_read_pam_console_data(system_dbusd_t)
  
@@ -21407,7 +21410,6 @@ index c9998c8..9c12159 100644
  init_use_fds(system_dbusd_t)
  init_use_script_ptys(system_dbusd_t)
 -init_all_labeled_script_domtrans(system_dbusd_t)
-+init_bin_domtrans_spec(system_dbusd_t)
 +init_domtrans_script(system_dbusd_t)
 +init_rw_stream_sockets(system_dbusd_t)
 +init_status(system_dbusd_t)
@@ -21442,9 +21444,10 @@ index c9998c8..9c12159 100644
 +
 +optional_policy(`
 +	getty_start_services(system_dbusd_t)
-+')
-+
-+optional_policy(`
+ ')
+ 
+ optional_policy(`
+-	seutil_sigchld_newrole(system_dbusd_t)
 +	gnome_exec_gconf(system_dbusd_t)
 +	gnome_read_inherited_home_icc_data_files(system_dbusd_t)
 +')
@@ -21466,10 +21469,9 @@ index c9998c8..9c12159 100644
 +
 +optional_policy(`
 +	sysnet_domtrans_dhcpc(system_dbusd_t)
- ')
- 
- optional_policy(`
--	seutil_sigchld_newrole(system_dbusd_t)
++')
++
++optional_policy(`
 +	systemd_use_fds_logind(system_dbusd_t)
 +	systemd_write_inherited_logind_sessions_pipes(system_dbusd_t)
 +	systemd_write_inhibit_pipes(system_dbusd_t)
@@ -21486,6 +21488,10 @@ index c9998c8..9c12159 100644
 +optional_policy(`
 +	# /var/lib/gdm/.local/share/icc/edid-0a027915105823af34f99b1704e80336.icc
 +	xserver_read_inherited_xdm_lib_files(system_dbusd_t)
++')
++
++optional_policy(`
++    unconfined_server_domtrans(system_dbusd_t)
 +')
 +
  ########################################
@@ -21510,7 +21516,7 @@ index c9998c8..9c12159 100644
 +init_rw_stream_sockets(system_bus_type)
 +
 +ps_process_pattern(system_dbusd_t, system_bus_type)
- 
++
 +userdom_dontaudit_search_admin_dir(system_bus_type)
 +userdom_read_all_users_state(system_bus_type)
 +
@@ -21525,7 +21531,7 @@ index c9998c8..9c12159 100644
 +optional_policy(`
 +	unconfined_dbus_send(system_bus_type)
 +')
-+
+ 
 +ifdef(`hide_broken_symptoms',`
 +	dontaudit system_bus_type system_dbusd_t:netlink_selinux_socket { read write };
 +')
@@ -21566,7 +21572,7 @@ index c9998c8..9c12159 100644
  kernel_read_kernel_sysctls(session_bus_type)
  
  corecmd_list_bin(session_bus_type)
-@@ -191,23 +286,18 @@ corecmd_read_bin_files(session_bus_type)
+@@ -191,23 +289,18 @@ corecmd_read_bin_files(session_bus_type)
  corecmd_read_bin_pipes(session_bus_type)
  corecmd_read_bin_sockets(session_bus_type)
  
@@ -21591,7 +21597,7 @@ index c9998c8..9c12159 100644
  files_dontaudit_search_var(session_bus_type)
  
  fs_getattr_romfs(session_bus_type)
-@@ -215,7 +305,6 @@ fs_getattr_xattr_fs(session_bus_type)
+@@ -215,7 +308,6 @@ fs_getattr_xattr_fs(session_bus_type)
  fs_list_inotifyfs(session_bus_type)
  fs_dontaudit_list_nfs(session_bus_type)
  
@@ -21599,7 +21605,7 @@ index c9998c8..9c12159 100644
  selinux_validate_context(session_bus_type)
  selinux_compute_access_vector(session_bus_type)
  selinux_compute_create_context(session_bus_type)
-@@ -225,18 +314,36 @@ selinux_compute_user_contexts(session_bus_type)
+@@ -225,18 +317,36 @@ selinux_compute_user_contexts(session_bus_type)
  auth_read_pam_console_data(session_bus_type)
  
  logging_send_audit_msgs(session_bus_type)
@@ -21641,7 +21647,7 @@ index c9998c8..9c12159 100644
  ')
  
  ########################################
-@@ -244,5 +351,9 @@ optional_policy(`
+@@ -244,5 +354,9 @@ optional_policy(`
  # Unconfined access to this module
  #
  
@@ -91145,10 +91151,10 @@ index d204752..31cc6e6 100644
 +	')
  ')
 diff --git a/sensord.te b/sensord.te
-index 5e82fd6..64e130f 100644
+index 5e82fd6..d31876d 100644
 --- a/sensord.te
 +++ b/sensord.te
-@@ -9,27 +9,35 @@ type sensord_t;
+@@ -9,27 +9,37 @@ type sensord_t;
  type sensord_exec_t;
  init_daemon_domain(sensord_t, sensord_exec_t)
  
@@ -91180,10 +91186,12 @@ index 5e82fd6..64e130f 100644
  manage_files_pattern(sensord_t, sensord_var_run_t, sensord_var_run_t)
  files_pid_filetrans(sensord_t, sensord_var_run_t, file)
  
- dev_read_sysfs(sensord_t)
+-dev_read_sysfs(sensord_t)
++kernel_read_system_state(sensord_t)
  
 -files_read_etc_files(sensord_t)
--
++dev_read_sysfs(sensord_t)
+ 
  logging_send_syslog_msg(sensord_t)
  
 -miscfiles_read_localization(sensord_t)
@@ -94331,7 +94339,7 @@ index 1499b0b..6950cab 100644
 -	spamassassin_role($2, $1)
  ')
 diff --git a/spamassassin.te b/spamassassin.te
-index cc58e35..de9c4d9 100644
+index cc58e35..025b7d5 100644
 --- a/spamassassin.te
 +++ b/spamassassin.te
 @@ -7,50 +7,23 @@ policy_module(spamassassin, 2.6.1)
@@ -94635,7 +94643,7 @@ index cc58e35..de9c4d9 100644
  ')
  
  ########################################
-@@ -167,72 +248,90 @@ optional_policy(`
+@@ -167,72 +248,92 @@ optional_policy(`
  # Client local policy
  #
  
@@ -94736,18 +94744,20 @@ index cc58e35..de9c4d9 100644
  
 -auth_use_nsswitch(spamc_t)
 +fs_search_auto_mountpoints(spamc_t)
++
++libs_exec_ldconfig(spamc_t)
  
  logging_send_syslog_msg(spamc_t)
  
 -miscfiles_read_localization(spamc_t)
--
++auth_use_nsswitch(spamc_t)
+ 
 -tunable_policy(`use_nfs_home_dirs',`
 -	fs_manage_nfs_dirs(spamc_t)
 -	fs_manage_nfs_files(spamc_t)
 -	fs_manage_nfs_symlinks(spamc_t)
 -')
-+auth_use_nsswitch(spamc_t)
- 
+-
 -tunable_policy(`use_samba_home_dirs',`
 -	fs_manage_cifs_dirs(spamc_t)
 -	fs_manage_cifs_files(spamc_t)
@@ -94757,7 +94767,7 @@ index cc58e35..de9c4d9 100644
  
  optional_policy(`
  	abrt_stream_connect(spamc_t)
-@@ -243,6 +342,7 @@ optional_policy(`
+@@ -243,6 +344,7 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -94765,7 +94775,7 @@ index cc58e35..de9c4d9 100644
  	evolution_stream_connect(spamc_t)
  ')
  
-@@ -251,10 +351,16 @@ optional_policy(`
+@@ -251,10 +353,16 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -94783,7 +94793,7 @@ index cc58e35..de9c4d9 100644
  	sendmail_stub(spamc_t)
  ')
  
-@@ -267,36 +373,38 @@ optional_policy(`
+@@ -267,36 +375,38 @@ optional_policy(`
  
  ########################################
  #
@@ -94839,7 +94849,7 @@ index cc58e35..de9c4d9 100644
  logging_log_filetrans(spamd_t, spamd_log_t, file)
  
  manage_dirs_pattern(spamd_t, spamd_spool_t, spamd_spool_t)
-@@ -308,7 +416,8 @@ manage_dirs_pattern(spamd_t, spamd_tmp_t, spamd_tmp_t)
+@@ -308,7 +418,8 @@ manage_dirs_pattern(spamd_t, spamd_tmp_t, spamd_tmp_t)
  manage_files_pattern(spamd_t, spamd_tmp_t, spamd_tmp_t)
  files_tmp_filetrans(spamd_t, spamd_tmp_t, { file dir })
  
@@ -94849,7 +94859,7 @@ index cc58e35..de9c4d9 100644
  manage_files_pattern(spamd_t, spamd_var_lib_t, spamd_var_lib_t)
  manage_lnk_files_pattern(spamd_t, spamd_var_lib_t, spamd_var_lib_t)
  
-@@ -317,12 +426,13 @@ manage_files_pattern(spamd_t, spamd_var_run_t, spamd_var_run_t)
+@@ -317,12 +428,13 @@ manage_files_pattern(spamd_t, spamd_var_run_t, spamd_var_run_t)
  manage_sock_files_pattern(spamd_t, spamd_var_run_t, spamd_var_run_t)
  files_pid_filetrans(spamd_t, spamd_var_run_t, { file dir })
  
@@ -94865,7 +94875,7 @@ index cc58e35..de9c4d9 100644
  corenet_all_recvfrom_netlabel(spamd_t)
  corenet_tcp_sendrecv_generic_if(spamd_t)
  corenet_udp_sendrecv_generic_if(spamd_t)
-@@ -331,78 +441,59 @@ corenet_udp_sendrecv_generic_node(spamd_t)
+@@ -331,78 +443,59 @@ corenet_udp_sendrecv_generic_node(spamd_t)
  corenet_tcp_sendrecv_all_ports(spamd_t)
  corenet_udp_sendrecv_all_ports(spamd_t)
  corenet_tcp_bind_generic_node(spamd_t)
@@ -94969,7 +94979,7 @@ index cc58e35..de9c4d9 100644
  ')
  
  optional_policy(`
-@@ -421,21 +512,13 @@ optional_policy(`
+@@ -421,21 +514,13 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -94993,7 +95003,7 @@ index cc58e35..de9c4d9 100644
  ')
  
  optional_policy(`
-@@ -443,8 +526,8 @@ optional_policy(`
+@@ -443,8 +528,8 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -95003,7 +95013,7 @@ index cc58e35..de9c4d9 100644
  ')
  
  optional_policy(`
-@@ -455,7 +538,17 @@ optional_policy(`
+@@ -455,7 +540,17 @@ optional_policy(`
  optional_policy(`
  	razor_domtrans(spamd_t)
  	razor_read_lib_files(spamd_t)
@@ -95022,7 +95032,7 @@ index cc58e35..de9c4d9 100644
  ')
  
  optional_policy(`
-@@ -463,9 +556,9 @@ optional_policy(`
+@@ -463,9 +558,9 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -95033,7 +95043,7 @@ index cc58e35..de9c4d9 100644
  ')
  
  optional_policy(`
-@@ -474,32 +567,32 @@ optional_policy(`
+@@ -474,32 +569,32 @@ optional_policy(`
  
  ########################################
  #
@@ -95076,7 +95086,7 @@ index cc58e35..de9c4d9 100644
  
  corecmd_exec_bin(spamd_update_t)
  corecmd_exec_shell(spamd_update_t)
-@@ -508,25 +601,21 @@ dev_read_urand(spamd_update_t)
+@@ -508,25 +603,21 @@ dev_read_urand(spamd_update_t)
  
  domain_use_interactive_fds(spamd_update_t)
  
@@ -100978,7 +100988,7 @@ index 1ec5e99..88e287d 100644
 +	allow $1 usbmuxd_unit_file_t:service all_service_perms;
 +')
 diff --git a/usbmuxd.te b/usbmuxd.te
-index 34a8917..21add3e 100644
+index 34a8917..a6b9e84 100644
 --- a/usbmuxd.te
 +++ b/usbmuxd.te
 @@ -10,34 +10,54 @@ roleattribute system_r usbmuxd_roles;
@@ -101004,9 +101014,10 @@ index 34a8917..21add3e 100644
  #
  
 -allow usbmuxd_t self:capability { kill setgid setuid };
-+allow usbmuxd_t self:capability { chown kill setgid setuid };
+-allow usbmuxd_t self:process { signal signull };
++allow usbmuxd_t self:capability { fowner fsetid chown kill setgid setuid };
 +dontaudit usbmuxd_t self:capability sys_resource;
- allow usbmuxd_t self:process { signal signull };
++allow usbmuxd_t self:process { signal_perms setrlimit };
  allow usbmuxd_t self:fifo_file rw_fifo_file_perms;
 +allow usbmuxd_t self:netlink_kobject_uevent_socket create_socket_perms;
 +allow usbmuxd_t self:unix_stream_socket connectto;
@@ -104104,7 +104115,7 @@ index facdee8..c43ef2e 100644
 +	typeattribute $1 sandbox_caps_domain;
  ')
 diff --git a/virt.te b/virt.te
-index f03dcf5..fe1bceb 100644
+index f03dcf5..e74f60a 100644
 --- a/virt.te
 +++ b/virt.te
 @@ -1,150 +1,227 @@
@@ -104889,7 +104900,7 @@ index f03dcf5..fe1bceb 100644
  dev_rw_sysfs(virtd_t)
  dev_read_urand(virtd_t)
  dev_read_rand(virtd_t)
-@@ -555,22 +444,27 @@ dev_rw_vhost(virtd_t)
+@@ -555,20 +444,25 @@ dev_rw_vhost(virtd_t)
  dev_setattr_generic_usb_dev(virtd_t)
  dev_relabel_generic_usb_dev(virtd_t)
  
@@ -104917,11 +104928,8 @@ index f03dcf5..fe1bceb 100644
  
 +fs_read_tmpfs_symlinks(virtd_t)
  fs_list_auto_mountpoints(virtd_t)
--fs_getattr_all_fs(virtd_t)
-+fs_getattr_xattr_fs(virtd_t)
+ fs_getattr_all_fs(virtd_t)
  fs_rw_anon_inodefs_files(virtd_t)
- fs_list_inotifyfs(virtd_t)
- fs_manage_cgroup_dirs(virtd_t)
 @@ -601,15 +495,18 @@ term_use_ptmx(virtd_t)
  
  auth_use_nsswitch(virtd_t)
