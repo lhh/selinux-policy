@@ -8827,7 +8827,7 @@ index 6a1e4d1..1b9b0b5 100644
 +	dontaudit $1 domain:dir_file_class_set audit_access;
  ')
 diff --git a/policy/modules/kernel/domain.te b/policy/modules/kernel/domain.te
-index cf04cb5..8fd98fc 100644
+index cf04cb5..16c88de 100644
 --- a/policy/modules/kernel/domain.te
 +++ b/policy/modules/kernel/domain.te
 @@ -4,17 +4,41 @@ policy_module(domain, 1.11.0)
@@ -8926,7 +8926,7 @@ index cf04cb5..8fd98fc 100644
  
  ifdef(`hide_broken_symptoms',`
  	# This check is in the general socket
-@@ -121,8 +173,18 @@ tunable_policy(`global_ssp',`
+@@ -121,8 +173,19 @@ tunable_policy(`global_ssp',`
  ')
  
  optional_policy(`
@@ -8942,10 +8942,11 @@ index cf04cb5..8fd98fc 100644
 +optional_policy(`
 +	miscfiles_read_localization(domain)
 +	miscfiles_read_man_pages(domain)
++	miscfiles_read_fonts(domain)
  ')
  
  optional_policy(`
-@@ -133,6 +195,9 @@ optional_policy(`
+@@ -133,6 +196,9 @@ optional_policy(`
  optional_policy(`
  	xserver_dontaudit_use_xdm_fds(domain)
  	xserver_dontaudit_rw_xdm_pipes(domain)
@@ -8955,7 +8956,7 @@ index cf04cb5..8fd98fc 100644
  ')
  
  ########################################
-@@ -147,12 +212,18 @@ optional_policy(`
+@@ -147,12 +213,18 @@ optional_policy(`
  # Use/sendto/connectto sockets created by any domain.
  allow unconfined_domain_type domain:{ socket_class_set socket key_socket } *;
  
@@ -8975,7 +8976,7 @@ index cf04cb5..8fd98fc 100644
  
  # Create/access any System V IPC objects.
  allow unconfined_domain_type domain:{ sem msgq shm } *;
-@@ -166,5 +237,348 @@ allow unconfined_domain_type domain:lnk_file { read_lnk_file_perms ioctl lock };
+@@ -166,5 +238,348 @@ allow unconfined_domain_type domain:lnk_file { read_lnk_file_perms ioctl lock };
  # act on all domains keys
  allow unconfined_domain_type domain:key *;
  

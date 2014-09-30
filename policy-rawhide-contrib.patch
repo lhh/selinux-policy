@@ -3623,7 +3623,7 @@ index 7caefc3..7e70f67 100644
 +/var/run/dirsrv/admin-serv.*	gen_context(system_u:object_r:httpd_var_run_t,s0)
 +/opt/dirsrv/var/run/dirsrv/dsgw/cookies(/.*)?       gen_context(system_u:object_r:httpd_var_run_t,s0)
 diff --git a/apache.if b/apache.if
-index f6eb485..918ae86 100644
+index f6eb485..f6d065e 100644
 --- a/apache.if
 +++ b/apache.if
 @@ -1,9 +1,9 @@
@@ -3772,7 +3772,7 @@ index f6eb485..918ae86 100644
 +	manage_fifo_files_pattern($1_script_t, $1_rw_content_t, $1_rw_content_t)
 +	manage_sock_files_pattern($1_script_t, $1_rw_content_t, $1_rw_content_t)
 +
-+	allow $1_script_t httpd_t:unix_stream_socket { accept getattr read write };
++	allow $1_script_t httpd_t:unix_stream_socket { ioctl accept getattr read write };
 +
 +	# Allow the web server to run scripts and serve pages
  	tunable_policy(`httpd_builtin_scripting',`
@@ -13887,10 +13887,10 @@ index 0000000..573dcae
 +')
 diff --git a/cockpit.te b/cockpit.te
 new file mode 100644
-index 0000000..2b8cac8
+index 0000000..4d89495
 --- /dev/null
 +++ b/cockpit.te
-@@ -0,0 +1,91 @@
+@@ -0,0 +1,98 @@
 +policy_module(cockpit, 1.0.0)
 +
 +########################################
@@ -13946,6 +13946,8 @@ index 0000000..2b8cac8
 +
 +auth_use_nsswitch(cockpit_ws_t)
 +
++init_stream_connect(cockpit_ws_t)
++
 +logging_send_syslog_msg(cockpit_ws_t)
 +
 +# cockpit-ws launches cockpit-session
@@ -13954,6 +13956,11 @@ index 0000000..2b8cac8
 +
 +# cockpit-session communicates back with cockpit-ws
 +allow cockpit_session_t cockpit_ws_t:unix_stream_socket rw_stream_socket_perms;
++
++optional_policy(`
++    kerberos_use(cockpit_ws_t)
++    kerberos_etc_filetrans_keytab(cockpit_ws_t)
++')
 +
 +optional_policy(`
 +	ssh_read_user_home_files(cockpit_ws_t)
@@ -29646,7 +29653,7 @@ index 1e29af1..6c64f55 100644
 +		userdom_user_home_dir_filetrans($1, git_user_content_t, dir, "public_git")
 +')
 diff --git a/git.te b/git.te
-index dc49c71..3ef1e93 100644
+index dc49c71..54df5e3 100644
 --- a/git.te
 +++ b/git.te
 @@ -49,14 +49,6 @@ gen_tunable(git_session_users, false)
@@ -29672,7 +29679,7 @@ index dc49c71..3ef1e93 100644
  
  type git_system_t, git_daemon;
  type gitd_exec_t;
-@@ -93,10 +86,10 @@ type git_session_t, git_daemon;
+@@ -93,12 +86,15 @@ type git_session_t, git_daemon;
  userdom_user_application_domain(git_session_t, gitd_exec_t)
  role git_session_roles types git_session_t;
  
@@ -29684,8 +29691,13 @@ index dc49c71..3ef1e93 100644
 +type git_user_content_t alias git_session_content_t;
  userdom_user_home_content(git_user_content_t)
  
++type git_script_tmp_t;
++files_tmp_file(git_script_tmp_t)
++
  ########################################
-@@ -110,6 +103,8 @@ list_dirs_pattern(git_session_t, git_user_content_t, git_user_content_t)
+ #
+ # Session policy
+@@ -110,6 +106,8 @@ list_dirs_pattern(git_session_t, git_user_content_t, git_user_content_t)
  read_files_pattern(git_session_t, git_user_content_t, git_user_content_t)
  userdom_search_user_home_dirs(git_session_t)
  
@@ -29694,7 +29706,7 @@ index dc49c71..3ef1e93 100644
  corenet_all_recvfrom_netlabel(git_session_t)
  corenet_all_recvfrom_unlabeled(git_session_t)
  corenet_tcp_bind_generic_node(git_session_t)
-@@ -130,9 +125,7 @@ tunable_policy(`git_session_bind_all_unreserved_ports',`
+@@ -130,9 +128,7 @@ tunable_policy(`git_session_bind_all_unreserved_ports',`
  	corenet_tcp_sendrecv_all_ports(git_session_t)
  ')
  
@@ -29705,7 +29717,7 @@ index dc49c71..3ef1e93 100644
  
  tunable_policy(`use_nfs_home_dirs',`
  	fs_getattr_nfs(git_session_t)
-@@ -158,6 +151,9 @@ tunable_policy(`use_samba_home_dirs',`
+@@ -158,6 +154,9 @@ tunable_policy(`use_samba_home_dirs',`
  list_dirs_pattern(git_system_t, git_sys_content_t, git_sys_content_t)
  read_files_pattern(git_system_t, git_sys_content_t, git_sys_content_t)
  
@@ -29715,30 +29727,33 @@ index dc49c71..3ef1e93 100644
  corenet_all_recvfrom_unlabeled(git_system_t)
  corenet_all_recvfrom_netlabel(git_system_t)
  corenet_tcp_sendrecv_generic_if(git_system_t)
-@@ -176,6 +172,10 @@ logging_send_syslog_msg(git_system_t)
+@@ -176,6 +175,10 @@ logging_send_syslog_msg(git_system_t)
  
  tunable_policy(`git_system_enable_homedirs',`
  	userdom_search_user_home_dirs(git_system_t)
-+	list_dirs_pattern(httpd_git_script_t, git_user_content_t, git_user_content_t)
++	list_dirs_pattern(git_script_t, git_user_content_t, git_user_content_t)
 +	list_dirs_pattern(git_system_t, git_user_content_t, git_user_content_t)
 +	read_files_pattern(git_system_t, git_user_content_t, git_user_content_t)
 +
  ')
  
  tunable_policy(`git_system_enable_homedirs && use_nfs_home_dirs',`
-@@ -215,48 +215,48 @@ tunable_policy(`git_system_use_nfs',`
+@@ -215,48 +218,52 @@ tunable_policy(`git_system_use_nfs',`
  # CGI policy
  #
  
 -list_dirs_pattern(httpd_git_script_t, { git_sys_content_t git_user_content_t }, { git_sys_content_t git_user_content_t })
 -read_files_pattern(httpd_git_script_t, { git_sys_content_t git_user_content_t }, { git_sys_content_t git_user_content_t })
 -files_search_var_lib(httpd_git_script_t)
++manage_dirs_pattern(git_script_t, git_script_tmp_t, git_script_tmp_t)
++manage_files_pattern(git_script_t, git_script_tmp_t, git_script_tmp_t)
++manage_lnk_files_pattern(git_script_t, git_script_tmp_t, git_script_tmp_t)
++files_tmp_filetrans(git_script_t, git_script_tmp_t, { file dir })
+ 
+-files_dontaudit_getattr_tmp_dirs(httpd_git_script_t)
 +list_dirs_pattern(git_script_t, { git_sys_content_t git_user_content_t }, { git_sys_content_t git_user_content_t })
 +read_files_pattern(git_script_t, { git_sys_content_t git_user_content_t }, { git_sys_content_t git_user_content_t })
 +files_search_var_lib(git_script_t)
- 
--files_dontaudit_getattr_tmp_dirs(httpd_git_script_t)
-+files_dontaudit_getattr_tmp_dirs(git_script_t)
  
 -auth_use_nsswitch(httpd_git_script_t)
 +auth_use_nsswitch(git_script_t)
@@ -29748,6 +29763,7 @@ index dc49c71..3ef1e93 100644
 +	userdom_search_user_home_dirs(git_script_t)
  ')
  
++fs_getattr_tmpfs(git_script_t)
  tunable_policy(`git_cgi_enable_homedirs && use_nfs_home_dirs',`
 -	fs_getattr_nfs(httpd_git_script_t)
 -	fs_list_nfs(httpd_git_script_t)
@@ -29797,7 +29813,7 @@ index dc49c71..3ef1e93 100644
  ')
  
  ########################################
-@@ -266,12 +266,9 @@ tunable_policy(`git_cgi_use_nfs',`
+@@ -266,12 +273,9 @@ tunable_policy(`git_cgi_use_nfs',`
  
  allow git_daemon self:fifo_file rw_fifo_file_perms;
  
@@ -65027,10 +65043,10 @@ index 0000000..798efb6
 +')
 diff --git a/pki.te b/pki.te
 new file mode 100644
-index 0000000..0cb8f0a
+index 0000000..995cc23
 --- /dev/null
 +++ b/pki.te
-@@ -0,0 +1,280 @@
+@@ -0,0 +1,281 @@
 +policy_module(pki,10.0.11)
 +
 +########################################
@@ -65063,6 +65079,7 @@ index 0000000..0cb8f0a
 +miscfiles_cert_type(pki_tomcat_cert_t)
 +
 +tomcat_domain_template(pki_tomcat)
++domain_obj_id_change_exemption(pki_tomcat_t)
 +
 +type pki_tomcat_unit_file_t;
 +systemd_unit_file(pki_tomcat_unit_file_t)
@@ -76560,7 +76577,7 @@ index 2c3d338..7d49554 100644
  	init_labeled_script_domtrans($1, rabbitmq_initrc_exec_t)
  	domain_system_change_exemption($1)
 diff --git a/rabbitmq.te b/rabbitmq.te
-index dc3b0ed..8c4255e 100644
+index dc3b0ed..42203ed 100644
 --- a/rabbitmq.te
 +++ b/rabbitmq.te
 @@ -5,13 +5,14 @@ policy_module(rabbitmq, 1.0.2)
@@ -76594,7 +76611,7 @@ index dc3b0ed..8c4255e 100644
  type rabbitmq_var_log_t;
  logging_log_file(rabbitmq_var_log_t)
  
-@@ -27,98 +31,81 @@ files_pid_file(rabbitmq_var_run_t)
+@@ -27,98 +31,82 @@ files_pid_file(rabbitmq_var_run_t)
  
  ######################################
  #
@@ -76700,6 +76717,7 @@ index dc3b0ed..8c4255e 100644
 +
 +manage_dirs_pattern(rabbitmq_t, rabbitmq_var_lib_t, rabbitmq_var_lib_t)
 +manage_files_pattern(rabbitmq_t, rabbitmq_var_lib_t, rabbitmq_var_lib_t)
++manage_lnk_files_pattern(rabbitmq_t, rabbitmq_var_lib_t, rabbitmq_var_lib_t)
 +files_var_lib_filetrans(rabbitmq_t, rabbitmq_var_lib_t, { dir file })
 +
 +manage_dirs_pattern(rabbitmq_t, rabbitmq_var_log_t, rabbitmq_var_log_t)
@@ -76845,7 +76863,7 @@ index 4460582..60cf556 100644
 +
  ')
 diff --git a/radius.te b/radius.te
-index 403a4fe..de6f803 100644
+index 403a4fe..8fc3712 100644
 --- a/radius.te
 +++ b/radius.te
 @@ -27,6 +27,9 @@ files_type(radiusd_var_lib_t)
@@ -76871,16 +76889,17 @@ index 403a4fe..de6f803 100644
  corenet_all_recvfrom_netlabel(radiusd_t)
  corenet_tcp_sendrecv_generic_if(radiusd_t)
  corenet_udp_sendrecv_generic_if(radiusd_t)
-@@ -74,6 +77,8 @@ corenet_tcp_sendrecv_all_ports(radiusd_t)
+@@ -74,6 +77,9 @@ corenet_tcp_sendrecv_all_ports(radiusd_t)
  corenet_udp_sendrecv_all_ports(radiusd_t)
  corenet_udp_bind_generic_node(radiusd_t)
  
 +corenet_tcp_connect_postgresql_port(radiusd_t)
++corenet_tcp_connect_http_port(radiusd_t)
 +
  corenet_sendrecv_radacct_server_packets(radiusd_t)
  corenet_udp_bind_radacct_port(radiusd_t)
  
-@@ -97,7 +102,6 @@ domain_use_interactive_fds(radiusd_t)
+@@ -97,7 +103,6 @@ domain_use_interactive_fds(radiusd_t)
  fs_getattr_all_fs(radiusd_t)
  fs_search_auto_mountpoints(radiusd_t)
  
@@ -76888,7 +76907,7 @@ index 403a4fe..de6f803 100644
  files_read_etc_runtime_files(radiusd_t)
  files_dontaudit_list_tmp(radiusd_t)
  
-@@ -109,7 +113,6 @@ libs_exec_lib_files(radiusd_t)
+@@ -109,7 +114,6 @@ libs_exec_lib_files(radiusd_t)
  
  logging_send_syslog_msg(radiusd_t)
  
@@ -76896,7 +76915,7 @@ index 403a4fe..de6f803 100644
  miscfiles_read_generic_certs(radiusd_t)
  
  sysnet_use_ldap(radiusd_t)
-@@ -122,6 +125,11 @@ optional_policy(`
+@@ -122,6 +126,11 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -76908,7 +76927,7 @@ index 403a4fe..de6f803 100644
  	logrotate_exec(radiusd_t)
  ')
  
-@@ -140,5 +148,10 @@ optional_policy(`
+@@ -140,5 +149,10 @@ optional_policy(`
  ')
  
  optional_policy(`

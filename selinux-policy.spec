@@ -19,7 +19,7 @@
 Summary: SELinux policy configuration
 Name: selinux-policy
 Version: 3.13.1
-Release: 83%{?dist}
+Release: 84%{?dist}
 License: GPLv2+
 Group: System Environment/Base
 Source: serefpolicy-%{version}.tgz
@@ -602,6 +602,14 @@ SELinux Reference policy mls base module.
 %endif
 
 %changelog
+* Tue Sep 30 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-84
+- Allow all domains to read fonts
+- Allow rabbitmq_t read rabbitmq_var_lib_t lnk files. BZ (#1147028)
+- Allow pki-tomcat to change SELinux object identity.
+- Allow radious to connect to apache ports to do OCSP check
+- Allow git cgi scripts to create content in /tmp
+- Allow cockpit-session to do GSSAPI logins.
+
 * Mon Sep 22 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-83
 - Make sure /run/systemd/generator and system is labeled correctly on creation.
 - Additional access required by usbmuxd
