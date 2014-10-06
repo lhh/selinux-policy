@@ -62,3 +62,10 @@ optional_policy(`
     ')
     permissive brltty_t;
 ')
+
+optional_policy(`
+    gen_require(`
+            type cpuplug_t;
+    ')
+    permissive cpuplug_t;
+')
