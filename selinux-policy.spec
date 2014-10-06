@@ -19,7 +19,7 @@
 Summary: SELinux policy configuration
 Name: selinux-policy
 Version: 3.13.1
-Release: 84%{?dist}
+Release: 85%{?dist}
 License: GPLv2+
 Group: System Environment/Base
 Source: serefpolicy-%{version}.tgz
@@ -602,6 +602,28 @@ SELinux Reference policy mls base module.
 %endif
 
 %changelog
+* Mon Oct 06 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-85
+- Allow nova domains to getattr on all filesystems.
+- ALlow zebra for user/group look-ups.
+- Allow lsmd to search own plguins.
+- Allow sssd to read selinux config to add SELinux user mapping.
+- Allow swift to connect to all ephemeral ports by default.
+- Allow NetworkManager to create Bluetooth SDP sockets
+- Allow keepalived manage snmp var lib sock files. BZ(1102228)
+- Added policy for blrtty. BZ(1083162)
+- Allow rhsmcertd manage rpm db. BZ(#1134173)
+- Allow rhsmcertd send signull to setroubleshoot. BZ (#1134173)
+- Label /usr/libexec/rhsmd as rhsmcertd_exec_t
+- Fix broken interfaces
+- Added sendmail_domtrans_unconfined interface
+- Added support for cpuplug. BZ (#1077831)
+- Fix bug in drbd policy, BZ (#1134883)
+- Make keystone_cgi_script_t domain. BZ (#1138424)
+- fix dev_getattr_generic_usb_dev interface
+- Label 4101 tcp port as brlp port
+- Allow libreswan to connect to VPN via NM-libreswan.
+- Add userdom_manage_user_tmpfs_files interface
+
 * Tue Sep 30 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-84
 - Allow all domains to read fonts
 - Allow rabbitmq_t read rabbitmq_var_lib_t lnk files. BZ (#1147028)

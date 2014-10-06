@@ -5466,7 +5466,7 @@ index 8e0f9cd..b9f45b9 100644
  
  define(`create_packet_interfaces',``
 diff --git a/policy/modules/kernel/corenetwork.te.in b/policy/modules/kernel/corenetwork.te.in
-index b191055..6b99aea 100644
+index b191055..04e9cc8 100644
 --- a/policy/modules/kernel/corenetwork.te.in
 +++ b/policy/modules/kernel/corenetwork.te.in
 @@ -5,6 +5,7 @@ policy_module(corenetwork, 1.19.2)
@@ -5540,7 +5540,7 @@ index b191055..6b99aea 100644
  # reserved_port_t is the type of INET port numbers below 1024.
  #
  type reserved_port_t, port_type, reserved_port_type;
-@@ -84,55 +107,68 @@ network_port(amanda, udp,10080-10082,s0, tcp,10080-10083,s0)
+@@ -84,55 +107,69 @@ network_port(amanda, udp,10080-10082,s0, tcp,10080-10083,s0)
  network_port(amavisd_recv, tcp,10024,s0)
  network_port(amavisd_send, tcp,10025,s0)
  network_port(amqp, udp,5671-5672,s0, tcp,5671-5672,s0)
@@ -5557,6 +5557,7 @@ index b191055..6b99aea 100644
  network_port(bgp, tcp,179,s0, udp,179,s0, tcp,2605,s0, udp,2605,s0)
  network_port(boinc, tcp,31416,s0)
  network_port(boinc_client, tcp,1043,s0, udp,1034,s0)
++network_port(brlp, tcp,4101,s0)
  network_port(biff) # no defined portcon
  network_port(certmaster, tcp,51235,s0)
 +network_port(collectd, udp,25826,s0)
@@ -5617,7 +5618,7 @@ index b191055..6b99aea 100644
  network_port(gopher, tcp,70,s0, udp,70,s0)
  network_port(gpsd, tcp,2947,s0)
  network_port(hadoop_datanode, tcp,50010,s0)
-@@ -140,45 +176,54 @@ network_port(hadoop_namenode, tcp,8020,s0)
+@@ -140,45 +177,54 @@ network_port(hadoop_namenode, tcp,8020,s0)
  network_port(hddtemp, tcp,7634,s0)
  network_port(howl, tcp,5335,s0, udp,5353,s0)
  network_port(hplip, tcp,1782,s0, tcp,2207,s0, tcp,2208,s0, tcp, 8290,s0, tcp,50000,s0, tcp,50002,s0, tcp,8292,s0, tcp,9100,s0, tcp,9101,s0, tcp,9102,s0, tcp,9220,s0, tcp,9221,s0, tcp,9222,s0, tcp,9280,s0, tcp,9281,s0, tcp,9282,s0, tcp,9290,s0, tcp,9291,s0)
@@ -5686,7 +5687,7 @@ index b191055..6b99aea 100644
  network_port(msnp, tcp,1863,s0, udp,1863,s0)
  network_port(mssql, tcp,1433-1434,s0, udp,1433-1434,s0)
  network_port(ms_streaming, tcp,1755,s0, udp,1755,s0)
-@@ -186,26 +231,36 @@ network_port(munin, tcp,4949,s0, udp,4949,s0)
+@@ -186,26 +232,36 @@ network_port(munin, tcp,4949,s0, udp,4949,s0)
  network_port(mxi, tcp,8005,s0, udp,8005,s0)
  network_port(mysqld, tcp,1186,s0, tcp,3306,s0, tcp,63132-63164,s0)
  network_port(mysqlmanagerd, tcp,2273,s0)
@@ -5727,7 +5728,7 @@ index b191055..6b99aea 100644
  network_port(portmap, udp,111,s0, tcp,111,s0)
  network_port(postfix_policyd, tcp,10031,s0)
  network_port(postgresql, tcp,5432,s0)
-@@ -213,68 +268,79 @@ network_port(postgrey, tcp,60000,s0)
+@@ -213,68 +269,79 @@ network_port(postgrey, tcp,60000,s0)
  network_port(pptp, tcp,1723,s0, udp,1723,s0)
  network_port(prelude, tcp,4690,s0, udp,4690,s0)
  network_port(presence, tcp,5298-5299,s0, udp,5298-5299,s0)
@@ -5739,9 +5740,11 @@ index b191055..6b99aea 100644
  network_port(puppet, tcp, 8140, s0)
  network_port(pxe, udp,4011,s0)
  network_port(pyzor, udp,24441,s0)
+-network_port(radacct, udp,1646,s0, udp,1813,s0)
+-network_port(radius, udp,1645,s0, udp,1812,s0)
 +network_port(neutron, tcp, 8775, s0, tcp,9696,s0, tcp,9697,s0)
- network_port(radacct, udp,1646,s0, udp,1813,s0)
- network_port(radius, udp,1645,s0, udp,1812,s0)
++network_port(radacct, udp,1646,s0, tcp,1646,s0, tcp,1813,s0, udp,1813,s0)
++network_port(radius, udp,1645,s0, tpc,1645,s0, tcp,1812,s0, udp,1812,s0)
  network_port(radsec, tcp,2083,s0)
  network_port(razor, tcp,2703,s0)
 +network_port(time, tcp,37,s0, udp,37,s0)
@@ -5818,7 +5821,7 @@ index b191055..6b99aea 100644
  network_port(winshadow, tcp,3161,s0, udp,3261,s0)
  network_port(wsdapi, tcp,5357,s0, udp,5357,s0)
  network_port(wsicopy, tcp,3378,s0, udp,3378,s0)
-@@ -288,19 +354,23 @@ network_port(zabbix_agent, tcp,10050,s0)
+@@ -288,19 +355,23 @@ network_port(zabbix_agent, tcp,10050,s0)
  network_port(zookeeper_client, tcp,2181,s0)
  network_port(zookeeper_election, tcp,3888,s0)
  network_port(zookeeper_leader, tcp,2888,s0)
@@ -5845,7 +5848,7 @@ index b191055..6b99aea 100644
  
  ########################################
  #
-@@ -333,6 +403,8 @@ sid netif gen_context(system_u:object_r:netif_t,s0 - mls_systemhigh)
+@@ -333,6 +404,8 @@ sid netif gen_context(system_u:object_r:netif_t,s0 - mls_systemhigh)
  
  build_option(`enable_mls',`
  network_interface(lo, lo, s0 - mls_systemhigh)
@@ -5854,7 +5857,7 @@ index b191055..6b99aea 100644
  ',`
  typealias netif_t alias { lo_netif_t netif_lo_t };
  ')
-@@ -345,9 +417,28 @@ typealias netif_t alias { lo_netif_t netif_lo_t };
+@@ -345,9 +418,28 @@ typealias netif_t alias { lo_netif_t netif_lo_t };
  allow corenet_unconfined_type node_type:node *;
  allow corenet_unconfined_type netif_type:netif *;
  allow corenet_unconfined_type packet_type:packet *;
@@ -6019,7 +6022,7 @@ index b31c054..5e37a40 100644
 +/usr/lib/udev/devices/null	-c	gen_context(system_u:object_r:null_device_t,s0)
 +/usr/lib/udev/devices/zero	-c	gen_context(system_u:object_r:zero_device_t,s0)
 diff --git a/policy/modules/kernel/devices.if b/policy/modules/kernel/devices.if
-index 76f285e..a3c0103 100644
+index 76f285e..03d4787 100644
 --- a/policy/modules/kernel/devices.if
 +++ b/policy/modules/kernel/devices.if
 @@ -143,13 +143,32 @@ interface(`dev_relabel_all_dev_nodes',`
@@ -7297,6 +7300,15 @@ index 76f285e..a3c0103 100644
  ##	Getattr generic the USB devices.
  ## </summary>
  ## <param name="domain">
+@@ -4123,7 +4766,7 @@ interface(`dev_write_urand',`
+ #
+ interface(`dev_getattr_generic_usb_dev',`
+ 	gen_require(`
+-		type usb_device_t;
++		type usb_device_t,device_t;
+ 	')
+ 
+ 	getattr_chr_files_pattern($1, device_t, usb_device_t)
 @@ -4409,9 +5052,9 @@ interface(`dev_rw_usbfs',`
  	read_lnk_files_pattern($1, usbfs_t, usbfs_t)
  ')
@@ -32274,7 +32286,7 @@ index 0d4c8d3..e6ffda3 100644
 +    ps_process_pattern($1, ipsec_mgmt_t)
 +')
 diff --git a/policy/modules/system/ipsec.te b/policy/modules/system/ipsec.te
-index 312cd04..3c62b4c 100644
+index 312cd04..efe343f 100644
 --- a/policy/modules/system/ipsec.te
 +++ b/policy/modules/system/ipsec.te
 @@ -48,6 +48,9 @@ init_system_domain(ipsec_mgmt_t, ipsec_mgmt_exec_t)
@@ -32459,7 +32471,15 @@ index 312cd04..3c62b4c 100644
  dev_read_rand(ipsec_mgmt_t)
  dev_read_urand(ipsec_mgmt_t)
  
-@@ -278,9 +314,10 @@ fs_getattr_xattr_fs(ipsec_mgmt_t)
+@@ -269,6 +305,7 @@ domain_dontaudit_rw_all_key_sockets(ipsec_mgmt_t)
+ files_read_etc_files(ipsec_mgmt_t)
+ files_exec_etc_files(ipsec_mgmt_t)
+ files_read_etc_runtime_files(ipsec_mgmt_t)
++files_list_kernel_modules(ipsec_mgmt_t)
+ files_read_usr_files(ipsec_mgmt_t)
+ files_dontaudit_getattr_default_dirs(ipsec_mgmt_t)
+ files_dontaudit_getattr_default_files(ipsec_mgmt_t)
+@@ -278,9 +315,10 @@ fs_getattr_xattr_fs(ipsec_mgmt_t)
  fs_list_tmpfs(ipsec_mgmt_t)
  
  term_use_console(ipsec_mgmt_t)
@@ -32471,7 +32491,7 @@ index 312cd04..3c62b4c 100644
  
  init_read_utmp(ipsec_mgmt_t)
  init_use_script_ptys(ipsec_mgmt_t)
-@@ -288,17 +325,23 @@ init_exec_script_files(ipsec_mgmt_t)
+@@ -288,17 +326,23 @@ init_exec_script_files(ipsec_mgmt_t)
  init_use_fds(ipsec_mgmt_t)
  init_labeled_script_domtrans(ipsec_mgmt_t, ipsec_initrc_exec_t)
  
@@ -32500,7 +32520,7 @@ index 312cd04..3c62b4c 100644
  
  optional_policy(`
  	consoletype_exec(ipsec_mgmt_t)
-@@ -322,6 +365,10 @@ optional_policy(`
+@@ -322,6 +366,10 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -32511,7 +32531,7 @@ index 312cd04..3c62b4c 100644
  	modutils_domtrans_insmod(ipsec_mgmt_t)
  ')
  
-@@ -335,7 +382,7 @@ optional_policy(`
+@@ -335,7 +383,7 @@ optional_policy(`
  #
  
  allow racoon_t self:capability { net_admin net_bind_service };
@@ -32520,7 +32540,7 @@ index 312cd04..3c62b4c 100644
  allow racoon_t self:unix_dgram_socket { connect create ioctl write };
  allow racoon_t self:netlink_selinux_socket { bind create read };
  allow racoon_t self:udp_socket create_socket_perms;
-@@ -370,13 +417,12 @@ kernel_request_load_module(racoon_t)
+@@ -370,13 +418,12 @@ kernel_request_load_module(racoon_t)
  corecmd_exec_shell(racoon_t)
  corecmd_exec_bin(racoon_t)
  
@@ -32540,7 +32560,7 @@ index 312cd04..3c62b4c 100644
  corenet_udp_bind_isakmp_port(racoon_t)
  corenet_udp_bind_ipsecnat_port(racoon_t)
  
-@@ -401,10 +447,10 @@ locallogin_use_fds(racoon_t)
+@@ -401,10 +448,10 @@ locallogin_use_fds(racoon_t)
  logging_send_syslog_msg(racoon_t)
  logging_send_audit_msgs(racoon_t)
  
@@ -32553,7 +32573,7 @@ index 312cd04..3c62b4c 100644
  auth_can_read_shadow_passwords(racoon_t)
  tunable_policy(`racoon_read_shadow',`
  	auth_tunable_read_shadow(racoon_t)
-@@ -438,9 +484,8 @@ corenet_setcontext_all_spds(setkey_t)
+@@ -438,9 +485,8 @@ corenet_setcontext_all_spds(setkey_t)
  
  locallogin_use_fds(setkey_t)
  
@@ -43072,7 +43092,7 @@ index db75976..1ee08ec 100644
 +/var/tmp/hsperfdata_root    gen_context(system_u:object_r:user_tmp_t,s0)
 +
 diff --git a/policy/modules/system/userdomain.if b/policy/modules/system/userdomain.if
-index 9dc60c6..3104d12 100644
+index 9dc60c6..d04015e 100644
 --- a/policy/modules/system/userdomain.if
 +++ b/policy/modules/system/userdomain.if
 @@ -30,9 +30,11 @@ template(`userdom_base_user_template',`
@@ -45704,15 +45724,35 @@ index 9dc60c6..3104d12 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -2692,19 +3517,43 @@ interface(`userdom_read_user_tmpfs_files',`
+@@ -2692,19 +3517,13 @@ interface(`userdom_read_user_tmpfs_files',`
  ## </param>
  #
  interface(`userdom_rw_user_tmpfs_files',`
 -	gen_require(`
 -		type user_tmpfs_t;
 -	')
+-
+-	rw_files_pattern($1, user_tmpfs_t, user_tmpfs_t)
+-	read_lnk_files_pattern($1, user_tmpfs_t, user_tmpfs_t)
+-	allow $1 user_tmpfs_t:dir list_dir_perms;
+-	fs_search_tmpfs($1)
 +    refpolicywarn(`$0($*) has been deprecated, use userdom_rw_user_tmp_files() instead.')
 +    userdom_rw_user_tmp_files($1)
+ ')
+ 
+ ########################################
+ ## <summary>
+-##	Create, read, write, and delete user tmpfs files.
++##	Manage user tmpfs files.
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+@@ -2713,13 +3532,56 @@ interface(`userdom_rw_user_tmpfs_files',`
+ ## </param>
+ #
+ interface(`userdom_manage_user_tmpfs_files',`
++    refpolicywarn(`$0($*) has been deprecated, use userdom_manage_user_tmp_files() instead.')
++    userdom_manage_user_tmp_files($1)
 +')
 +
 +########################################
@@ -45729,11 +45769,7 @@ index 9dc60c6..3104d12 100644
 +    refpolicywarn(`$0($*) has been deprecated, use userdom_rw_inherited_user_tmp_files instead.')
 +    userdom_rw_inherited_user_tmp_files($1)
 +')
- 
--	rw_files_pattern($1, user_tmpfs_t, user_tmpfs_t)
--	read_lnk_files_pattern($1, user_tmpfs_t, user_tmpfs_t)
--	allow $1 user_tmpfs_t:dir list_dir_perms;
--	fs_search_tmpfs($1)
++
 +########################################
 +## <summary>
 +##	Execute user tmpfs files.
@@ -45747,20 +45783,18 @@ index 9dc60c6..3104d12 100644
 +interface(`userdom_execute_user_tmpfs_files',`
 +    refpolicywarn(`$0($*) has been deprecated, use userdom_execute_user_tmp_files instead.')
 +    userdom_execute_user_tmp_files($1)
- ')
- 
- ########################################
- ## <summary>
--##	Create, read, write, and delete user tmpfs files.
++')
++
++########################################
++## <summary>
 +##	Execute user tmpfs files.
- ## </summary>
- ## <param name="domain">
- ##	<summary>
-@@ -2712,14 +3561,12 @@ interface(`userdom_rw_user_tmpfs_files',`
- ##	</summary>
- ## </param>
- #
--interface(`userdom_manage_user_tmpfs_files',`
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
 +interface(`userdom_execute_user_tmp_files',`
  	gen_require(`
 -		type user_tmpfs_t;
@@ -45774,7 +45808,7 @@ index 9dc60c6..3104d12 100644
  ')
  
  ########################################
-@@ -2814,6 +3661,24 @@ interface(`userdom_use_user_ttys',`
+@@ -2814,6 +3676,24 @@ interface(`userdom_use_user_ttys',`
  
  ########################################
  ## <summary>
@@ -45799,7 +45833,7 @@ index 9dc60c6..3104d12 100644
  ##	Read and write a user domain pty.
  ## </summary>
  ## <param name="domain">
-@@ -2832,22 +3697,34 @@ interface(`userdom_use_user_ptys',`
+@@ -2832,22 +3712,34 @@ interface(`userdom_use_user_ptys',`
  
  ########################################
  ## <summary>
@@ -45842,7 +45876,7 @@ index 9dc60c6..3104d12 100644
  ## </desc>
  ## <param name="domain">
  ##	<summary>
-@@ -2856,14 +3733,33 @@ interface(`userdom_use_user_ptys',`
+@@ -2856,14 +3748,33 @@ interface(`userdom_use_user_ptys',`
  ## </param>
  ## <infoflow type="both" weight="10"/>
  #
@@ -45880,7 +45914,7 @@ index 9dc60c6..3104d12 100644
  ')
  
  ########################################
-@@ -2882,8 +3778,27 @@ interface(`userdom_dontaudit_use_user_terminals',`
+@@ -2882,8 +3793,27 @@ interface(`userdom_dontaudit_use_user_terminals',`
  		type user_tty_device_t, user_devpts_t;
  	')
  
@@ -45910,7 +45944,7 @@ index 9dc60c6..3104d12 100644
  ')
  
  ########################################
-@@ -2955,69 +3870,68 @@ interface(`userdom_spec_domtrans_unpriv_users',`
+@@ -2955,69 +3885,68 @@ interface(`userdom_spec_domtrans_unpriv_users',`
  	allow unpriv_userdomain $1:process sigchld;
  ')
  
@@ -46011,7 +46045,7 @@ index 9dc60c6..3104d12 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -3025,12 +3939,12 @@ interface(`userdom_manage_unpriv_user_semaphores',`
+@@ -3025,12 +3954,12 @@ interface(`userdom_manage_unpriv_user_semaphores',`
  ##	</summary>
  ## </param>
  #
@@ -46026,7 +46060,7 @@ index 9dc60c6..3104d12 100644
  ')
  
  ########################################
-@@ -3094,7 +4008,7 @@ interface(`userdom_entry_spec_domtrans_unpriv_users',`
+@@ -3094,7 +4023,7 @@ interface(`userdom_entry_spec_domtrans_unpriv_users',`
  
  	domain_entry_file_spec_domtrans($1, unpriv_userdomain)
  	allow unpriv_userdomain $1:fd use;
@@ -46035,7 +46069,7 @@ index 9dc60c6..3104d12 100644
  	allow unpriv_userdomain $1:process sigchld;
  ')
  
-@@ -3110,29 +4024,13 @@ interface(`userdom_entry_spec_domtrans_unpriv_users',`
+@@ -3110,29 +4039,13 @@ interface(`userdom_entry_spec_domtrans_unpriv_users',`
  #
  interface(`userdom_search_user_home_content',`
  	gen_require(`
@@ -46069,7 +46103,7 @@ index 9dc60c6..3104d12 100644
  ')
  
  ########################################
-@@ -3214,7 +4112,25 @@ interface(`userdom_dontaudit_use_user_ptys',`
+@@ -3214,7 +4127,25 @@ interface(`userdom_dontaudit_use_user_ptys',`
  		type user_devpts_t;
  	')
  
@@ -46096,7 +46130,7 @@ index 9dc60c6..3104d12 100644
  ')
  
  ########################################
-@@ -3269,12 +4185,13 @@ interface(`userdom_write_user_tmp_files',`
+@@ -3269,12 +4200,13 @@ interface(`userdom_write_user_tmp_files',`
  		type user_tmp_t;
  	')
  
@@ -46112,7 +46146,7 @@ index 9dc60c6..3104d12 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -3282,54 +4199,56 @@ interface(`userdom_write_user_tmp_files',`
+@@ -3282,46 +4214,122 @@ interface(`userdom_write_user_tmp_files',`
  ##	</summary>
  ## </param>
  #
@@ -46170,54 +46204,45 @@ index 9dc60c6..3104d12 100644
  	gen_require(`
 -		attribute userdomain;
 +		type user_tmp_t;
- 	')
- 
--	allow $1 userdomain:process getattr;
++	')
++
 +	dontaudit $1 user_tmp_t:fifo_file rw_inherited_fifo_file_perms;
- ')
- 
- ########################################
- ## <summary>
--##	Inherit the file descriptors from all user domains
++')
++
++########################################
++## <summary>
 +##	Allow domain to read/write inherited users
 +##	fifo files.
- ## </summary>
- ## <param name="domain">
- ##	<summary>
-@@ -3337,18 +4256,17 @@ interface(`userdom_getattr_all_users',`
- ##	</summary>
- ## </param>
- #
--interface(`userdom_use_all_users_fds',`
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
 +interface(`userdom_rw_inherited_user_pipes',`
- 	gen_require(`
- 		attribute userdomain;
- 	')
- 
--	allow $1 userdomain:fd use;
++	gen_require(`
++		attribute userdomain;
++	')
++
 +	allow $1 userdomain:fifo_file rw_inherited_fifo_file_perms;
- ')
- 
- ########################################
- ## <summary>
--##	Do not audit attempts to inherit the file
--##	descriptors from any user domains.
++')
++
++########################################
++## <summary>
 +##	Do not audit attempts to use user ttys.
- ## </summary>
- ## <param name="domain">
- ##	<summary>
-@@ -3356,12 +4274,87 @@ interface(`userdom_use_all_users_fds',`
- ##	</summary>
- ## </param>
- #
--interface(`userdom_dontaudit_use_all_users_fds',`
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain to not audit.
++##	</summary>
++## </param>
++#
 +interface(`userdom_dontaudit_use_user_ttys',`
- 	gen_require(`
--		attribute userdomain;
++	gen_require(`
 +		type user_tty_device_t;
- 	')
- 
--	dontaudit $1 userdomain:fd use;
++	')
++
 +	dontaudit $1 user_tty_device_t:chr_file rw_inherited_file_perms;
 +')
 +
@@ -46254,50 +46279,10 @@ index 9dc60c6..3104d12 100644
 +interface(`userdom_getattr_all_users',`
 +	gen_require(`
 +		attribute userdomain;
-+	')
-+
-+	allow $1 userdomain:process getattr;
-+')
-+
-+########################################
-+## <summary>
-+##	Inherit the file descriptors from all user domains
-+## </summary>
-+## <param name="domain">
-+##	<summary>
-+##	Domain allowed access.
-+##	</summary>
-+## </param>
-+#
-+interface(`userdom_use_all_users_fds',`
-+	gen_require(`
-+		attribute userdomain;
-+	')
-+
-+	allow $1 userdomain:fd use;
-+')
-+
-+########################################
-+## <summary>
-+##	Do not audit attempts to inherit the file
-+##	descriptors from any user domains.
-+## </summary>
-+## <param name="domain">
-+##	<summary>
-+##	Domain to not audit.
-+##	</summary>
-+## </param>
-+#
-+interface(`userdom_dontaudit_use_all_users_fds',`
-+	gen_require(`
-+		attribute userdomain;
-+	')
-+
-+	dontaudit $1 userdomain:fd use;
- ')
+ 	')
  
- ########################################
-@@ -3382,6 +4375,42 @@ interface(`userdom_signal_all_users',`
+ 	allow $1 userdomain:process getattr;
+@@ -3382,6 +4390,42 @@ interface(`userdom_signal_all_users',`
  	allow $1 userdomain:process signal;
  ')
  
@@ -46340,7 +46325,7 @@ index 9dc60c6..3104d12 100644
  ########################################
  ## <summary>
  ##	Send a SIGCHLD signal to all user domains.
-@@ -3402,6 +4431,60 @@ interface(`userdom_sigchld_all_users',`
+@@ -3402,6 +4446,60 @@ interface(`userdom_sigchld_all_users',`
  
  ########################################
  ## <summary>
@@ -46401,7 +46386,7 @@ index 9dc60c6..3104d12 100644
  ##	Create keys for all user domains.
  ## </summary>
  ## <param name="domain">
-@@ -3435,4 +4518,1686 @@ interface(`userdom_dbus_send_all_users',`
+@@ -3435,4 +4533,1686 @@ interface(`userdom_dbus_send_all_users',`
  	')
  
  	allow $1 userdomain:dbus send_msg;
