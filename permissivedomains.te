@@ -55,3 +55,10 @@ optional_policy(`
     ')
     permissive naemon_t;
 ')
+
+optional_policy(`
+    gen_require(`
+            type brltty_t;
+    ')
+    permissive brltty_t;
+')
