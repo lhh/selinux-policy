@@ -5466,7 +5466,7 @@ index 8e0f9cd..b9f45b9 100644
  
  define(`create_packet_interfaces',``
 diff --git a/policy/modules/kernel/corenetwork.te.in b/policy/modules/kernel/corenetwork.te.in
-index b191055..04e9cc8 100644
+index b191055..57afd42 100644
 --- a/policy/modules/kernel/corenetwork.te.in
 +++ b/policy/modules/kernel/corenetwork.te.in
 @@ -5,6 +5,7 @@ policy_module(corenetwork, 1.19.2)
@@ -5744,7 +5744,7 @@ index b191055..04e9cc8 100644
 -network_port(radius, udp,1645,s0, udp,1812,s0)
 +network_port(neutron, tcp, 8775, s0, tcp,9696,s0, tcp,9697,s0)
 +network_port(radacct, udp,1646,s0, tcp,1646,s0, tcp,1813,s0, udp,1813,s0)
-+network_port(radius, udp,1645,s0, tpc,1645,s0, tcp,1812,s0, udp,1812,s0)
++network_port(radius, udp,1645,s0, tcp,1645,s0, tcp,1812,s0, udp,1812,s0)
  network_port(radsec, tcp,2083,s0)
  network_port(razor, tcp,2703,s0)
 +network_port(time, tcp,37,s0, udp,37,s0)
