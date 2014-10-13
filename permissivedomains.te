@@ -69,3 +69,17 @@ optional_policy(`
     ')
     permissive cpuplug_t;
 ')
+
+optional_policy(`
+    gen_require(`
+            type mon_statd_t;
+    ')
+    permissive mon_statd_t;
+')
+
+optional_policy(`
+    gen_require(`
+            type mon_procd_t;
+    ')
+    permissive mon_procd_t;
+')
