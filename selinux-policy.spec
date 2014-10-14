@@ -19,7 +19,7 @@
 Summary: SELinux policy configuration
 Name: selinux-policy
 Version: 3.13.1
-Release: 85%{?dist}
+Release: 86%{?dist}
 License: GPLv2+
 Group: System Environment/Base
 Source: serefpolicy-%{version}.tgz
@@ -602,6 +602,42 @@ SELinux Reference policy mls base module.
 %endif
 
 %changelog
+* Tue Oct 14 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-86
+- Dontaudit aicuu to search home config dir. BZ (#1104076)
+- couchdb is using erlang so it needs execmem privs
+- ALlow sanlock to send a signal to virtd_t.
+- Allow mondogdb to  'accept' accesses on the tcp_socket port.
+- Make sosreport as unconfined domain.
+- Allow nova-console to connect to mem_cache port.
+- Allow mandb to getattr on file systems
+- Allow read antivirus domain all kernel sysctls.
+- Allow lmsd_plugin to read passwd file. BZ(1093733)
+- Label /usr/share/corosync/corosync as cluster_exec_t.
+- ALlow sensord to getattr on sysfs.
+- automount policy is non-base module so it needs to be called in optional block.
+- Add auth_use_nsswitch for portreserve to make it working with sssd.
+- Fix samba_export_all_ro/samba_export_all_rw booleans to dontaudit search/read security files.
+- Allow openvpn to execute  systemd-passwd-agent in  systemd_passwd_agent_t to make openvpn working with systemd.
+- Allow openvpn to access /sys/fs/cgroup dir.
+- Allow nova-scheduler to read certs
+- Add support for /var/lib/swiftdirectory.
+- Allow neutron connections to system dbus.
+- Allow mongodb to manage own log files.
+- Allow opensm_t to read/write /dev/infiniband/umad1.
+- Added policy for mon_statd and mon_procd services. BZ (1077821)
+- kernel_read_system_state needs to be called with type. Moved it to antivirus.if.
+- Allow dnssec_trigger_t to execute unbound-control in own domain.
+- Allow all RHCS services to read system state.
+- Added monitor device
+- Add interfaces for /dev/infiniband
+- Add infiniband_device_t for /dev/infiniband instead of fixed_disk_device_t type.
+- Add files_dontaudit_search_security_files()
+- Add selinuxuser_udp_server boolean
+- ALlow syslogd_t to create /var/log/cron  with correct labeling
+- Add support for /etc/.updated and /var/.updated
+- Allow iptables read fail2ban logs. BZ (1147709)
+- ALlow ldconfig to read proc//net/sockstat.
+
 * Mon Oct 06 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-85
 - Allow nova domains to getattr on all filesystems.
 - ALlow zebra for user/group look-ups.
