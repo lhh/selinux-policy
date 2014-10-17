@@ -19,12 +19,13 @@
 Summary: SELinux policy configuration
 Name: selinux-policy
 Version: 3.13.1
-Release: 86%{?dist}
+Release: 87%{?dist}
 License: GPLv2+
 Group: System Environment/Base
 Source: serefpolicy-%{version}.tgz
 patch: policy-rawhide-base.patch
 patch1: policy-rawhide-contrib.patch
+patch2: policy-f21-base-cockpit.patch
 Source1: modules-targeted-base.conf 
 Source31: modules-targeted-contrib.conf
 Source2: booleans-targeted.conf
@@ -333,6 +334,7 @@ Based off of reference policy: Checked out revision  2.20091117
 contrib_path=`pwd`
 %setup -n serefpolicy-%{version} -q
 %patch -p1
+%patch2 -p1
 refpolicy_path=`pwd`
 cp $contrib_path/* $refpolicy_path/policy/modules/contrib
 
@@ -602,6 +604,16 @@ SELinux Reference policy mls base module.
 %endif
 
 %changelog
+* Fri Oct 17 2014 Miroslav Grepl <mgrepl@redhat.com> 3.13.1-87
+- Allow systemd-networkd to be running as dhcp client.
+- Label /usr/bin/cockpit-bridge as shell_exec_t.
+- Add label for /var/run/systemd/resolve/resolv.conf.
+- ALlow listen and accept on tcp socket for init_t in MLS. Previously it was for xinetd_t.
+- Allow systemd-networkd to be running as dhcp client.
+- Label /usr/bin/cockpit-bridge as shell_exec_t.
+- Add label for /var/run/systemd/resolve/resolv.conf.
+- ALlow listen and accept on tcp socket for init_t in MLS. Previously it was for xinetd_t.
+
 * Tue Oct 14 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-86
 - Dontaudit aicuu to search home config dir. BZ (#1104076)
 - couchdb is using erlang so it needs execmem privs
