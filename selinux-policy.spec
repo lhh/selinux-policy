@@ -23,8 +23,8 @@ Release: 87%{?dist}
 License: GPLv2+
 Group: System Environment/Base
 Source: serefpolicy-%{version}.tgz
-patch: policy-rawhide-base.patch
-patch1: policy-rawhide-contrib.patch
+patch: policy-f21-base.patch
+patch1: policy-f21-contrib.patch
 patch2: policy-f21-base-cockpit.patch
 Source1: modules-targeted-base.conf 
 Source31: modules-targeted-contrib.conf
