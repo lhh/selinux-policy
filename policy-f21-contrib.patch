@@ -7584,7 +7584,7 @@ index f3c0aba..2b3352b 100644
 +	files_etc_filetrans(apcupsd_t, apcupsd_power_t, file, "powerfail")
  ')
 diff --git a/apcupsd.te b/apcupsd.te
-index 080bc4d..d49f4ef 100644
+index 080bc4d..de60b99 100644
 --- a/apcupsd.te
 +++ b/apcupsd.te
 @@ -24,6 +24,12 @@ files_tmp_file(apcupsd_tmp_t)
@@ -7622,7 +7622,7 @@ index 080bc4d..d49f4ef 100644
  corenet_all_recvfrom_netlabel(apcupsd_t)
  corenet_tcp_sendrecv_generic_if(apcupsd_t)
  corenet_tcp_sendrecv_generic_node(apcupsd_t)
-@@ -67,6 +73,8 @@ corenet_tcp_bind_apcupsd_port(apcupsd_t)
+@@ -67,26 +73,35 @@ corenet_tcp_bind_apcupsd_port(apcupsd_t)
  corenet_sendrecv_apcupsd_server_packets(apcupsd_t)
  corenet_tcp_sendrecv_apcupsd_port(apcupsd_t)
  corenet_tcp_connect_apcupsd_port(apcupsd_t)
@@ -7631,8 +7631,10 @@ index 080bc4d..d49f4ef 100644
  
  corenet_udp_bind_snmp_port(apcupsd_t)
  corenet_sendrecv_snmp_server_packets(apcupsd_t)
-@@ -74,19 +82,24 @@ corenet_udp_sendrecv_snmp_port(apcupsd_t)
+ corenet_udp_sendrecv_snmp_port(apcupsd_t)
  
++fs_getattr_xattr_fs(apcupsd_t)
++
  dev_rw_generic_usb_dev(apcupsd_t)
  
 -files_read_etc_files(apcupsd_t)
@@ -7661,7 +7663,7 @@ index 080bc4d..d49f4ef 100644
  
  optional_policy(`
  	hostname_exec(apcupsd_t)
-@@ -101,6 +114,11 @@ optional_policy(`
+@@ -101,6 +116,11 @@ optional_policy(`
  	shutdown_domtrans(apcupsd_t)
  ')
  
@@ -7673,7 +7675,7 @@ index 080bc4d..d49f4ef 100644
  ########################################
  #
  # CGI local policy
-@@ -108,20 +126,20 @@ optional_policy(`
+@@ -108,20 +128,20 @@ optional_policy(`
  
  optional_policy(`
  	apache_content_template(apcupsd_cgi)
@@ -16245,7 +16247,7 @@ index 715a826..3f0c0dc 100644
 +	')
  ')
 diff --git a/couchdb.te b/couchdb.te
-index ae1c1b1..003fe15 100644
+index ae1c1b1..07ba975 100644
 --- a/couchdb.te
 +++ b/couchdb.te
 @@ -27,18 +27,21 @@ files_type(couchdb_var_lib_t)
@@ -16273,7 +16275,7 @@ index ae1c1b1..003fe15 100644
  
  manage_dirs_pattern(couchdb_t, couchdb_log_t, couchdb_log_t)
  append_files_pattern(couchdb_t, couchdb_log_t, couchdb_log_t)
-@@ -56,7 +59,7 @@ files_var_lib_filetrans(couchdb_t, couchdb_var_lib_t, dir)
+@@ -56,11 +59,12 @@ files_var_lib_filetrans(couchdb_t, couchdb_var_lib_t, dir)
  
  manage_dirs_pattern(couchdb_t, couchdb_var_run_t, couchdb_var_run_t)
  manage_files_pattern(couchdb_t, couchdb_var_run_t, couchdb_var_run_t)
@@ -16282,7 +16284,12 @@ index ae1c1b1..003fe15 100644
  
  can_exec(couchdb_t, couchdb_exec_t)
  
-@@ -75,14 +78,15 @@ corenet_sendrecv_couchdb_server_packets(couchdb_t)
+ kernel_read_system_state(couchdb_t)
++kernel_read_fs_sysctls(couchdb_t)
+ 
+ corecmd_exec_bin(couchdb_t)
+ corecmd_exec_shell(couchdb_t)
+@@ -75,14 +79,15 @@ corenet_sendrecv_couchdb_server_packets(couchdb_t)
  corenet_tcp_bind_couchdb_port(couchdb_t)
  corenet_tcp_sendrecv_couchdb_port(couchdb_t)
  
@@ -46257,7 +46264,7 @@ index 0000000..1ce3e44
 +')
 diff --git a/mon_statd.te b/mon_statd.te
 new file mode 100644
-index 0000000..39c5287
+index 0000000..74302c2
 --- /dev/null
 +++ b/mon_statd.te
 @@ -0,0 +1,75 @@
@@ -46313,7 +46320,7 @@ index 0000000..39c5287
 +
 +fs_search_cgroup_dirs(mon_statd_t)
 +
-+logging_send_syslog_msg(mon_procd_t)
++logging_send_syslog_msg(mon_statd_t)
 +
 +optional_policy(`
 +    rpc_read_nfs_state_data(mon_statd_t)
@@ -62439,10 +62446,10 @@ index 0000000..05648bd
 +')
 diff --git a/osad.te b/osad.te
 new file mode 100644
-index 0000000..310d672
+index 0000000..1d33fea
 --- /dev/null
 +++ b/osad.te
-@@ -0,0 +1,48 @@
+@@ -0,0 +1,49 @@
 +policy_module(osad, 1.0.0)
 +
 +########################################
@@ -62479,6 +62486,7 @@ index 0000000..310d672
 +kernel_read_system_state(osad_t)
 +
 +corenet_tcp_connect_http_port(osad_t)
++corenet_tcp_connect_jabber_client_port(osad_t)
 +
 +dev_read_urand(osad_t)
 +
@@ -72686,7 +72694,7 @@ index 45843b5..116be8a 100644
 +	ps_process_pattern($1, pulseaudio_t)
  ')
 diff --git a/pulseaudio.te b/pulseaudio.te
-index 6643b49..64ac070 100644
+index 6643b49..dd0c3d3 100644
 --- a/pulseaudio.te
 +++ b/pulseaudio.te
 @@ -8,61 +8,49 @@ policy_module(pulseaudio, 1.6.0)
@@ -72780,7 +72788,7 @@ index 6643b49..64ac070 100644
  
  can_exec(pulseaudio_t, pulseaudio_exec_t)
  
-@@ -85,62 +70,56 @@ kernel_read_kernel_sysctls(pulseaudio_t)
+@@ -85,62 +70,58 @@ kernel_read_kernel_sysctls(pulseaudio_t)
  
  corecmd_exec_bin(pulseaudio_t)
  
@@ -72838,6 +72846,8 @@ index 6643b49..64ac070 100644
  
  userdom_search_user_home_dirs(pulseaudio_t)
  userdom_write_user_tmp_sockets(pulseaudio_t)
++userdom_manage_user_tmp_files(pulseaudio_t)
++userdom_execute_user_tmp_files(pulseaudio_t)
  
  tunable_policy(`use_nfs_home_dirs',`
 +	fs_mount_nfs(pulseaudio_t)
@@ -72860,7 +72870,7 @@ index 6643b49..64ac070 100644
  ')
  
  optional_policy(`
-@@ -153,8 +132,9 @@ optional_policy(`
+@@ -153,8 +134,9 @@ optional_policy(`
  
  optional_policy(`
  	dbus_system_domain(pulseaudio_t, pulseaudio_exec_t)
@@ -72872,7 +72882,7 @@ index 6643b49..64ac070 100644
  
  	optional_policy(`
  		consolekit_dbus_chat(pulseaudio_t)
-@@ -174,16 +154,33 @@ optional_policy(`
+@@ -174,29 +156,49 @@ optional_policy(`
  ')
  
  optional_policy(`
@@ -72906,7 +72916,12 @@ index 6643b49..64ac070 100644
  	udev_read_state(pulseaudio_t)
  	udev_read_db(pulseaudio_t)
  ')
-@@ -196,7 +193,11 @@ optional_policy(`
+ 
+ optional_policy(`
+ 	xserver_stream_connect(pulseaudio_t)
+-	xserver_manage_xdm_tmp_files(pulseaudio_t)
+ 	xserver_read_xdm_lib_files(pulseaudio_t)
+ 	xserver_read_xdm_pid(pulseaudio_t)
  	xserver_user_x_domain_template(pulseaudio, pulseaudio_t, pulseaudio_tmpfs_t)
  ')
  
@@ -72919,7 +72934,7 @@ index 6643b49..64ac070 100644
  #
  # Client local policy
  #
-@@ -210,8 +211,6 @@ delete_files_pattern(pulseaudio_client, pulseaudio_tmpfsfile, pulseaudio_tmpfsfi
+@@ -210,8 +212,6 @@ delete_files_pattern(pulseaudio_client, pulseaudio_tmpfsfile, pulseaudio_tmpfsfi
  
  fs_getattr_tmpfs(pulseaudio_client)
  
@@ -72928,7 +72943,7 @@ index 6643b49..64ac070 100644
  corenet_tcp_sendrecv_generic_if(pulseaudio_client)
  corenet_tcp_sendrecv_generic_node(pulseaudio_client)
  
-@@ -220,38 +219,33 @@ corenet_tcp_connect_pulseaudio_port(pulseaudio_client)
+@@ -220,38 +220,33 @@ corenet_tcp_connect_pulseaudio_port(pulseaudio_client)
  corenet_tcp_sendrecv_pulseaudio_port(pulseaudio_client)
  
  pulseaudio_stream_connect(pulseaudio_client)
@@ -104798,7 +104813,7 @@ index facdee8..c7a2d97 100644
 +	typeattribute $1 sandbox_caps_domain;
  ')
 diff --git a/virt.te b/virt.te
-index f03dcf5..0890a2a 100644
+index f03dcf5..f960625 100644
 --- a/virt.te
 +++ b/virt.te
 @@ -1,150 +1,241 @@
@@ -106387,7 +106402,7 @@ index f03dcf5..0890a2a 100644
 +kernel_getattr_proc(svirt_sandbox_domain)
 +kernel_list_all_proc(svirt_sandbox_domain)
 +kernel_read_all_sysctls(svirt_sandbox_domain)
-+kernel_rw_net_sysctls(svirt_sandbox_domain)
++kernel_read_net_sysctls(svirt_sandbox_domain)
 +kernel_dontaudit_search_kernel_sysctl(svirt_sandbox_domain)
 +kernel_dontaudit_access_check_proc(svirt_sandbox_domain)
 +

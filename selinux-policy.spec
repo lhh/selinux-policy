@@ -19,7 +19,7 @@
 Summary: SELinux policy configuration
 Name: selinux-policy
 Version: 3.13.1
-Release: 87%{?dist}
+Release: 88%{?dist}
 License: GPLv2+
 Group: System Environment/Base
 Source: serefpolicy-%{version}.tgz
@@ -604,6 +604,13 @@ SELinux Reference policy mls base module.
 %endif
 
 %changelog
+* Tue Oct 21 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-88
+- Allow couchdb read sysctl_fs_t files. BZ(1154327)
+- Allow osad to connect to jabber client port. BZ (1154242)
+- Allow mon_statd to send syslog msgs. BZ (1077821
+- Allow apcupsd to get attributes of filesystems with xattrs
+- Add back kill/load permissions for system/service classes. It breaks updates from f20->f21.
+
 * Fri Oct 17 2014 Miroslav Grepl <mgrepl@redhat.com> 3.13.1-87
 - Allow systemd-networkd to be running as dhcp client.
 - Label /usr/bin/cockpit-bridge as shell_exec_t.

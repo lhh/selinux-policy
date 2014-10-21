@@ -803,7 +803,7 @@ index 3a45f23..f4754f0 100644
  # fork
  # setexec
 diff --git a/policy/flask/access_vectors b/policy/flask/access_vectors
-index a94b169..1afd77b 100644
+index a94b169..0d5d828 100644
 --- a/policy/flask/access_vectors
 +++ b/policy/flask/access_vectors
 @@ -329,6 +329,7 @@ class process
@@ -814,7 +814,7 @@ index a94b169..1afd77b 100644
  }
  
  
-@@ -393,6 +394,13 @@ class system
+@@ -393,6 +394,14 @@ class system
  	syslog_mod
  	syslog_console
  	module_request
@@ -825,10 +825,11 @@ index a94b169..1afd77b 100644
 +    enable
 +    disable
 +    reload
++    kill
  }
  
  #
-@@ -443,10 +451,12 @@ class capability
+@@ -443,10 +452,12 @@ class capability
  class capability2 
  {
  	mac_override	# unused by SELinux
@@ -842,7 +843,7 @@ index a94b169..1afd77b 100644
  }
  
  #
-@@ -690,6 +700,8 @@ class nscd
+@@ -690,6 +701,8 @@ class nscd
  	shmemhost
  	getserv
  	shmemserv
@@ -851,7 +852,7 @@ index a94b169..1afd77b 100644
  }
  
  # Define the access vector interpretation for controlling
-@@ -865,3 +877,18 @@ inherits database
+@@ -865,3 +878,20 @@ inherits database
  	implement
  	execute
  }
@@ -864,6 +865,8 @@ index a94b169..1afd77b 100644
 +	reload
 +	enable
 +	disable
++    kill
++    load
 +}
 +
 +class proxy
@@ -32940,7 +32943,7 @@ index be8ed1e..f0ed532 100644
  
  optional_policy(`
 diff --git a/policy/modules/system/libraries.fc b/policy/modules/system/libraries.fc
-index 73bb3c0..5b9420f 100644
+index 73bb3c0..4fef124 100644
 --- a/policy/modules/system/libraries.fc
 +++ b/policy/modules/system/libraries.fc
 @@ -1,3 +1,4 @@
@@ -32985,7 +32988,7 @@ index 73bb3c0..5b9420f 100644
 +/usr/lib					-d	gen_context(system_u:object_r:lib_t,s0)
 +/usr/lib/.*						gen_context(system_u:object_r:lib_t,s0)
 +/usr/lib/ld-[^/]*\.so(\.[^/]*)*		--	gen_context(system_u:object_r:ld_so_t,s0)
-+
++/usr/lib/gvfs/.*\.so(\.[^/]*)*		--	gen_context(system_u:object_r:lib_t,s0)
 +/usr/lib/security/pam_poldi\.so		--	gen_context(system_u:object_r:textrel_shlib_t,s0)
 +
  /usr/(.*/)?/HelixPlayer/.+\.so(\.[^/]*)* --	gen_context(system_u:object_r:textrel_shlib_t,s0)
