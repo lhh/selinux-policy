@@ -8939,7 +8939,7 @@ index 6a1e4d1..1b9b0b5 100644
 +	dontaudit $1 domain:dir_file_class_set audit_access;
  ')
 diff --git a/policy/modules/kernel/domain.te b/policy/modules/kernel/domain.te
-index cf04cb5..16c88de 100644
+index cf04cb5..c2776d0 100644
 --- a/policy/modules/kernel/domain.te
 +++ b/policy/modules/kernel/domain.te
 @@ -4,17 +4,41 @@ policy_module(domain, 1.11.0)
@@ -9088,7 +9088,7 @@ index cf04cb5..16c88de 100644
  
  # Create/access any System V IPC objects.
  allow unconfined_domain_type domain:{ sem msgq shm } *;
-@@ -166,5 +238,348 @@ allow unconfined_domain_type domain:lnk_file { read_lnk_file_perms ioctl lock };
+@@ -166,5 +238,352 @@ allow unconfined_domain_type domain:lnk_file { read_lnk_file_perms ioctl lock };
  # act on all domains keys
  allow unconfined_domain_type domain:key *;
  
@@ -9380,6 +9380,10 @@ index cf04cb5..16c88de 100644
 +	ifdef(`hide_broken_symptoms',`
 +		afs_rw_udp_sockets(domain)
 +	')
++')
++
++optional_policy(`
++    rolekit_dbus_chat(domain)
 +')
 +
 +optional_policy(`
@@ -15688,7 +15692,7 @@ index 7be4ddf..71e675a 100644
 +/sys/class/net/ib.* 	  --	gen_context(system_u:object_r:sysctl_net_t,s0)
 +/sys/kernel/uevent_helper --	gen_context(system_u:object_r:usermodehelper_t,s0)
 diff --git a/policy/modules/kernel/kernel.if b/policy/modules/kernel/kernel.if
-index e100d88..227ae89 100644
+index e100d88..85da370 100644
 --- a/policy/modules/kernel/kernel.if
 +++ b/policy/modules/kernel/kernel.if
 @@ -126,6 +126,24 @@ interface(`kernel_setsched',`
@@ -15826,10 +15830,29 @@ index e100d88..227ae89 100644
  ')
  
  ########################################
-@@ -1025,6 +1094,25 @@ interface(`kernel_write_proc_files',`
+@@ -1025,6 +1094,44 @@ interface(`kernel_write_proc_files',`
  
  ########################################
  ## <summary>
++##	Do not audit attempts to write the
++##	file in /proc.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain to not audit.
++##	</summary>
++## </param>
++#
++interface(`kernel_dontaudit_write_proc_files',`
++	gen_require(`
++		type proc_t;
++	')
++
++	dontaudit $1 proc_t:file write;
++')
++
++########################################
++## <summary>
 +##	Do not audit attempts to check the 
 +##	access on generic proc entries.
 +## </summary>
@@ -15852,7 +15875,7 @@ index e100d88..227ae89 100644
  ##	Do not audit attempts by caller to
  ##	read system state information in proc.
  ## </summary>
-@@ -1208,6 +1296,24 @@ interface(`kernel_read_messages',`
+@@ -1208,6 +1315,24 @@ interface(`kernel_read_messages',`
  
  ########################################
  ## <summary>
@@ -15877,7 +15900,7 @@ index e100d88..227ae89 100644
  ##	Allow caller to get the attributes of kernel message
  ##	interface (/proc/kmsg).
  ## </summary>
-@@ -1458,6 +1564,25 @@ interface(`kernel_list_all_proc',`
+@@ -1458,6 +1583,25 @@ interface(`kernel_list_all_proc',`
  
  ########################################
  ## <summary>
@@ -15903,7 +15926,7 @@ index e100d88..227ae89 100644
  ##	Do not audit attempts to list all proc directories.
  ## </summary>
  ## <param name="domain">
-@@ -1477,6 +1602,24 @@ interface(`kernel_dontaudit_list_all_proc',`
+@@ -1477,6 +1621,24 @@ interface(`kernel_dontaudit_list_all_proc',`
  
  ########################################
  ## <summary>
@@ -15928,7 +15951,7 @@ index e100d88..227ae89 100644
  ##	Do not audit attempts by caller to search
  ##	the base directory of sysctls.
  ## </summary>
-@@ -1672,7 +1815,7 @@ interface(`kernel_read_net_sysctls',`
+@@ -1672,7 +1834,7 @@ interface(`kernel_read_net_sysctls',`
  	')
  
  	read_files_pattern($1, { proc_t sysctl_t sysctl_net_t }, sysctl_net_t)
@@ -15937,7 +15960,7 @@ index e100d88..227ae89 100644
  	list_dirs_pattern($1, { proc_t sysctl_t }, sysctl_net_t)
  ')
  
-@@ -1693,7 +1836,7 @@ interface(`kernel_rw_net_sysctls',`
+@@ -1693,7 +1855,7 @@ interface(`kernel_rw_net_sysctls',`
  	')
  
  	rw_files_pattern($1, { proc_t sysctl_t sysctl_net_t }, sysctl_net_t)
@@ -15946,7 +15969,7 @@ index e100d88..227ae89 100644
  	list_dirs_pattern($1, { proc_t sysctl_t }, sysctl_net_t)
  ')
  
-@@ -1715,7 +1858,6 @@ interface(`kernel_read_unix_sysctls',`
+@@ -1715,7 +1877,6 @@ interface(`kernel_read_unix_sysctls',`
  	')
  
  	read_files_pattern($1, { proc_t sysctl_t sysctl_net_t }, sysctl_net_unix_t)
@@ -15954,7 +15977,7 @@ index e100d88..227ae89 100644
  	list_dirs_pattern($1, { proc_t sysctl_t }, sysctl_net_t)
  ')
  
-@@ -1750,16 +1892,9 @@ interface(`kernel_rw_unix_sysctls',`
+@@ -1750,16 +1911,9 @@ interface(`kernel_rw_unix_sysctls',`
  ##	Domain allowed access.
  ##	</summary>
  ## </param>
@@ -15972,7 +15995,7 @@ index e100d88..227ae89 100644
  ')
  
  ########################################
-@@ -1771,16 +1906,9 @@ interface(`kernel_read_hotplug_sysctls',`
+@@ -1771,16 +1925,9 @@ interface(`kernel_read_hotplug_sysctls',`
  ##	Domain allowed access.
  ##	</summary>
  ## </param>
@@ -15990,7 +16013,7 @@ index e100d88..227ae89 100644
  ')
  
  ########################################
-@@ -1792,16 +1920,9 @@ interface(`kernel_rw_hotplug_sysctls',`
+@@ -1792,16 +1939,9 @@ interface(`kernel_rw_hotplug_sysctls',`
  ##	Domain allowed access.
  ##	</summary>
  ## </param>
@@ -16008,7 +16031,7 @@ index e100d88..227ae89 100644
  ')
  
  ########################################
-@@ -1813,16 +1934,9 @@ interface(`kernel_read_modprobe_sysctls',`
+@@ -1813,16 +1953,9 @@ interface(`kernel_read_modprobe_sysctls',`
  ##	Domain allowed access.
  ##	</summary>
  ## </param>
@@ -16026,7 +16049,7 @@ index e100d88..227ae89 100644
  ')
  
  ########################################
-@@ -2085,9 +2199,28 @@ interface(`kernel_dontaudit_list_all_sysctls',`
+@@ -2085,9 +2218,28 @@ interface(`kernel_dontaudit_list_all_sysctls',`
  	')
  
  	dontaudit $1 sysctl_type:dir list_dir_perms;
@@ -16056,7 +16079,7 @@ index e100d88..227ae89 100644
  ########################################
  ## <summary>
  ##	Allow caller to read all sysctls.
-@@ -2282,6 +2415,25 @@ interface(`kernel_list_unlabeled',`
+@@ -2282,6 +2434,25 @@ interface(`kernel_list_unlabeled',`
  
  ########################################
  ## <summary>
@@ -16082,7 +16105,7 @@ index e100d88..227ae89 100644
  ##	Read the process state (/proc/pid) of all unlabeled_t.
  ## </summary>
  ## <param name="domain">
-@@ -2306,7 +2458,7 @@ interface(`kernel_read_unlabeled_state',`
+@@ -2306,7 +2477,7 @@ interface(`kernel_read_unlabeled_state',`
  ## </summary>
  ## <param name="domain">
  ##	<summary>
@@ -16091,7 +16114,7 @@ index e100d88..227ae89 100644
  ##	</summary>
  ## </param>
  #
-@@ -2488,6 +2640,24 @@ interface(`kernel_rw_unlabeled_blk_files',`
+@@ -2488,6 +2659,24 @@ interface(`kernel_rw_unlabeled_blk_files',`
  
  ########################################
  ## <summary>
@@ -16116,7 +16139,7 @@ index e100d88..227ae89 100644
  ##	Do not audit attempts by caller to get attributes for
  ##	unlabeled character devices.
  ## </summary>
-@@ -2525,6 +2695,24 @@ interface(`kernel_relabelfrom_unlabeled_dirs',`
+@@ -2525,6 +2714,24 @@ interface(`kernel_relabelfrom_unlabeled_dirs',`
  
  ########################################
  ## <summary>
@@ -16141,7 +16164,7 @@ index e100d88..227ae89 100644
  ##	Allow caller to relabel unlabeled files.
  ## </summary>
  ## <param name="domain">
-@@ -2667,6 +2855,24 @@ interface(`kernel_dontaudit_sendrecv_unlabeled_association',`
+@@ -2667,6 +2874,24 @@ interface(`kernel_dontaudit_sendrecv_unlabeled_association',`
  
  ########################################
  ## <summary>
@@ -16166,13 +16189,23 @@ index e100d88..227ae89 100644
  ##	Receive TCP packets from an unlabeled connection.
  ## </summary>
  ## <desc>
-@@ -2694,6 +2900,25 @@ interface(`kernel_tcp_recvfrom_unlabeled',`
+@@ -2694,18 +2919,37 @@ interface(`kernel_tcp_recvfrom_unlabeled',`
  
  ########################################
  ## <summary>
+-##	Do not audit attempts to receive TCP packets from an unlabeled
 +##	Do not audit attempts to receive DCCP packets from an unlabeled
-+##	connection.
-+## </summary>
+ ##	connection.
+ ## </summary>
+-## <desc>
+-##	<p>
+-##	Do not audit attempts to receive TCP packets from an unlabeled
+-##	connection.
+-##	</p>
+-##	<p>
+-##	The corenetwork interface corenet_dontaudit_tcp_recv_unlabeled()
+-##	should be used instead of this one.
+-##	</p>
 +## <param name="domain">
 +##	<summary>
 +##	Domain to not audit.
@@ -16189,29 +16222,34 @@ index e100d88..227ae89 100644
 +
 +########################################
 +## <summary>
- ##	Do not audit attempts to receive TCP packets from an unlabeled
- ##	connection.
- ## </summary>
-@@ -2803,20 +3028,47 @@ interface(`kernel_raw_recvfrom_unlabeled',`
++##	Do not audit attempts to receive TCP packets from an unlabeled
++##	connection.
++## </summary>
++## <desc>
++##	<p>
++##	Do not audit attempts to receive TCP packets from an unlabeled
++##	connection.
++##	</p>
++##	<p>
++##	The corenetwork interface corenet_dontaudit_tcp_recv_unlabeled()
++##	should be used instead of this one.
++##	</p>
+ ## </desc>
+ ## <param name="domain">
+ ##	<summary>
+@@ -2803,6 +3047,33 @@ interface(`kernel_raw_recvfrom_unlabeled',`
  
  	allow $1 unlabeled_t:rawip_socket recvfrom;
  ')
--
- ########################################
- ## <summary>
--##	Do not audit attempts to receive Raw IP packets from an unlabeled
--##	connection.
++########################################
++## <summary>
 +##	Read/Write Raw IP packets from an unlabeled connection.
- ## </summary>
- ## <desc>
- ##	<p>
--##	Do not audit attempts to receive Raw IP packets from an unlabeled
--##	connection.
++## </summary>
++## <desc>
++##	<p>
 +##	Receive Raw IP packets from an unlabeled connection.
- ##	</p>
- ##	<p>
--##	The corenetwork interface corenet_dontaudit_raw_recv_unlabeled()
--##	should be used instead of this one.
++##	</p>
++##	<p>
 +##	The corenetwork interface corenet_raw_recv_unlabeled() should
 +##	be used instead of this one.
 +##	</p>
@@ -16230,24 +16268,10 @@ index e100d88..227ae89 100644
 +	allow $1 unlabeled_t:rawip_socket rw_socket_perms;
 +')
 +
-+
-+########################################
-+## <summary>
-+##	Do not audit attempts to receive Raw IP packets from an unlabeled
-+##	connection.
-+## </summary>
-+## <desc>
-+##	<p>
-+##	Do not audit attempts to receive Raw IP packets from an unlabeled
-+##	connection.
-+##	</p>
-+##	<p>
-+##	The corenetwork interface corenet_dontaudit_raw_recv_unlabeled()
-+##	should be used instead of this one.
- ##	</p>
- ## </desc>
- ## <param name="domain">
-@@ -2958,6 +3210,24 @@ interface(`kernel_relabelfrom_unlabeled_database',`
+ 
+ ########################################
+ ## <summary>
+@@ -2958,6 +3229,24 @@ interface(`kernel_relabelfrom_unlabeled_database',`
  
  ########################################
  ## <summary>
@@ -16272,7 +16296,7 @@ index e100d88..227ae89 100644
  ##	Unconfined access to kernel module resources.
  ## </summary>
  ## <param name="domain">
-@@ -2972,5 +3242,565 @@ interface(`kernel_unconfined',`
+@@ -2972,5 +3261,565 @@ interface(`kernel_unconfined',`
  	')
  
  	typeattribute $1 kern_unconfined;

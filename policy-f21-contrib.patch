@@ -9232,7 +9232,7 @@ index 531a8f2..67b6c3d 100644
 +	allow $1 named_unit_file_t:service all_service_perms;
  ')
 diff --git a/bind.te b/bind.te
-index 1241123..88edc92 100644
+index 1241123..a3d3001 100644
 --- a/bind.te
 +++ b/bind.te
 @@ -34,7 +34,7 @@ type named_checkconf_exec_t;
@@ -9308,15 +9308,17 @@ index 1241123..88edc92 100644
  	dbus_system_domain(named_t, named_exec_t)
  
  	init_dbus_chat_script(named_t)
-@@ -187,6 +198,7 @@ optional_policy(`
+@@ -187,7 +198,9 @@ optional_policy(`
  ')
  
  optional_policy(`
 +    kerberos_filetrans_named_content(named_t)
  	kerberos_read_keytab(named_t)
++    kerberos_read_host_rcache(named_t)
  	kerberos_use(named_t)
  ')
-@@ -215,7 +227,8 @@ optional_policy(`
+ 
+@@ -215,7 +228,8 @@ optional_policy(`
  #
  
  allow ndc_t self:capability { dac_override net_admin };
@@ -9326,7 +9328,7 @@ index 1241123..88edc92 100644
  allow ndc_t self:fifo_file rw_fifo_file_perms;
  allow ndc_t self:unix_stream_socket { accept listen };
  
-@@ -229,10 +242,9 @@ allow ndc_t named_conf_t:lnk_file read_lnk_file_perms;
+@@ -229,10 +243,9 @@ allow ndc_t named_conf_t:lnk_file read_lnk_file_perms;
  
  allow ndc_t named_zone_t:dir search_dir_perms;
  
@@ -9338,7 +9340,7 @@ index 1241123..88edc92 100644
  corenet_all_recvfrom_netlabel(ndc_t)
  corenet_tcp_sendrecv_generic_if(ndc_t)
  corenet_tcp_sendrecv_generic_node(ndc_t)
-@@ -242,6 +254,9 @@ corenet_tcp_bind_generic_node(ndc_t)
+@@ -242,6 +255,9 @@ corenet_tcp_bind_generic_node(ndc_t)
  corenet_tcp_connect_rndc_port(ndc_t)
  corenet_sendrecv_rndc_client_packets(ndc_t)
  
@@ -9348,7 +9350,7 @@ index 1241123..88edc92 100644
  domain_use_interactive_fds(ndc_t)
  
  files_search_pids(ndc_t)
-@@ -257,7 +272,7 @@ init_use_script_ptys(ndc_t)
+@@ -257,7 +273,7 @@ init_use_script_ptys(ndc_t)
  
  logging_send_syslog_msg(ndc_t)
  
@@ -10803,10 +10805,10 @@ index 0000000..de66654
 +')
 diff --git a/bumblebee.te b/bumblebee.te
 new file mode 100644
-index 0000000..1076e6a
+index 0000000..cccf2f7
 --- /dev/null
 +++ b/bumblebee.te
-@@ -0,0 +1,60 @@
+@@ -0,0 +1,61 @@
 +policy_module(bumblebee, 1.0.0)
 +
 +########################################
@@ -10842,6 +10844,7 @@ index 0000000..1076e6a
 +
 +kernel_read_system_state(bumblebee_t)
 +kernel_dontaudit_access_check_proc(bumblebee_t)
++kernel_dontaudit_write_proc_files(bumblebee_t)
 +kernel_manage_debugfs(bumblebee_t)
 +
 +corecmd_exec_shell(bumblebee_t)
@@ -28460,7 +28463,7 @@ index 0000000..dc94853
 +
 diff --git a/freeipmi.te b/freeipmi.te
 new file mode 100644
-index 0000000..65fb9b8
+index 0000000..0ca4fc3
 --- /dev/null
 +++ b/freeipmi.te
 @@ -0,0 +1,79 @@
@@ -28514,7 +28517,7 @@ index 0000000..65fb9b8
 +# bmc-watchdog local policy
 +#
 +
-+allow freeipmi_bmc_watchdog_t freeipmi_ipmiseld_t:sem { unix_read unix_write };
++allow freeipmi_bmc_watchdog_t freeipmi_ipmiseld_t:sem rw_sem_perms;
 +
 +files_pid_filetrans(freeipmi_bmc_watchdog_t, freeipmi_bmc_watchdog_var_run_t, file, "bmc-watchdog.pid")
 +
@@ -38620,7 +38623,7 @@ index 4fe75fd..b05128a 100644
 +/var/tmp/ldap_487		-- 	gen_context(system_u:object_r:krb5_host_rcache_t,s0)
 +/var/tmp/ldap_55		-- 	gen_context(system_u:object_r:krb5_host_rcache_t,s0)
 diff --git a/kerberos.if b/kerberos.if
-index f6c00d8..59923df 100644
+index f6c00d8..075bc4d 100644
 --- a/kerberos.if
 +++ b/kerberos.if
 @@ -1,27 +1,29 @@
@@ -38893,12 +38896,13 @@ index f6c00d8..59923df 100644
  ## <summary>
 -##	Create, read, write, and delete
 -##	kerberos key table files.
--## </summary>
--## <param name="domain">
--##	<summary>
--##	Domain allowed access.
--##	</summary>
--## </param>
++##	Create keytab file in /etc
+ ## </summary>
+ ## <param name="domain">
+ ##	<summary>
+ ##	Domain allowed access.
+ ##	</summary>
+ ## </param>
 -#
 -interface(`kerberos_manage_keytab_files',`
 -	gen_require(`
@@ -38914,13 +38918,12 @@ index f6c00d8..59923df 100644
 -##	Create specified objects in generic
 -##	etc directories with the kerberos
 -##	keytab file type.
-+##	Create keytab file in /etc
- ## </summary>
- ## <param name="domain">
- ##	<summary>
- ##	Domain allowed access.
- ##	</summary>
- ## </param>
+-## </summary>
+-## <param name="domain">
+-##	<summary>
+-##	Domain allowed access.
+-##	</summary>
+-## </param>
 -## <param name="object_class">
 -##	<summary>
 -##	Class of the object being created.
@@ -38955,17 +38958,34 @@ index f6c00d8..59923df 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -381,8 +282,7 @@ interface(`kerberos_read_kdc_config',`
+@@ -381,8 +282,24 @@ interface(`kerberos_read_kdc_config',`
  
  ########################################
  ## <summary>
 -##	Create, read, write, and delete
 -##	kerberos host rcache files.
 +##	Read the kerberos kdc configuration file (/etc/krb5kdc.conf).
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`kerberos_read_host_rcache',`
++	gen_require(`
++		type krb5_host_rcache_t;
++	')
++    read_files_pattern($1, krb5_host_rcache_t, krb5_host_rcache_t)
++')
++
++########################################
++## <summary>
++##	Read the kerberos kdc configuration file (/etc/krb5kdc.conf).
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -396,34 +296,99 @@ interface(`kerberos_manage_host_rcache',`
+@@ -396,34 +313,99 @@ interface(`kerberos_manage_host_rcache',`
  		type krb5_host_rcache_t;
  	')
  
@@ -39073,7 +39093,7 @@ index f6c00d8..59923df 100644
  ##	</summary>
  ## </param>
  ## <param name="name" optional="true">
-@@ -437,12 +402,13 @@ interface(`kerberos_tmp_filetrans_host_rcache',`
+@@ -437,12 +419,13 @@ interface(`kerberos_tmp_filetrans_host_rcache',`
  		type krb5_host_rcache_t;
  	')
  
@@ -39089,7 +39109,7 @@ index f6c00d8..59923df 100644
  ## </summary>
  ## <param name="domain">
  ##	<summary>
-@@ -450,82 +416,87 @@ interface(`kerberos_tmp_filetrans_host_rcache',`
+@@ -450,82 +433,87 @@ interface(`kerberos_tmp_filetrans_host_rcache',`
  ##	</summary>
  ## </param>
  #
@@ -39946,7 +39966,7 @@ index e88fb16..f20248c 100644
 +	')
  ')
 diff --git a/keystone.te b/keystone.te
-index 9929647..4a4ccf1 100644
+index 9929647..3144a89 100644
 --- a/keystone.te
 +++ b/keystone.te
 @@ -18,13 +18,20 @@ logging_log_file(keystone_log_t)
@@ -40034,8 +40054,8 @@ index 9929647..4a4ccf1 100644
 +
 +	read_files_pattern(keystone_cgi_script_t, keystone_log_t, keystone_log_t)
 +
-+    corenet_tcp_bind_commplex_main_port(keystone_t)
-+    corenet_tcp_sendrecv_commplex_main_port(keystone_t)
++    corenet_tcp_bind_commplex_main_port(keystone_cgi_script_t)
++    corenet_tcp_sendrecv_commplex_main_port(keystone_cgi_script_t)
  ')
 diff --git a/kismet.if b/kismet.if
 index aa2a337..7ff229f 100644
@@ -77132,7 +77152,7 @@ index 2c3d338..7d49554 100644
  	init_labeled_script_domtrans($1, rabbitmq_initrc_exec_t)
  	domain_system_change_exemption($1)
 diff --git a/rabbitmq.te b/rabbitmq.te
-index dc3b0ed..42203ed 100644
+index dc3b0ed..0675a9c 100644
 --- a/rabbitmq.te
 +++ b/rabbitmq.te
 @@ -5,13 +5,14 @@ policy_module(rabbitmq, 1.0.2)
@@ -77166,7 +77186,7 @@ index dc3b0ed..42203ed 100644
  type rabbitmq_var_log_t;
  logging_log_file(rabbitmq_var_log_t)
  
-@@ -27,98 +31,82 @@ files_pid_file(rabbitmq_var_run_t)
+@@ -27,98 +31,86 @@ files_pid_file(rabbitmq_var_run_t)
  
  ######################################
  #
@@ -77338,6 +77358,10 @@ index dc3b0ed..42203ed 100644
 +
 +optional_policy(`
 +    dbus_system_bus_client(rabbitmq_t)
++')
++
++optional_policy(`
++    rpc_read_nfs_state_data(rabbitmq_t)
 +')
  
 -miscfiles_read_localization(rabbitmq_epmd_t)
@@ -83300,6 +83324,169 @@ index a7b7717..861aa31 100644
  logging_send_syslog_msg(rngd_t)
  
 -miscfiles_read_localization(rngd_t)
+diff --git a/rolekit.fc b/rolekit.fc
+new file mode 100644
+index 0000000..504b6e1
+--- /dev/null
++++ b/rolekit.fc
+@@ -0,0 +1,3 @@
++/usr/lib/systemd/system/rolekit.*		--	gen_context(system_u:object_r:rolekit_unit_file_t,s0)
++
++/usr/sbin/roled		--	gen_context(system_u:object_r:rolekit_exec_t,s0)
+diff --git a/rolekit.if b/rolekit.if
+new file mode 100644
+index 0000000..e5a42e0
+--- /dev/null
++++ b/rolekit.if
+@@ -0,0 +1,106 @@
++## <summary>Daemon for Linux systems providing a stable D-BUS interface to manage the deployment of Server Roles. </summary>
++
++########################################
++## <summary>
++##	Execute rolekit in the rolekit domin.
++## </summary>
++## <param name="domain">
++## <summary>
++##	Domain allowed to transition.
++## </summary>
++## </param>
++#
++interface(`rolekit_domtrans',`
++	gen_require(`
++		type rolekit_t, rolekit_exec_t;
++	')
++
++	corecmd_search_bin($1)
++	domtrans_pattern($1, rolekit_exec_t, rolekit_t)
++')
++
++########################################
++## <summary>
++##	Execute rolekit server in the rolekit domain.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed to transition.
++##	</summary>
++## </param>
++#
++interface(`rolekit_systemctl',`
++	gen_require(`
++		type rolekit_t;
++		type rolekit_unit_file_t;
++	')
++
++	systemd_exec_systemctl($1)
++    systemd_read_fifo_file_passwd_run($1)
++	allow $1 rolekit_unit_file_t:file read_file_perms;
++	allow $1 rolekit_unit_file_t:service manage_service_perms;
++
++	ps_process_pattern($1, rolekit_t)
++')
++
++########################################
++## <summary>
++##	Send and receive messages from
++##	policykit over dbus.
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++#
++interface(`rolekit_dbus_chat',`
++	gen_require(`
++		type rolekit_t;
++		class dbus send_msg;
++	')
++
++	ps_process_pattern(rolekit_t, $1)
++
++	allow $1 rolekit_t:dbus send_msg;
++	allow rolekit_t $1:dbus send_msg;
++')
++
++########################################
++## <summary>
++##	All of the rules required to administrate
++##	an rolekit environment
++## </summary>
++## <param name="domain">
++##	<summary>
++##	Domain allowed access.
++##	</summary>
++## </param>
++## <param name="role">
++##	<summary>
++##	Role allowed access.
++##	</summary>
++## </param>
++## <rolecap/>
++#
++interface(`rolekit_admin',`
++	gen_require(`
++		type rolekit_t;
++	type rolekit_unit_file_t;
++	')
++
++	allow $1 rolekit_t:process { signal_perms };
++	ps_process_pattern($1, rolekit_t)
++
++    tunable_policy(`deny_ptrace',`',`
++        allow $1 rolekit_t:process ptrace;
++    ')
++
++	rolekit_systemctl($1)
++	admin_pattern($1, rolekit_unit_file_t)
++	allow $1 rolekit_unit_file_t:service all_service_perms;
++	optional_policy(`
++		systemd_passwd_agent_exec($1)
++		systemd_read_fifo_file_passwd_run($1)
++	')
++')
+diff --git a/rolekit.te b/rolekit.te
+new file mode 100644
+index 0000000..a5d8389
+--- /dev/null
++++ b/rolekit.te
+@@ -0,0 +1,36 @@
++policy_module(rolekit, 1.0.0)
++
++########################################
++#
++# Declarations
++#
++
++type rolekit_t;
++type rolekit_exec_t;
++init_daemon_domain(rolekit_t, rolekit_exec_t)
++
++type rolekit_tmp_t;
++files_tmp_file(rolekit_tmp_t)
++
++type rolekit_unit_file_t;
++systemd_unit_file(rolekit_unit_file_t)
++
++########################################
++#
++# rolekit local policy
++#
++
++allow rolekit_t self:fifo_file rw_fifo_file_perms;
++allow rolekit_t self:unix_stream_socket create_stream_socket_perms;
++
++manage_files_pattern(rolekit_t, rolekit_tmp_t, rolekit_tmp_t)
++manage_dirs_pattern(rolekit_t, rolekit_tmp_t, rolekit_tmp_t)
++files_tmp_filetrans(rolekit_t, rolekit_tmp_t, { file dir })
++
++kernel_read_system_state(rolekit_t)
++
++auth_use_nsswitch(rolekit_t)
++
++optional_policy(`
++    unconfined_domain(rolekit_t)
++')
 diff --git a/roundup.if b/roundup.if
 index 975bb6a..ce4f5ea 100644
 --- a/roundup.if

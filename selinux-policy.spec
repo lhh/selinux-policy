@@ -19,7 +19,7 @@
 Summary: SELinux policy configuration
 Name: selinux-policy
 Version: 3.13.1
-Release: 88%{?dist}
+Release: 89%{?dist}
 License: GPLv2+
 Group: System Environment/Base
 Source: serefpolicy-%{version}.tgz
@@ -604,6 +604,10 @@ SELinux Reference policy mls base module.
 %endif
 
 %changelog
+* Wed Oct 22 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-89
+- Add rolekit policy based on lvrabec@redhat.com policy. This is more unconfined initial policy to allow us to add dbus chat with random domains
+- Allow domains to dbus chat with rolekit.
+
 * Tue Oct 21 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-88
 - Allow couchdb read sysctl_fs_t files. BZ(1154327)
 - Allow osad to connect to jabber client port. BZ (1154242)
