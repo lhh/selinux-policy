@@ -19,7 +19,7 @@
 Summary: SELinux policy configuration
 Name: selinux-policy
 Version: 3.13.1
-Release: 89%{?dist}
+Release: 90%{?dist}
 License: GPLv2+
 Group: System Environment/Base
 Source: serefpolicy-%{version}.tgz
@@ -604,7 +604,10 @@ SELinux Reference policy mls base module.
 %endif
 
 %changelog
-* Wed Oct 22 2014 Lukas Vrabec <lvrabec@redhat.com> 3.13.1-89
+* Wed Oct 22 2014 Miroslav Grepl <mgrepl@redhat.com> 3.13.1-90
+- Additional fixes for rolekit
+
+* Wed Oct 22 2014 Miroslav Grepl <mgrepl@redhat.com> 3.13.1-89
 - Add rolekit policy based on lvrabec@redhat.com policy. This is more unconfined initial policy to allow us to add dbus chat with random domains
 - Allow domains to dbus chat with rolekit.
 
