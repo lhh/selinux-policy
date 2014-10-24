@@ -1,0 +1,27 @@
+From 1f572ea24e6f5b5b7c33d62333318d89a480e2fa Mon Sep 17 00:00:00 2001
+From: Lon Hohberger <lhh@redhat.com>
+Date: Fri, 24 Oct 2014 16:13:33 -0400
+Subject: [PATCH 3/3] Add missing allow rules for bz1114254
+
+Signed-off-by: Lon Hohberger <lhh@redhat.com>
+---
+ quantum.te | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/quantum.te b/quantum.te
+index 4b53f7f..aa2bbdf 100644
+--- a/quantum.te
++++ b/quantum.te
+@@ -148,6 +148,9 @@ optional_policy(`
+ optional_policy(`
+     rhcs_domtrans_haproxy(neutron_t)
+     rhcs_stream_connect_haproxy(neutron_t)
++
++    manage_files_pattern(haproxy_t, neutron_var_lib_t, neutron_var_lib_t)
++    manage_sock_files_pattern(haproxy_t, neutron_var_lib_t, neutron_var_lib_t)
+ ')
+ 
+ optional_policy(`
+-- 
+1.9.3
+

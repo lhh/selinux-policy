@@ -1,0 +1,28 @@
+From 8e0c4d3faa8ad8c572be3524b67da8cc8ea0f512 Mon Sep 17 00:00:00 2001
+From: Lon Hohberger <lhh@redhat.com>
+Date: Fri, 24 Oct 2014 18:43:51 -0400
+Subject: [PATCH] Add 15672 as amqp_port_t
+
+Resolves: rhbz#1107873
+
+Signed-off-by: Lon Hohberger <lhh@redhat.com>
+---
+ policy/modules/kernel/corenetwork.te.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/policy/modules/kernel/corenetwork.te.in b/policy/modules/kernel/corenetwork.te.in
+index 57afd42..2f2f2b9 100644
+--- a/policy/modules/kernel/corenetwork.te.in
++++ b/policy/modules/kernel/corenetwork.te.in
+@@ -106,7 +106,7 @@ network_port(agentx, udp,705,s0, tcp,705,s0)
+ network_port(amanda, udp,10080-10082,s0, tcp,10080-10083,s0)
+ network_port(amavisd_recv, tcp,10024,s0)
+ network_port(amavisd_send, tcp,10025,s0)
+-network_port(amqp, udp,5671-5672,s0, tcp,5671-5672,s0)
++network_port(amqp, udp,5671-5672,s0, tcp,5671-5672,s0, tcp,15672,s0)
+ network_port(aol, udp,5190-5193,s0, tcp,5190-5193,s0) 
+ network_port(apc, tcp,3052,s0, udp,3052,s0)
+ network_port(apcupsd, tcp,3551,s0, udp,3551,s0)
+-- 
+1.9.3
+

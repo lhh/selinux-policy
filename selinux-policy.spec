@@ -19,13 +19,24 @@
 Summary: SELinux policy configuration
 Name: selinux-policy
 Version: 3.13.1
-Release: 91%{?dist}
+Release: 91rdo%{?dist}.1
 License: GPLv2+
 Group: System Environment/Base
 Source: serefpolicy-%{version}.tgz
 patch: policy-f21-base.patch
 patch1: policy-f21-contrib.patch
 patch2: policy-f21-base-cockpit.patch
+
+patch1000: 0001-Allow-neutron_t-proxy-to-bind-to-http_port_t.patch
+patch1001: 0002-Fixes-from-openstack-selinux.patch
+patch1002: 0003-Add-missing-allow-rules-for-bz1114254.patch
+patch1003: 0004-Allow-mysql-to-exec-rsync.patch
+patch1004: 0005-Import-nova-ssh-fix-from-openstack-selinux.patch
+patch1005: 0006-Import-nova.te-fix-for-nova_network_t.patch
+
+patch2000: 0001-Add-15672-as-amqp_port_t.patch
+
+
 Source1: modules-targeted-base.conf 
 Source31: modules-targeted-contrib.conf
 Source2: booleans-targeted.conf
@@ -331,10 +342,21 @@ Based off of reference policy: Checked out revision  2.20091117
 %prep 
 %setup -n serefpolicy-contrib-%{version} -q -b 29
 %patch1 -p1
+
+%patch1000 -p1
+%patch1001 -p1
+%patch1002 -p1
+%patch1003 -p1
+%patch1004 -p1
+%patch1005 -p1
+
 contrib_path=`pwd`
 %setup -n serefpolicy-%{version} -q
 %patch -p1
 %patch2 -p1
+
+%patch2000 -p1
+
 refpolicy_path=`pwd`
 cp $contrib_path/* $refpolicy_path/policy/modules/contrib
 
@@ -604,6 +626,9 @@ SELinux Reference policy mls base module.
 %endif
 
 %changelog
+* Fri Oct 24 2014 Lon Hohberger <lhh@redhat.com> 3.13.1-91rdo.1
+- Import fixes from openstack-selinux
+
 * Fri Oct 24 2014 Miroslav Grepl <mgrepl@redhat.com> 3.13.1-91
 - Allow rolekit transition to rpm_script_t.
 - Need to label rpmnew file correctly

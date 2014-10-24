@@ -1,0 +1,28 @@
+From 32de135bf944b7b3a6c5e33ad1702e31e355cb25 Mon Sep 17 00:00:00 2001
+From: Ryan Hallisey <rhallise@redhat.com>
+Date: Fri, 24 Oct 2014 18:44:24 -0400
+Subject: [PATCH] Import nova.te fix for nova_network_t
+
+Fixes bz 1095869
+---
+ nova.te | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/nova.te b/nova.te
+index 4863fb0..c1a0f19 100644
+--- a/nova.te
++++ b/nova.te
+@@ -220,7 +220,9 @@ auth_use_nsswitch(nova_console_t)
+ # nova network local policy
+ #
+ 
+-allow nova_network_t self:capability { dac_override net_admin net_bind_service };
++allow nova_network_t self:capability { dac_override net_admin net_raw net_bind_service sys_ptrace kill };
++allow nova_network_t self:capability2 block_suspend;
++
+ allow nova_network_t self:process { getcap setcap };
+ 
+ allow nova_network_t self:netlink_route_socket r_netlink_socket_perms;
+-- 
+1.9.3
+

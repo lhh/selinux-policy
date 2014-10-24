@@ -1,0 +1,51 @@
+From 484ffff2b5ada4f341a5d657ebe6ce99e61bb1d1 Mon Sep 17 00:00:00 2001
+From: Lon Hohberger <lhh@redhat.com>
+Date: Fri, 24 Oct 2014 16:07:31 -0400
+Subject: [PATCH] Fixes from openstack-selinux
+
+Corrects previous fix for nova.te
+Drops ipsec_mgmt_exec_t line from neutron
+
+Resolves: rhbz#1135510
+
+Signed-off-by: Lon Hohberger <lhh@redhat.com>
+---
+ glance.te | 6 ++++--
+ nova.te   | 4 ++++
+ 2 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/glance.te b/glance.te
+index b558e60..a2738be 100644
+--- a/glance.te
++++ b/glance.te
+@@ -90,8 +90,10 @@ corenet_tcp_sendrecv_generic_if(glance_domain)
+ corenet_tcp_sendrecv_generic_node(glance_domain)
+ corenet_tcp_sendrecv_all_ports(glance_domain)
+ corenet_tcp_bind_generic_node(glance_domain)
+-corenet_tcp_connect_mysqld_port(glance_domain)
+-corenet_tcp_connect_http_port(glance_domain)
++
++corenet_tcp_connect_all_ports(glance_domain)
++#corenet_tcp_connect_mysqld_port(glance_domain)
++#corenet_tcp_connect_http_port(glance_domain)
+ 
+ corecmd_exec_bin(glance_domain)
+ corecmd_exec_shell(glance_domain)
+diff --git a/nova.te b/nova.te
+index 2d92a3d..d0cb403 100644
+--- a/nova.te
++++ b/nova.te
+@@ -128,6 +128,10 @@ logging_send_syslog_msg(nova_api_t)
+ miscfiles_read_certs(nova_api_t)
+ 
+ optional_policy(`
++	sssd_dontaudit_stream_connect(nova_api_t)
++')
++
++optional_policy(`
+ 	iptables_domtrans(nova_api_t)
+ ')
+ 
+-- 
+1.9.3
+

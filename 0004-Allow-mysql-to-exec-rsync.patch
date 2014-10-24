@@ -1,0 +1,30 @@
+From 7e0cadb1a5af438a99d31a903a32ee9c2114256e Mon Sep 17 00:00:00 2001
+From: Lon Hohberger <lhh@redhat.com>
+Date: Fri, 24 Oct 2014 17:56:14 -0400
+Subject: [PATCH 1/2] Allow mysql to exec rsync
+
+Fix from openstack-selinux, bz 1081544
+
+Signed-off-by: Lon Hohberger <lhh@redhat.com>
+---
+ mysql.te | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/mysql.te b/mysql.te
+index e14423d..47038dc 100644
+--- a/mysql.te
++++ b/mysql.te
+@@ -164,6 +164,10 @@ optional_policy(`
+ 	udev_read_db(mysqld_t)
+ ')
+ 
++optional_policy(`
++	rsync_exec(mysqld_t)
++')
++
+ #######################################
+ #
+ # Local mysqld_safe policy
+-- 
+1.9.3
+
