@@ -12303,10 +12303,12 @@ index 0000000..f50b201
 +	gnome_dontaudit_write_config_files(chrome_sandbox_nacl_t)
 +')
 diff --git a/chronyd.fc b/chronyd.fc
-index 4e4143e..a665b32 100644
+index 4e4143e..d5e0260 100644
 --- a/chronyd.fc
 +++ b/chronyd.fc
-@@ -2,6 +2,8 @@
+@@ -1,7 +1,9 @@
+-/etc/chrony\.keys	--	gen_context(system_u:object_r:chronyd_keys_t,s0)
++/etc/chrony\.keys.*	--	gen_context(system_u:object_r:chronyd_keys_t,s0)
  
  /etc/rc\.d/init\.d/chronyd	--	gen_context(system_u:object_r:chronyd_initrc_exec_t,s0)
  
@@ -23053,7 +23055,7 @@ index c697edb..31d45bf 100644
 +	allow $1 dhcpd_unit_file_t:service all_service_perms;
  ')
 diff --git a/dhcp.te b/dhcp.te
-index 98a24b9..5b576ff 100644
+index 98a24b9..401ddbc 100644
 --- a/dhcp.te
 +++ b/dhcp.te
 @@ -20,6 +20,9 @@ init_daemon_domain(dhcpd_t, dhcpd_exec_t)
@@ -23066,6 +23068,15 @@ index 98a24b9..5b576ff 100644
  type dhcpd_state_t;
  files_type(dhcpd_state_t)
  
+@@ -34,7 +37,7 @@ files_pid_file(dhcpd_var_run_t)
+ # Local policy
+ #
+ 
+-allow dhcpd_t self:capability { chown dac_override sys_chroot net_raw setgid setuid sys_resource };
++allow dhcpd_t self:capability { chown dac_override sys_chroot net_raw setgid setuid setpcap sys_resource };
+ dontaudit dhcpd_t self:capability { net_admin sys_tty_config };
+ allow dhcpd_t self:process { getcap setcap signal_perms };
+ allow dhcpd_t self:fifo_file rw_fifo_file_perms;
 @@ -58,7 +61,6 @@ kernel_read_system_state(dhcpd_t)
  kernel_read_kernel_sysctls(dhcpd_t)
  kernel_read_network_state(dhcpd_t)
@@ -83546,10 +83557,10 @@ index 0000000..8d833ed
 +')
 diff --git a/rolekit.te b/rolekit.te
 new file mode 100644
-index 0000000..da7bd10
+index 0000000..da94453
 --- /dev/null
 +++ b/rolekit.te
-@@ -0,0 +1,43 @@
+@@ -0,0 +1,47 @@
 +policy_module(rolekit, 1.0.0)
 +
 +########################################
@@ -83585,6 +83596,10 @@ index 0000000..da7bd10
 +
 +optional_policy(`
 +    sssd_domtrans(rolekit_t)
++')
++
++optional_policy(`
++    rpm_transition_script(rolekit_t, system_r)
 +')
 +
 +optional_policy(`

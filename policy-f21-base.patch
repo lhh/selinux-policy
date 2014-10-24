@@ -29278,7 +29278,7 @@ index bc0ffc8..7198bd9 100644
  ')
 +/var/run/systemd(/.*)?		gen_context(system_u:object_r:init_var_run_t,s0)
 diff --git a/policy/modules/system/init.if b/policy/modules/system/init.if
-index 79a45f6..f142c45 100644
+index 79a45f6..b88e8a2 100644
 --- a/policy/modules/system/init.if
 +++ b/policy/modules/system/init.if
 @@ -1,5 +1,21 @@
@@ -30745,7 +30745,7 @@ index 79a45f6..f142c45 100644
 +		type init_t;
 +	')
 +
-+	allow $1 init_t:service { start stop reload status };
++	allow $1 init_t:service manage_service_perms;
 +')
 +
 +########################################
@@ -41158,10 +41158,10 @@ index 0000000..d2a8fc7
 +')
 diff --git a/policy/modules/system/systemd.te b/policy/modules/system/systemd.te
 new file mode 100644
-index 0000000..5b904b0
+index 0000000..a75ffd3
 --- /dev/null
 +++ b/policy/modules/system/systemd.te
-@@ -0,0 +1,699 @@
+@@ -0,0 +1,700 @@
 +policy_module(systemd, 1.0.0)
 +
 +#######################################
@@ -41813,6 +41813,7 @@ index 0000000..5b904b0
 +allow systemd_sysctl_t self:unix_dgram_socket create_socket_perms;
 +
 +kernel_dgram_send(systemd_sysctl_t)
++kernel_request_load_module(systemd_sysctl_t)
 +kernel_rw_all_sysctls(systemd_sysctl_t)
 +kernel_write_security_state(systemd_sysctl_t)
 +

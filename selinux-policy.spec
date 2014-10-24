@@ -19,7 +19,7 @@
 Summary: SELinux policy configuration
 Name: selinux-policy
 Version: 3.13.1
-Release: 90%{?dist}
+Release: 91%{?dist}
 License: GPLv2+
 Group: System Environment/Base
 Source: serefpolicy-%{version}.tgz
@@ -604,6 +604,11 @@ SELinux Reference policy mls base module.
 %endif
 
 %changelog
+* Fri Oct 24 2014 Miroslav Grepl <mgrepl@redhat.com> 3.13.1-91
+- Allow rolekit transition to rpm_script_t.
+- Need to label rpmnew file correctly
+- Allow setpcap capability for dhcpd.
+
 * Wed Oct 22 2014 Miroslav Grepl <mgrepl@redhat.com> 3.13.1-90
 - Additional fixes for rolekit
 
